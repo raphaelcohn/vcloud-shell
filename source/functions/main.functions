@@ -33,7 +33,11 @@ main_functions+=(main_login)
 
 function main_curl()
 {
-	api_org
+	local api
+	for api in "${apis[@]}"
+	do
+		api_${api}
+	done
 }
 main_functions+=(main_curl)
 

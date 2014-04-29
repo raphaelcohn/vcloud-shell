@@ -1,25 +1,33 @@
 function curl_wrapperLoggedInApiCall()
 {
 	local -r verb="$1"
-	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes="$2"
+	local -r relativePath="$2"
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
 	local -i curl_httpResponseCode
-	local curl_downloadFilePath
 	
-	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
+	curl_wrapperSetAcceptHeader
 	curl_requestHeaders['x-vcloud-authorization']="${api_token}"
-	curl_wrapper "$verb" "$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"
+	
+	curl_wrapper "$verb" "${api_map["${relativePath}"]}"
+	
+	if [ $curl_httpResponseCode -ne 200 ]; then
+		informationMessage FAIL "${relativePath}: Failed to call ${api_map["${relativePath}"]} (HTTP Response Code was $curl_httpResponseCode)"
+		exit 1
+	fi
+}
+
+function curl_wrapperSetAcceptHeader()
+{
+	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
 }
 
 function curl_wrapper()
 {
 	local -r verb="$1"
 	
-	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes="$2"
-	
-	local -r url="https://${configuration_api_hostname}:${configuration_api_port}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
+	local -r url="$2"
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r headersFilePath="$TMP_FILE"
@@ -98,11 +106,6 @@ function curl_wrapper()
 		# ,, converts to lowercase. Whilst headers are case insensitive, using consistent casing makes life easier when debugging
 		curlArgs+=('--header' "${curl_requestHeader_name,,}: ${curl_requestHeaders["$curl_requestHeader_name"]}")
 	done
-	# For login, need this
-	# --header 'Accept: application/*+xml;version=VERSION'
-	
-	# For after login, need the above AND
-	# --header 'x-vcloud-authorization: W6DRv+IIl4go26GrG2JfqjMvk+MVifIv9TTBHz62nL0='
 	
 	# Verb
 	case "$verb" in

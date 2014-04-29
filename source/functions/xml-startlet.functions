@@ -1,0 +1,21 @@
+function xml_startlet_extractTsv()
+{
+	local -r filePath="$1"
+	local -r xpathMatch="$2"
+	shift 2
+	
+	declare -a outputArguments=()
+	local attributeOrElement
+	local -i afterFirst=0
+	for attributeOrElement in "$@"
+	do
+		if [ $afterFirst -eq 1 ]; then
+			outputArguments+=('--output' $'\t')
+		else
+			afterFirst=1
+		fi
+		outputArguments+=('--value-of' "$attributeOrElement")
+	done
+	
+	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" --nl "$filePath"
+}

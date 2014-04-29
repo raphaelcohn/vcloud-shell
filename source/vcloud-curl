@@ -104,7 +104,7 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ]-- url
+Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ] [-x format] -- apis
 
 Argument-less Switches
     -h  show this help
@@ -117,10 +117,18 @@ Argumented Switches
     -p pathsPath          ${pathsPath}
     -n netrcFilePath      (not used if not present)
     -r curlrcFilePath     (not used if not present)
+    -x format             ${format}
     --                    End of arguments
 
 Variable Arguments
-    url        A list of urls
+    apis        A list of API GET calls to make
+
+Supported apis
+
+    org       List of organisations (? how to specify additional arguments)
+
+Format
+Format controls output. It can be either tsv or xml. Input is always assumed to be valid XML.
 
 netrc Files
 netrc files are searched for automatically, and are used to specify user name and password credentials. If more than one
@@ -182,6 +190,7 @@ to automatically install any missing dependencies. The PATH variable is reset to
 	exit $1
 }
 
+apis=()
 function loadAnyConfiguration()
 {
 	language="en_GB.UTF-8"
@@ -192,10 +201,10 @@ function loadAnyConfiguration()
 	beDebug="no"
 	netrcFilePath=""
 	curlrcFilePath=""
+	format="tsv"
 	
 	# PUT IN api.conf
-	configuration_api_hostname=api.vcd.portal.skyscapecloud.com
-	configuration_api_port=443
+	configuration_api_baseUrl=https://api.vcd.portal.skyscapecloud.com
 	configuration_api_version=5.5
 	
 	# PUT IN curl.conf
@@ -255,6 +264,10 @@ function parseCommandLine()
 				curlrcFilePath="$OPTARG"
 			;;
 			
+			x)
+				format="$OPTARG"
+			;;
+			
 			'?')
 				exitError "Invalid option -${OPTARG}"
 			;;
@@ -264,7 +277,7 @@ function parseCommandLine()
 	
 	shift $((OPTIND - 1))
 	
-	urls=("$@")
+	apis=("$@")
 	
 	function makeCommandLinePathsAbsolute()
 	{
@@ -309,8 +322,20 @@ function validateCommandLineArguments()
 		fi
 	fi
 	
-	if [ ${#urls[@]} -eq 0 ]; then
-		exitError "Please specify at least one url"
+	case "$format" in
+		
+		xml|tsv)
+			:
+		;;
+		
+		*)
+			exitError "Please specify format as either tsv or xml, not $format"
+		;;
+		
+	esac
+	
+	if [ ${#apis[@]} -eq 0 ]; then
+		exitError "Please specify at least one api"
 	fi
 }
 
@@ -349,6 +374,7 @@ function main()
 	
 	sourceFunctions "$functionsPath"
 	
+	declare -A api_map
 	main_executeMainFunctions
 }
 

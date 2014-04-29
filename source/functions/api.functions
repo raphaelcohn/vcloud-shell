@@ -1,16 +1,15 @@
-function api_versions()
+
+function api_org()
 {
-	declare -A curl_requestHeaders=()
-	declare -A curl_responseHeaders=()
-	local -i curl_httpResponseCode
 	local curl_downloadFilePath
+	curl_wrapperLoggedInApiCall GET /api/org/
 	
-	curl_wrapper GET /api/versions
-	
-	if [ $curl_httpResponseCode -ne 200 ]; then
-		informationMessage FAIL "Could not connect to $configuration_api_hostname (HTTP Response Code was $curl_httpResponseCode)"
-		exit 1
+	if [ "$format" = "xml" ]; then
+		cat "$curl_downloadFilePath"
+		return 0
 	fi
+	
+	xml_startlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@type' '@name' '@href'
 }
 
 api_token=""
@@ -21,20 +20,105 @@ function api_sessions()
 	local -i curl_httpResponseCode
 	local curl_downloadFilePath
 	
-	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
-	curl_wrapper POST /api/sessions
+	curl_wrapperSetAcceptHeader
+	curl_wrapper POST "${api_map['/api/sessions']}"
 	if [ $curl_httpResponseCode -ne 200 ]; then
-		informationMessage FAIL "Could not log in to $configuration_api_hostname (HTTP Response Code was $curl_httpResponseCode)"
+		informationMessage FAIL "Could not log in to $configuration_api_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
 		exit 1
 	fi
 	
 	api_token="${curl_responseHeaders['x-vcloud-authorization']}"
 	
-	# -: means the default namespace (not needed if there's no xmlns definition)
-	xml sel --text --template --match /_:Session/_:Link --value-of "@rel" --output $'\t' --value-of "@type" --output $'\t' --value-of "@href" --output $'\t' --value-of "@name" --nl "$curl_downloadFilePath"
+	#down	application/vnd.vmware.vcloud.orgList+xml	https://api.vcd.portal.skyscapecloud.com/api/org/	
+	#remove		https://api.vcd.portal.skyscapecloud.com/api/session/	
+	#down	application/vnd.vmware.admin.vcloud+xml	https://api.vcd.portal.skyscapecloud.com/api/admin/	
+	#down	application/vnd.vmware.vcloud.org+xml	https://api.vcd.portal.skyscapecloud.com/api/org/3a2900f9-f15c-49d6-8771-bdd8bbebe456	98-184-1-151d73
+	#down	application/vnd.vmware.vcloud.query.queryList+xml	https://api.vcd.portal.skyscapecloud.com/api/query	
+	#entityResolver	application/vnd.vmware.vcloud.entity+xml	https://api.vcd.portal.skyscapecloud.com/api/entity/	
+	#down:extensibility	application/vnd.vmware.vcloud.apiextensibility+xml	https://api.vcd.portal.skyscapecloud.com/api/extensibility
+	local relation
+	local href
+	local mimeType
+	local name
+	local apiKey
+	# bash seems to be compressing empty fields
+	while IFS=$'\t' read -r -d $'\n' relation href mimeType name
+	do
+		# Probably the 'remove' link
+		if [ -z "$mimeType" ]; then
+			apiKey=/api/session/
+		else
+			case "$mimeType" in
+			
+				application/vnd.vmware.vcloud.orgList+xml)
+					apiKey=/api/org/
+				;;
+				
+				application/vnd.vmware.admin.vcloud+xml)
+					apiKey=/api/admin/
+				;;
+				
+				# name
+				application/vnd.vmware.vcloud.org+xml)
+					#"$name"
+					continue
+					#apiKey=/api/org/3a2900f9-f15c-49d6-8771-bdd8bbebe456
+				;;
+				
+				application/vnd.vmware.vcloud.query.queryList+xml)
+					apiKey=/api/query
+				;;
+				
+				application/vnd.vmware.vcloud.entity+xml)
+					apiKey=/api/entity/
+				;;
+				
+				application/vnd.vmware.vcloud.apiextensibility+xml)
+					apiKey=/api/extensibility
+				;;
+				
+				*)
+					continue
+				;;
+				
+			esac
+		fi
+		
+		api_map["$apiKey"]="$href"
+		
+	# _: means the default namespace (not needed if there's no xmlns definition)
+	done < <(xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
 }
 
-function api_org()
+function api_versions()
 {
-	curl_wrapperLoggedInApiCall GET /api/org/ -
+	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes='/api/versions'
+	api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]="${configuration_api_baseUrl}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
+	
+	declare -A curl_requestHeaders=()
+	declare -A curl_responseHeaders=()
+	local -i curl_httpResponseCode
+	local curl_downloadFilePath
+	
+	curl_wrapper GET "${api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]}"
+	
+	if [ $curl_httpResponseCode -ne 200 ]; then
+		informationMessage FAIL "Could not connect to $configuration_api_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
+		exit 1
+	fi
+	
+	# _: means the default namespace (not needed if there's no xmlns definition)
+	temporaryFiles_newFileToRemoveOnExit
+	local -r tsvFilePath="$TMP_FILE"
+	xml_startlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	
+	if ! grep --quiet "^${configuration_api_version}"$'\t' "$tsvFilePath"; then
+		informationMessage FAIL "API version (configuration_api_version) $configuration_api_version is not supported"
+		exit 1
+	fi
+	
+	local version
+	local sessionsUrl
+	IFS=$'\t' read -r -d $'\n' version sessionsUrl <<<"$(grep "^${configuration_api_version}"$'\t' "$tsvFilePath")"
+	api_map['/api/sessions']="$sessionsUrl"
 }
