@@ -104,7 +104,7 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ] [-x format] -- command <args>
+Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ] [-o format] -- command <args>
 
 Argument-less Switches
     -h  show this help
@@ -117,7 +117,7 @@ Argumented Switches
     -p pathsPath          ${pathsPath}
     -n netrcFilePath      (not used if not present)
     -r curlrcFilePath     (not used if not present)
-    -x format             ${format}
+    -o format             ${format}
     --                    End of arguments
 
 command
@@ -127,7 +127,7 @@ This is a command followed by optional <args>. Supported commands are:-
     org <name>  Org details for <name>, eg 98-184-1-151d73
 
 Format
-Format controls output. It can be either tsv or xml. Input is always assumed to be valid XML.
+Format controls output. The list of valid formats varies by command, but xml is always supported and links produces links.
 
 netrc Files
 netrc files are searched for automatically, and are used to specify user name and password credentials. If more than one
@@ -201,7 +201,7 @@ function loadAnyConfiguration()
 	beDebug="no"
 	netrcFilePath=""
 	curlrcFilePath=""
-	format="tsv"
+	format="xml"
 	
 	# PUT IN api.conf
 	configuration_api_baseUrl=https://api.vcd.portal.skyscapecloud.com
@@ -228,7 +228,7 @@ function parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:s:p:f:o: option
+	while getopts :hvdc:s:p:f:n:r:o: option
 	do
 		case "$option" in
 			
@@ -264,7 +264,7 @@ function parseCommandLine()
 				curlrcFilePath="$OPTARG"
 			;;
 			
-			x)
+			o)
 				format="$OPTARG"
 			;;
 			
@@ -283,17 +283,17 @@ function parseCommandLine()
 	
 	function makeCommandLinePathsAbsolute()
 	{
-		pushd "$configPath">/dev/null
+		pushd "$configPath" 1>/dev/null
 			configPath="$(pwd)"
-		popd >/dev/null
+		popd 1>/dev/null
 
-		pushd "$functionsPath">/dev/null
+		pushd "$functionsPath" 1>/dev/null
 			functionsPath="$(pwd)"
-		popd >/dev/null
+		popd 1>/dev/null
 
-		pushd "$pathsPath">/dev/null
+		pushd "$pathsPath" 1>/dev/null
 			pathsPath="$(pwd)"
-		popd >/dev/null
+		popd 1>/dev/null
 	}
 	makeCommandLinePathsAbsolute
 }
@@ -323,18 +323,6 @@ function validateCommandLineArguments()
 			exitError "-r curlrcFilePath $curlrcFilePath does not exist or is not a file"
 		fi
 	fi
-	
-	case "$format" in
-		
-		xml|tsv)
-			:
-		;;
-		
-		*)
-			exitError "Please specify format as either tsv or xml, not $format"
-		;;
-		
-	esac
 	
 	if [ -z "${commandLineCommand}" ]; then
 		exitError "Please specify a command for the commandLine"

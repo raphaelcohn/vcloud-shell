@@ -1,7 +1,7 @@
-function curl_wrapperLoggedInApiCall()
+function curl_wrapperLoggedInAbsoluteApiCall()
 {
 	local -r verb="$1"
-	local -r relativePath="$2"
+	local -r absolutePath="$2"
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
@@ -10,12 +10,20 @@ function curl_wrapperLoggedInApiCall()
 	curl_wrapperSetAcceptHeader
 	curl_requestHeaders['x-vcloud-authorization']="${api_token}"
 	
-	curl_wrapper "$verb" "${api_map["${relativePath}"]}"
+	curl_wrapper "$verb" "$absolutePath"
 	
 	if [ $curl_httpResponseCode -ne 200 ]; then
-		informationMessage FAIL "${relativePath}: Failed to call ${api_map["${relativePath}"]} (HTTP Response Code was $curl_httpResponseCode)"
+		informationMessage FAIL "${relativePath}: Failed to call ${absolutePath} (HTTP Response Code was $curl_httpResponseCode)"
 		exit 1
 	fi
+}
+
+function curl_wrapperLoggedInRelativeApiCall()
+{
+	local -r verb="$1"
+	local -r relativePath="$2"
+	
+	curl_wrapperLoggedInAbsoluteApiCall "$verb" "${api_map["${relativePath}"]}"
 }
 
 function curl_wrapperSetAcceptHeader()

@@ -1,15 +1,78 @@
 
+function api_org()
+{
+	if [ $# -ne 1 ]; then
+		exitError "command org requires <name>"
+	fi
+	local -r orgName="$1"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r orgsTsvFile="$TMP_FILE"
+	format=links api_orgs >"$orgsTsvFile"
+	
+	local foundHref=""
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$orgName" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$orgsTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find org $orgName"
+		exitError 1
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
+		;;
+		
+		id)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org' '@id'
+		;;
+		
+		data)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org' '_:FullName' '_:Description'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml or links, not $format"
+		;;
+		
+	esac
+}
+
 function api_orgs()
 {
 	local curl_downloadFilePath
-	curl_wrapperLoggedInApiCall GET /api/org/
+	curl_wrapperLoggedInRelativeApiCall GET /api/org/
 	
-	if [ "$format" = "xml" ]; then
-		cat "$curl_downloadFilePath"
-		return 0
-	fi
-	
-	xml_startlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@type' '@name' '@href'
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@href' '@type' '@name'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml or links, not $format"
+		;;
+		
+	esac
 }
 
 # We really need to specify a 'command line'
