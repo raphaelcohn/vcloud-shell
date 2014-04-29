@@ -3,8 +3,9 @@ function api_versions()
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
 	local -i curl_httpResponseCode
+	local curl_downloadFilePath
 	
-	curl_wrapper GET /api/versions /dev/null
+	curl_wrapper GET /api/versions
 	
 	if [ $curl_httpResponseCode -ne 200 ]; then
 		informationMessage FAIL "Could not connect to $configuration_api_hostname (HTTP Response Code was $curl_httpResponseCode)"
@@ -18,14 +19,19 @@ function api_sessions()
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
 	local -i curl_httpResponseCode
+	local curl_downloadFilePath
+	
 	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
-	curl_wrapper POST /api/sessions /dev/null
+	curl_wrapper POST /api/sessions
 	if [ $curl_httpResponseCode -ne 200 ]; then
 		informationMessage FAIL "Could not log in to $configuration_api_hostname (HTTP Response Code was $curl_httpResponseCode)"
 		exit 1
 	fi
 	
 	api_token="${curl_responseHeaders['x-vcloud-authorization']}"
+	
+	# -: means the default namespace (not needed if there's no xmlns definition)
+	xml sel --text --template --match /_:Session/_:Link --value-of "@rel" --output $'\t' --value-of "@type" --output $'\t' --value-of "@href" --output $'\t' --value-of "@name" --nl "$curl_downloadFilePath"
 }
 
 function api_org()

@@ -2,15 +2,15 @@ function curl_wrapperLoggedInApiCall()
 {
 	local -r verb="$1"
 	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes="$2"
-	# Use - for stdout
-	local -r downloadFilePath="$3"
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
 	local -i curl_httpResponseCode
+	local curl_downloadFilePath
+	
 	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
 	curl_requestHeaders['x-vcloud-authorization']="${api_token}"
-	curl_wrapper "$verb" "$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes" "$downloadFilePath"
+	curl_wrapper "$verb" "$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"
 }
 
 function curl_wrapper()
@@ -18,9 +18,6 @@ function curl_wrapper()
 	local -r verb="$1"
 	
 	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes="$2"
-	
-	# Use - for stdout
-	local -r downloadFilePath="$3"
 	
 	local -r url="https://${configuration_api_hostname}:${configuration_api_port}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
 	
@@ -133,12 +130,8 @@ function curl_wrapper()
 	curlArgs+=('--url' "$url")
 	
 	# Output file, use - for stdout
-	if [ "$downloadFilePath" = "-" ]; then
-		temporaryFiles_newFileToRemoveOnExit
-		local -r actualDownloadFilePath="$TMP_FILE"
-	else
-		local -r actualDownloadFilePath="$downloadFilePath"
-	fi
+	temporaryFiles_newFileToRemoveOnExit
+	local -r actualDownloadFilePath="$TMP_FILE"
 	curlArgs+=('--output' "$actualDownloadFilePath")
 	
 	# Headers file
@@ -166,6 +159,7 @@ function curl_wrapper()
 		
 		0)
 			curl_httpResponseCode="$(awk '{print $1}' "$downloadDetailsFilePath")"
+			curl_downloadFilePath="$actualDownloadFilePath"
 			
 			while IFS=$'\t' read -r -d $'\n' name value
 			do
@@ -176,10 +170,6 @@ function curl_wrapper()
 				# ,, converts to lower case (makes headers consistent to work with)
 				curl_responseHeaders["${name,,}"]="$value"
 			done < <(tail -n +2 "$headersFilePath" | tr -d '\r' | awk -F': ' -v OFS=$'\t' '{print $1,$2}')
-			
-			if [ "$downloadFilePath" = "-" ]; then
-				cat "$actualDownloadFilePath"
-			fi
 			
 			return 0
 		;;
