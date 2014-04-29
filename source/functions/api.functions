@@ -1,3 +1,28 @@
+function api_admin()
+{
+	if [ $# -ne 0 ]; then
+		exitError "command admin takes no <args>"
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInRelativeApiCall GET /api/admin
+	
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@href' '@type' '@name'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml or links, not $format"
+		;;
+		
+	esac
+}
 
 function api_org()
 {
@@ -65,7 +90,7 @@ function api_orgs()
 		;;
 		
 		links)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@href' '@type' '@name'
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name'
 		;;
 		
 		*)
@@ -75,7 +100,36 @@ function api_orgs()
 	esac
 }
 
-# We really need to specify a 'command line'
+function api_session()
+{
+	if [ $# -ne 0 ]; then
+		exitError "command session takes no <args>"
+	fi
+
+	local curl_downloadFilePath
+	curl_wrapperLoggedInRelativeApiCall GET /api/session/
+	
+	
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@href' '@type' '@name'
+		;;
+		
+		id)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml or links, not $format"
+		;;
+		
+	esac
+}
 
 api_token=""
 function api_sessions()
