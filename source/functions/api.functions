@@ -25,7 +25,7 @@ function api_sessions()
 		exit 1
 	fi
 	
-	api_token=curl_responseHeaders['x-vcloud-authorization']
+	api_token="${curl_responseHeaders['x-vcloud-authorization']}"
 }
 
 function api_org()

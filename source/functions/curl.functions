@@ -167,12 +167,15 @@ function curl_wrapper()
 		0)
 			curl_httpResponseCode="$(awk '{print $1}' "$downloadDetailsFilePath")"
 			
-			# head -n 1 to remove HTTP response line
 			while IFS=$'\t' read -r -d $'\n' name value
 			do
+				# terminated by two trailing lines
+				if [ -z "$name" ]; then
+					continue
+				fi
 				# ,, converts to lower case (makes headers consistent to work with)
 				curl_responseHeaders["${name,,}"]="$value"
-			done < <(head -n 1 "$headersFilePath" | awk -F': ' -v OFS=$'\t' '{print $1,$2}')
+			done < <(tail -n +2 "$headersFilePath" | tr -d '\r' | awk -F': ' -v OFS=$'\t' '{print $1,$2}')
 			
 			if [ "$downloadFilePath" = "-" ]; then
 				cat "$actualDownloadFilePath"
