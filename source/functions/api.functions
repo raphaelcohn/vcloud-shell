@@ -1,5 +1,5 @@
 
-function api_org()
+function api_orgs()
 {
 	local curl_downloadFilePath
 	curl_wrapperLoggedInApiCall GET /api/org/
@@ -11,6 +11,8 @@ function api_org()
 	
 	xml_startlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@type' '@name' '@href'
 }
+
+# We really need to specify a 'command line'
 
 api_token=""
 function api_sessions()

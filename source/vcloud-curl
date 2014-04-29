@@ -104,7 +104,7 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ] [-x format] -- apis
+Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ] [-x format] -- command <args>
 
 Argument-less Switches
     -h  show this help
@@ -120,12 +120,11 @@ Argumented Switches
     -x format             ${format}
     --                    End of arguments
 
-Variable Arguments
-    apis        A list of API GET calls to make
+command
+This is a command followed by optional <args>. Supported commands are:-
 
-Supported apis
-
-    org       List of organisations (? how to specify additional arguments)
+    orgs        List of organisations
+    org <name>  Org details for <name>, eg 98-184-1-151d73
 
 Format
 Format controls output. It can be either tsv or xml. Input is always assumed to be valid XML.
@@ -190,7 +189,8 @@ to automatically install any missing dependencies. The PATH variable is reset to
 	exit $1
 }
 
-apis=()
+commandLineCommand=""
+commandLineArgs=()
 function loadAnyConfiguration()
 {
 	language="en_GB.UTF-8"
@@ -277,7 +277,9 @@ function parseCommandLine()
 	
 	shift $((OPTIND - 1))
 	
-	apis=("$@")
+	commandLineCommand=("$1")
+	shift 1
+	commandLineArgs=("$@")
 	
 	function makeCommandLinePathsAbsolute()
 	{
@@ -334,8 +336,8 @@ function validateCommandLineArguments()
 		
 	esac
 	
-	if [ ${#apis[@]} -eq 0 ]; then
-		exitError "Please specify at least one api"
+	if [ -z "${commandLineCommand}" ]; then
+		exitError "Please specify a command for the commandLine"
 	fi
 }
 

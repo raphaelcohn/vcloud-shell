@@ -33,11 +33,7 @@ main_functions+=(main_login)
 
 function main_curl()
 {
-	local api
-	for api in "${apis[@]}"
-	do
-		api_${api}
-	done
+	api_${commandLineCommand} "${commandLineArgs[@]}"
 }
 main_functions+=(main_curl)
 
