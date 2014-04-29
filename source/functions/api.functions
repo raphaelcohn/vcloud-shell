@@ -1,7 +1,56 @@
 function api_admin()
 {
+	if [ $# -ne 1 ]; then
+		exitError "command admin takes <name>"
+	fi
+	
+	local -r orgName="$1"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r orgsTsvFile="$TMP_FILE"
+	format=links api_admins >"$orgsTsvFile"
+	
+	local foundHref=""
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$orgName" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$orgsTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find org $orgName"
+		exitError 1
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id)
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+		;;
+		
+		# links settings/links settings/* users groups catalogs vdcs networks
+		
+		*)
+			exitError "Please specify format as either xml, links, id or data, not $format"
+		;;
+		
+	esac
+}
+
+function api_admins()
+{
 	if [ $# -ne 0 ]; then
-		exitError "command admin takes no <args>"
+		exitError "command admins takes no <args>"
 	fi
 	
 	local curl_downloadFilePath
@@ -26,7 +75,7 @@ function api_admin()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml or links, not $format"
+			exitError "Please specify format as either xml, links, id or data, not $format"
 		;;
 		
 	esac
@@ -72,15 +121,11 @@ function api_org()
 		;;
 		
 		id)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org' '@id'
-		;;
-		
-		data)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org' '_:FullName' '_:Description'
+			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
 		;;
 		
 		*)
-			exitError "Please specify format as either xml or links, not $format"
+			exitError "Please specify format as either xml, links, or id, not $format"
 		;;
 		
 	esac
@@ -133,7 +178,7 @@ function api_session()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml or links, not $format"
+			exitError "Please specify format as either xml, links or id, not $format"
 		;;
 		
 	esac
