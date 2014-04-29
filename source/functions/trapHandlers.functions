@@ -1,0 +1,26 @@
+function trapHandlers_runAll()
+{
+	# Done to make sure we're not got a cwd that prevents us unmounting
+	cd /
+	informationMessage INFO "trapHandlers_runAll"
+	exiting=yes
+	local trapHandler
+	for trapHandler in "${trapHandlers[@]}"
+	do
+		informationMessage INFO "${tab}$trapHandler"
+		$trapHandler
+	done
+}
+
+function trapHandlers_addNext()
+{
+	local trapHandler="$1"
+	trap trapHandlers_runAll 0 HUP INT QUIT ILL ABRT FPE SEGV PIPE TERM EXIT
+	trapHandlers+=("$trapHandler")
+}
+
+# not used currently
+function trapHandlers_removeLast()
+{
+	unset trapHandlers[$((${#trapHandlers[*]}-1))]
+}

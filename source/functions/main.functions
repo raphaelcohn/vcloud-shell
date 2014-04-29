@@ -1,0 +1,52 @@
+main_functions=()
+
+main_functions+=(language_setDefaults)
+
+function main_registerTrapHandlers()
+{
+	trapHandlers_addNext mounting_removeMountPointsOnExit
+	trapHandlers_addNext temporaryFiles_removeAll
+}
+main_functions+=(main_registerTrapHandlers)
+
+main_functions+=(dependency_installDependencies)
+
+main_configDefaultsPath=""
+function main_setSomePaths()
+{
+	return 0
+	
+	main_configDefaultsPath="$configPath"/defaults
+	if [ ! -d "$main_configDefaultsPath" ]; then
+		informationMessage FAIL "Defaults config missing at path $main_configDefaultsPath"
+		exit 1
+	fi
+}
+main_functions+=(main_setSomePaths)
+
+function main_curl()
+{
+	declare -A curl_requestHeaders=()
+	curl_wrapper GET https://api.vcd.portal.skyscapecloud.com/api/versions -
+	
+	# allow additional .curlrc and .netrc files
+	
+	# verify .netrc file contains an entry for api.vcd.portal.skyscapecloud.com
+	declare -A curl_requestHeaders=()
+	local configuration_api_version=5.5
+	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
+	curl_wrapper POST https://api.vcd.portal.skyscapecloud.com/
+	
+	#x-vcloud-authorization: 7qyTOZOsaTdzmBPqQOFqYwZGXrTaVU8ef3ZB7ilXurA=
+}
+main_functions+=(main_curl)
+
+function main_executeMainFunctions()
+{
+	local main_function
+	for main_function in "${main_functions[@]}"
+	do
+		informationMessage INFO "${main_function}"
+		$main_function
+	done
+}

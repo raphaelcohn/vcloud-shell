@@ -1,0 +1,213 @@
+# consider integration with logger, so we can start doing some audit recording
+
+# These can be trivially overwritten in ~/.curlrc, /etc/curlrc, etc
+configuration_curl_userAgent="$ourName"
+configuration_curl_maxRedirs=5
+configuration_curl_retries=20
+
+
+
+function curl_wrapper()
+{
+	local -r verb="$1"
+	
+	local -r url="$2"
+	# Use - for stdout
+	local -r downloadFilePath="$3"
+	
+	temporaryFiles_addFileToRemoveOnExit
+	local -r headersFilePath="$TMP_FILE"
+	
+	temporaryFiles_addFileToRemoveOnExit
+	local -r stderrFilePath="$TMP_FILE"
+	
+	temporaryFiles_addFileToRemoveOnExit
+	local -r downloadDetailsFilePath="$TMP_FILE"
+	
+	temporaryFiles_addFileToRemoveOnExit
+	local -r asciiTraceFilePath="$TMP_FILE"
+	
+	declare -a curlArgs=()
+	
+	# -q as the first parameter prevents default configuration file loadings
+	curlArgs+=('-q')
+	
+	# Arguments that can be overridden by configuration
+	curlArgs+=('--user-agent' "$configuration_curl_userAgent")
+	
+	# Some of the vCloud API calls use redirection
+	curlArgs+=('--max-redirs' "$configuration_curl_maxRedirs")
+	
+	curlArgs+=('--retry' "$configuration_curl_retries")
+	
+	# NOTE: Whilst this sequences of commands can add multiple --netrc switches, only the last is acted upon, unlike --config, which is acted on multiple times
+	# Technically, .netrc only exists in $HOME, but we want to give a little more flexibility
+	# netrc files have lines likes machine host.domain.com login myself password secret (machine X, username Y, password X)
+	
+	if [ -z "$netrcFilePath" ]; then
+		curl_wrapperConfigArg --netrc-file "$CURL_HOME" .netrc
+		curl_wrapperConfigArg --netrc-file "$HOME" .netrc
+		curl_wrapperConfigArg --netrc-file /etc netrc
+		curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
+		curl_wrapperConfigArg --netrc-file /etc "$ourName".netrc
+	else
+		curlArgs+=('--netrc-file' "$netrcFilePath")
+	fi
+	
+	# Overridding of configuration occurs after setting are options; machine-wide always wins
+	if [ -z "$curlrcFilePath" ]; then
+		curl_wrapperConfigArg --config "$CURL_HOME" .curlrc
+		curl_wrapperConfigArg --config "$HOME" .curlrc
+		curl_wrapperConfigArg --config /etc curlrc
+		curl_wrapperConfigArg --config "$HOME" "$ourName".curlrc
+		curl_wrapperConfigArg --config /etc "$ourName".curlrc
+		local configFile
+		for configFile in /etc/"$ourName".d/curlrc.d/*.curlrc
+		do
+			if [ -f "$configFile" ]; then
+				curlArgs+=('--config' "$configFile")
+			fi
+		done
+	else
+		curlArgs+=('--config' "$curlrcFilePath")
+	fi
+	
+	# Override any setting of URL, TLS, etc after configuration loaded
+	
+	# more script-friendly output (note exitCode will be 22)
+	curlArgs+=('--fail' '--silent' '--show-error')
+	
+	# Uses HTTP Date header if available to set the timestamp of any downloaded file
+	curlArgs+=('--location')
+	
+	curlArgs+=('--tlsv1')
+	
+	#curlArgs+=('--compressed')
+	
+	curlArgs+=('--remote-time')
+	
+	# Tracing
+	curlArgs+=('--trace-time' '--trace-ascii' "$downloadsLogsPath"/"$fileName".trace-ascii.log)
+	
+	local curl_requestHeader_name
+	for curl_requestHeader_name in "${curl_requestHeaders[@]}"
+	do
+		# ,, converts to lowercase. Whilst headers are case insensitive, using consistent casing makes life easier when debugging
+		curlArgs+=('--header' "${curl_requestHeader_name,,}: ${curl_requestHeaders["$curl_requestHeader_name"]}")
+	done
+	# For login, need this
+	# --header 'Accept: application/*+xml;version=VERSION'
+	
+	# For after login, need the above AND
+	# --header 'x-vcloud-authorization: W6DRv+IIl4go26GrG2JfqjMvk+MVifIv9TTBHz62nL0='
+	
+	# Verb
+	case "$verb" in
+		
+		GET)
+			:
+		;;
+		
+		POST)
+			curlArgs+=('--data' '')
+		;;
+		
+		*)
+			informationMessage FAIL "Verb $verb is not supported"
+			exit 1
+		;;
+		
+	esac
+	
+	# URL
+	curlArgs+=('--url' "$url")
+	
+	# Output file, use - for stdout
+	if [ "$downloadFilePath" = "-" ]; then
+		temporaryFiles_addFileToRemoveOnExit
+		local -r actualDownloadFilePath="$TMP_FILE"
+	else
+		local -r actualDownloadFilePath="$downloadFilePath"
+	fi
+	curlArgs+=('--output' "$actualDownloadFilePath")
+	
+	# Headers file
+	curlArgs+=('--dump-header' "$headersFilePath")
+	
+	# stderr file (a TMP_FILE could be appropriate)
+	curlArgs+=('--stderr' "$stderrFilePath")
+	
+	# useful if debugging - redirection goes to downloadDetailsFilePath
+	curlArgs+=('--write-out' '%{http_code}\t%{url_effective}\t%{ssl_verify_result}\t%{http_connect}\t%{time_total}\t%{size_download}\t%{speed_download}\t%{num_redirects}\n')
+	
+	# tracing of the connection (useful if debugging)
+	curlArgs+=('--trace-time' '--trace-ascii' "$asciiTraceFilePath")
+	
+	set +e
+	curl "${curlArgs[@]}" 1>"$downloadDetailsFilePath"
+	local -ir exitCode=$?
+	set -e
+	
+	case $exitCode in
+		
+		0)
+			if [ "$downloadFilePath" = "-" ]; then
+				cat "$actualDownloadFilePath"
+			fi
+			
+			echo
+			echo "WOW"
+			echo
+			cat "$headersFilePath"
+			
+			return 0
+		;;
+		
+		22)
+			local -r httpCode="$(awk '{print $1}' "$downloadDetailsFilePath")"
+			informationMessage FAIL "HTTP error when retrieving $url"
+			exit 22
+		;;
+		
+		*)
+			informationMessage FAIL "Failed to retrieve $url (exit code was $exitCode)"
+			(
+				echo
+				echo "Standard Error was:-"
+				cat "$stderrFilePath"
+				echo
+				echo "Download details were:-"
+				cat "$downloadDetailsFilePath"
+				echo
+				echo "ASCII Trace was:-"
+				cat "$asciiTraceFilePath"
+			) 1>&2
+			exit 1
+		;;
+		
+	esac
+}
+
+function curl_wrapperConfigArg()
+{
+	local -r configSwitch="--config"
+	local -r fileParentFolderEnvironmentVariable="$2"
+	local -r fileName="$3"
+	
+	if [ -z "$fileParentFolderEnvironmentVariable" ]; then
+		return 0
+	fi
+	
+	local -r filePath="${fileParentFolderEnvironmentVariable}"/"${fileName}"
+	
+	if [ ! -f "$filePath" ]; then
+		return 0
+	fi
+	if [ ! -r "$filePath" ]; then
+		return 0
+	fi
+	if [ ! -s "$filePath" ]; then
+		return 0
+	fi
+	curlArgs+=("$configSwitch" "$filePath")
+}

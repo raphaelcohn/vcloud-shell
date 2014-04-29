@@ -1,0 +1,363 @@
+#!/usr/bin/env bash
+
+readonly tab=$'\t'
+function informationMessage()
+{
+	local messageKind="$1"
+	local message="$2"
+	
+	case "$messageKind" in
+		
+		WARN|FAIL)
+			echo "$ourName: $messageKind: $message" 1>&2
+		;;
+		
+		DEBUG)
+			if [ "$beDebug" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+		
+		*)
+			if [ "$beVerbose" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+	
+	esac
+}
+
+# The purpose of these functions is to provide internal implementations of logic we can't be 100%
+# sure of exists in the environment or is implemented as we would like for critical pieces of code.
+# Such a critical piece is code executed before and during command line arg parsing (eg exitError)
+function purebash_dirname()
+{
+	local -r converted="${1%/*}"
+	if [ "$converted" = "$1" ]; then
+		echo "."
+	else
+		echo "$converted"
+	fi
+}
+
+function purebash_basename()
+{
+	echo "${1##*/}"
+}
+
+function setDebugging()
+{
+	# is set -x on?
+	if [[ "$-" == *x* ]]; then
+		export VCLOUD_CURL_BASH_DEBUGGING="yes"
+	elif [ ! -z "$VCLOUD_CURL_BASH_DEBUGGING" ]; then
+		if [ "$VCLOUD_CURL_BASH_DEBUGGING" = "yes" ]; then
+			set -x
+		fi
+	fi
+}
+
+function setSaneEnvironmentDefaults()
+{
+	set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi
+	
+	unset BASH_ENV
+	unset BASH_XTRACEFD
+	unset CDPATH
+	unset ENV
+	unset FCEDIT
+	unset FIGNORE
+	unset FUNCNEST
+	unset GLOBIGNORE
+	unset HISTCONTROL
+	unset HISTFILE
+	unset HISTFILESIZE
+	unset HISTIGNORE
+	unset HISTSIZE
+	unset HISTTIMEFORMAT
+	unset HOSTFILE
+	unset IGNOREEOF
+	unset INPUTRC
+	unset MAIL
+	unset MAILCHECK
+	unset MAILPATH
+	unset TMOUT
+	
+	umask 022
+}
+
+function findOurNameAndPath()
+{
+	readonly ourName="$(purebash_basename "$0")"
+	pushd "$(purebash_dirname "$0")" >/dev/null
+		readonly crudeOurPath="$(pwd)"
+	popd >/dev/null
+}
+
+function exitError()
+{
+	local -r error="$1"
+	echo "$ourName: $error" 1>&2
+	exit 1
+}
+
+function exitHelp()
+{
+	echo -n -E "Usage: ${ourName} -h
+Usage: ${ourName} [-v] [-c configPath] [-s cachePath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ]-- url
+
+Argument-less Switches
+    -h  show this help
+    -v  be more verbose
+
+Argumented Switches
+    Argument              Default
+    -c configPath         ${configPath}
+    -s cachePath          ${cachePath}
+    -f functionsPath      ${functionsPath}
+    -p pathsPath          ${pathsPath}
+    -n netrcFilePath      (not used if not present)
+    -r curlrcFilePath     (not used if not present)
+    --                    End of arguments
+
+Variable Arguments
+    machine-groups        A list of machine-group names in configPath/machine-groups/
+
+netrc Files
+netrc files are searched for automatically, and are used to specify user name and password credentials. If more than one
+file is found, then the last one found is the one used. By default, the locations searched in order are:-
+    
+    CURL_HOME/.netrc
+    HOME/.netrc
+    /etc/netrc
+    HOME/$ourName.netrc
+    /etc/$ourName.netrc
+
+Additionally, the switch  -n netrcFilePath  can be used to specify a file. If this file exists, then it is used in preference to
+the search above.
+
+The netrc file should consist of lines in the format machine HOSTNAME login USER@ORGANIZATION password PASSWORD. The first
+matching entry is used, or, if no matching entries are present, the final 'default' entry. More details are in  man 5 netrc.
+
+HOSTNAME should be that of the vCloud portal. For Skyscape, it is  api.vcd.portal.skyscapecloud.com . In the vCloud 5.1 API
+documentation, this is the value 'vcloud.example.com'.
+
+curlc Files
+curlc files are searched for automatically, and are used to specify curl overrides. A typical use case is to configure proxy
+servers. If more than one file is found, then all are used, with any conflicting settings resolved with 'last one wins'.
+By default, the locations searched in order are:-
+    
+    CURL_HOME/.curlrc
+    HOME/.curlrc
+    /etc/curlrc
+    HOME/$ourName.curlrc
+    /etc/$ourName.curlrc
+    All files matching /etc/"$ourName".d/curlrc.d/*.curlrc
+
+Additionally, the switch  -r curlrcFilePath  can be used to specify a file. If this file exists, then it is used in preference to
+the search above.
+
+Please note that not all curl configuration will be honoured, as we explicitly set --url, etc
+
+Paths
+A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
+to automatically install any missing dependencies. The PATH variable is reset to the location of these programs.
+" 1>&2
+	exit $1
+}
+
+machineGroupNames=()
+function loadAnyConfiguration()
+{
+	language="en_GB.UTF-8"
+	configPath="$crudeOurPath"/config
+	cachePath="$crudeOurPath"/cache
+	functionsPath="$crudeOurPath"/functions
+	pathsPath="$configPath"/paths
+	beVerbose="no"
+	beDebug="no"
+	netrcFilePath=""
+	curlrcFilePath=""
+	
+	if [ -r /etc/"$ourName"/configuration ]; then
+		source /etc/"$ourName"/configuration
+	fi
+	if [ -r ~/."$ourName" ]; then
+		source ~/."$ourName"
+	fi
+}
+
+function parseCommandLine()
+{
+	local OPTERR=1
+	local OPTIND=1
+	local OPTARG
+	local option
+	while getopts :hvdc:s:p:f:o: option
+	do
+		case "$option" in
+			
+			h)
+				exitHelp 2
+			;;
+			
+			v)
+				beVerbose="yes"
+			;;
+			
+			d)
+				beDebug="yes"
+			;;
+			
+			c)
+				configPath="$OPTARG"
+			;;
+			
+			s)
+				cachePath="$OPTARG"
+			;;
+			
+			f)
+				functionsPath="$OPTARG"
+			;;
+			
+			p)
+				pathsPath="$OPTARG"
+			;;
+			
+			n)
+				netrcFilePath="$OPTARG"
+			;;
+			
+			r)
+				curlrcFilePath="$OPTARG"
+			;;
+			
+			o)
+				if [ -z "$OPTARG" ]; then
+					exitError "Invalid option -o requires an argument"
+				fi
+			
+				case "$OPTARG" in
+					
+					no-chroot)
+						optionChroot="no"
+					;;
+					
+					yes-chroot)
+						optionChroot="yes"
+					;;
+					
+					*)
+						exitError "Invalid option -o ${OPTARG}"
+					;;
+					
+				esac
+			;;
+			
+			'?')
+				exitError "Invalid option -${OPTARG}"
+			;;
+			
+		esac
+	done
+	
+	shift $((OPTIND - 1))
+	
+	urls=("$@")
+	
+	function makeCommandLinePathsAbsolute()
+	{
+		pushd "$configPath">/dev/null
+			configPath="$(pwd)"
+		popd >/dev/null
+
+		pushd "$cachePath">/dev/null
+			cachePath="$(pwd)"
+		popd >/dev/null
+
+		pushd "$functionsPath">/dev/null
+			functionsPath="$(pwd)"
+		popd >/dev/null
+
+		pushd "$pathsPath">/dev/null
+			pathsPath="$(pwd)"
+		popd >/dev/null
+	}
+	makeCommandLinePathsAbsolute
+}
+
+function validateCommandLineArguments()
+{
+	if [ ! -d "$configPath" ]; then
+		exitError "Config path $configPath does not exist or is not a directory"
+	fi
+	
+	if [ ! -d "$cachePath" ]; then
+		exitError "Cache path $cachePath does not exist or is not a directory"
+	fi
+	
+	if [ ! -d "$functionsPath" ]; then
+		exitError "Paths path $functionsPath does not exist or is not a directory"
+	fi
+	
+	if [ ! -d "$pathsPath" ]; then
+		exitError "Paths path $pathsPath does not exist or is not a directory"
+	fi
+	
+	if [ -n "$netrcFilePath" ]; then
+		if [ ! -f "$netrcFilePath" ]; then
+			exitError "-n netrcFilePath $netrcFilePath does not exist or is not a file"
+		fi
+	fi
+	
+	if [ -n "$curlrcFilePath" ]; then
+		if [ ! -f "$curlrcFilePath" ]; then
+			exitError "-r curlrcFilePath $curlrcFilePath does not exist or is not a file"
+		fi
+	fi
+	
+	if [ ${#urls[@]} -eq 0 ]; then
+		exitError "Please specify at least one url"
+	fi
+}
+
+function sourceFunctions()
+{
+	local -r pathToFunctions="$1"
+	pushd "$pathToFunctions" 1>/dev/null 2>/dev/null
+		
+		local functionFile
+		for functionFile in *.functions
+		do
+			if [ -f "$functionFile" ]; then
+				source "$functionFile"
+			fi
+		done
+		
+		local functionFolder
+		for functionFolder in *
+		do
+			if [ -d "$functionFolder" ]; then
+				sourceFunctions "$functionFolder"
+			fi
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+
+function main()
+{
+	setDebugging
+	setSaneEnvironmentDefaults
+	findOurNameAndPath
+	loadAnyConfiguration
+	parseCommandLine "$@"
+	validateCommandLineArguments
+	
+	sourceFunctions "$functionsPath"
+	
+	main_executeMainFunctions
+}
+
+main "$@"
