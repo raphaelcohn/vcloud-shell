@@ -1,0 +1,34 @@
+function api_versions()
+{
+	declare -A curl_requestHeaders=()
+	declare -A curl_responseHeaders=()
+	local -i curl_httpResponseCode
+	
+	curl_wrapper GET /api/versions /dev/null
+	
+	if [ $curl_httpResponseCode -ne 200 ]; then
+		informationMessage FAIL "Could not connect to $configuration_api_hostname (HTTP Response Code was $curl_httpResponseCode)"
+		exit 1
+	fi
+}
+
+api_token=""
+function api_sessions()
+{
+	declare -A curl_requestHeaders=()
+	declare -A curl_responseHeaders=()
+	local -i curl_httpResponseCode
+	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
+	curl_wrapper POST /api/sessions /dev/null
+	if [ $curl_httpResponseCode -ne 200 ]; then
+		informationMessage FAIL "Could not log in to $configuration_api_hostname (HTTP Response Code was $curl_httpResponseCode)"
+		exit 1
+	fi
+	
+	api_token=curl_responseHeaders['x-vcloud-authorization']
+}
+
+function api_org()
+{
+	curl_wrapperLoggedInApiCall GET /api/org/ -
+}

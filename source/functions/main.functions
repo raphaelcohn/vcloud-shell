@@ -4,7 +4,6 @@ main_functions+=(language_setDefaults)
 
 function main_registerTrapHandlers()
 {
-	trapHandlers_addNext mounting_removeMountPointsOnExit
 	trapHandlers_addNext temporaryFiles_removeAll
 }
 main_functions+=(main_registerTrapHandlers)
@@ -24,20 +23,17 @@ function main_setSomePaths()
 }
 main_functions+=(main_setSomePaths)
 
+function main_login()
+{
+	api_versions
+	
+	api_sessions
+}
+main_functions+=(main_login)
+
 function main_curl()
 {
-	declare -A curl_requestHeaders=()
-	curl_wrapper GET https://api.vcd.portal.skyscapecloud.com/api/versions -
-	
-	# allow additional .curlrc and .netrc files
-	
-	# verify .netrc file contains an entry for api.vcd.portal.skyscapecloud.com
-	declare -A curl_requestHeaders=()
-	local configuration_api_version=5.5
-	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
-	curl_wrapper POST https://api.vcd.portal.skyscapecloud.com/
-	
-	#x-vcloud-authorization: 7qyTOZOsaTdzmBPqQOFqYwZGXrTaVU8ef3ZB7ilXurA=
+	api_org
 }
 main_functions+=(main_curl)
 

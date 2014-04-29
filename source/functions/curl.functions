@@ -1,30 +1,39 @@
-# consider integration with logger, so we can start doing some audit recording
-
-# These can be trivially overwritten in ~/.curlrc, /etc/curlrc, etc
-configuration_curl_userAgent="$ourName"
-configuration_curl_maxRedirs=5
-configuration_curl_retries=20
-
-
+function curl_wrapperLoggedInApiCall()
+{
+	local -r verb="$1"
+	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes="$2"
+	# Use - for stdout
+	local -r downloadFilePath="$3"
+	
+	declare -A curl_requestHeaders=()
+	declare -A curl_responseHeaders=()
+	local -i curl_httpResponseCode
+	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
+	curl_requestHeaders['x-vcloud-authorization']="${api_token}"
+	curl_wrapper "$verb" "$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes" "$downloadFilePath"
+}
 
 function curl_wrapper()
 {
 	local -r verb="$1"
 	
-	local -r url="$2"
+	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes="$2"
+	
 	# Use - for stdout
 	local -r downloadFilePath="$3"
 	
-	temporaryFiles_addFileToRemoveOnExit
+	local -r url="https://${configuration_api_hostname}:${configuration_api_port}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
+	
+	temporaryFiles_newFileToRemoveOnExit
 	local -r headersFilePath="$TMP_FILE"
 	
-	temporaryFiles_addFileToRemoveOnExit
+	temporaryFiles_newFileToRemoveOnExit
 	local -r stderrFilePath="$TMP_FILE"
 	
-	temporaryFiles_addFileToRemoveOnExit
+	temporaryFiles_newFileToRemoveOnExit
 	local -r downloadDetailsFilePath="$TMP_FILE"
 	
-	temporaryFiles_addFileToRemoveOnExit
+	temporaryFiles_newFileToRemoveOnExit
 	local -r asciiTraceFilePath="$TMP_FILE"
 	
 	declare -a curlArgs=()
@@ -74,8 +83,8 @@ function curl_wrapper()
 	
 	# Override any setting of URL, TLS, etc after configuration loaded
 	
-	# more script-friendly output (note exitCode will be 22)
-	curlArgs+=('--fail' '--silent' '--show-error')
+	# more script-friendly output
+	curlArgs+=('--silent' '--show-error')
 	
 	# Uses HTTP Date header if available to set the timestamp of any downloaded file
 	curlArgs+=('--location')
@@ -86,11 +95,8 @@ function curl_wrapper()
 	
 	curlArgs+=('--remote-time')
 	
-	# Tracing
-	curlArgs+=('--trace-time' '--trace-ascii' "$downloadsLogsPath"/"$fileName".trace-ascii.log)
-	
 	local curl_requestHeader_name
-	for curl_requestHeader_name in "${curl_requestHeaders[@]}"
+	for curl_requestHeader_name in "${!curl_requestHeaders[@]}"
 	do
 		# ,, converts to lowercase. Whilst headers are case insensitive, using consistent casing makes life easier when debugging
 		curlArgs+=('--header' "${curl_requestHeader_name,,}: ${curl_requestHeaders["$curl_requestHeader_name"]}")
@@ -103,6 +109,10 @@ function curl_wrapper()
 	
 	# Verb
 	case "$verb" in
+		
+		HEAD)
+			curlArgs+=('-X' 'HEAD')
+		;;
 		
 		GET)
 			:
@@ -124,7 +134,7 @@ function curl_wrapper()
 	
 	# Output file, use - for stdout
 	if [ "$downloadFilePath" = "-" ]; then
-		temporaryFiles_addFileToRemoveOnExit
+		temporaryFiles_newFileToRemoveOnExit
 		local -r actualDownloadFilePath="$TMP_FILE"
 	else
 		local -r actualDownloadFilePath="$downloadFilePath"
@@ -148,25 +158,27 @@ function curl_wrapper()
 	local -ir exitCode=$?
 	set -e
 	
+	if [ "$beDebug" = "yes" ]; then
+		cat "$asciiTraceFilePath" 1>&2
+	fi
+	
 	case $exitCode in
 		
 		0)
+			curl_httpResponseCode="$(awk '{print $1}' "$downloadDetailsFilePath")"
+			
+			# head -n 1 to remove HTTP response line
+			while IFS=$'\t' read -r -d $'\n' name value
+			do
+				# ,, converts to lower case (makes headers consistent to work with)
+				curl_responseHeaders["${name,,}"]="$value"
+			done < <(head -n 1 "$headersFilePath" | awk -F': ' -v OFS=$'\t' '{print $1,$2}')
+			
 			if [ "$downloadFilePath" = "-" ]; then
 				cat "$actualDownloadFilePath"
 			fi
 			
-			echo
-			echo "WOW"
-			echo
-			cat "$headersFilePath"
-			
 			return 0
-		;;
-		
-		22)
-			local -r httpCode="$(awk '{print $1}' "$downloadDetailsFilePath")"
-			informationMessage FAIL "HTTP error when retrieving $url"
-			exit 22
 		;;
 		
 		*)
@@ -190,7 +202,7 @@ function curl_wrapper()
 
 function curl_wrapperConfigArg()
 {
-	local -r configSwitch="--config"
+	local -r configSwitch="$1"
 	local -r fileParentFolderEnvironmentVariable="$2"
 	local -r fileName="$3"
 	

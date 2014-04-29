@@ -104,7 +104,7 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-c configPath] [-s cachePath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ]-- url
+Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ]-- url
 
 Argument-less Switches
     -h  show this help
@@ -113,7 +113,6 @@ Argument-less Switches
 Argumented Switches
     Argument              Default
     -c configPath         ${configPath}
-    -s cachePath          ${cachePath}
     -f functionsPath      ${functionsPath}
     -p pathsPath          ${pathsPath}
     -n netrcFilePath      (not used if not present)
@@ -121,7 +120,7 @@ Argumented Switches
     --                    End of arguments
 
 Variable Arguments
-    machine-groups        A list of machine-group names in configPath/machine-groups/
+    url        A list of urls
 
 netrc Files
 netrc files are searched for automatically, and are used to specify user name and password credentials. If more than one
@@ -166,6 +165,16 @@ By default, the following locations are searched and files sourced as configurat
     /etc/${ourName}.d/configuration
     ~/.${ourName}
 
+The values that can be configured are:-
+    
+    configPath
+    functionsPath
+    pathsPath
+    netrcFilePath
+    curlrcFilePath
+    beVerbose        Set to yes or no
+    beDebug          Set to yes or no
+
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
 to automatically install any missing dependencies. The PATH variable is reset to the location of these programs.
@@ -173,18 +182,28 @@ to automatically install any missing dependencies. The PATH variable is reset to
 	exit $1
 }
 
-machineGroupNames=()
 function loadAnyConfiguration()
 {
 	language="en_GB.UTF-8"
 	configPath="$crudeOurPath"/config
-	cachePath="$crudeOurPath"/cache
 	functionsPath="$crudeOurPath"/functions
 	pathsPath="$configPath"/paths
 	beVerbose="no"
 	beDebug="no"
 	netrcFilePath=""
 	curlrcFilePath=""
+	
+	# PUT IN api.conf
+	configuration_api_hostname=api.vcd.portal.skyscapecloud.com
+	configuration_api_port=443
+	configuration_api_version=5.5
+	
+	# PUT IN curl.conf
+	# These can be trivially overwritten in ~/.curlrc, /etc/curlrc, etc
+	configuration_curl_userAgent="$ourName"
+	configuration_curl_maxRedirs=5
+	configuration_curl_retries=20
+	
 	
 	if [ -r /etc/"$ourName".d/configuration ]; then
 		source /etc/"$ourName".d/configuration
@@ -220,10 +239,6 @@ function parseCommandLine()
 				configPath="$OPTARG"
 			;;
 			
-			s)
-				cachePath="$OPTARG"
-			;;
-			
 			f)
 				functionsPath="$OPTARG"
 			;;
@@ -238,28 +253,6 @@ function parseCommandLine()
 			
 			r)
 				curlrcFilePath="$OPTARG"
-			;;
-			
-			o)
-				if [ -z "$OPTARG" ]; then
-					exitError "Invalid option -o requires an argument"
-				fi
-			
-				case "$OPTARG" in
-					
-					no-chroot)
-						optionChroot="no"
-					;;
-					
-					yes-chroot)
-						optionChroot="yes"
-					;;
-					
-					*)
-						exitError "Invalid option -o ${OPTARG}"
-					;;
-					
-				esac
 			;;
 			
 			'?')
@@ -279,10 +272,6 @@ function parseCommandLine()
 			configPath="$(pwd)"
 		popd >/dev/null
 
-		pushd "$cachePath">/dev/null
-			cachePath="$(pwd)"
-		popd >/dev/null
-
 		pushd "$functionsPath">/dev/null
 			functionsPath="$(pwd)"
 		popd >/dev/null
@@ -298,10 +287,6 @@ function validateCommandLineArguments()
 {
 	if [ ! -d "$configPath" ]; then
 		exitError "Config path $configPath does not exist or is not a directory"
-	fi
-	
-	if [ ! -d "$cachePath" ]; then
-		exitError "Cache path $cachePath does not exist or is not a directory"
 	fi
 	
 	if [ ! -d "$functionsPath" ]; then
