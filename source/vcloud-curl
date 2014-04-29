@@ -148,9 +148,9 @@ servers. If more than one file is found, then all are used, with any conflicting
 By default, the locations searched in order are:-
     
     CURL_HOME/.curlrc
-    HOME/.curlrc
+    ~/.curlrc
     /etc/curlrc
-    HOME/$ourName.curlrc
+    ~/$ourName.curlrc
     /etc/$ourName.curlrc
     All files matching /etc/"$ourName".d/curlrc.d/*.curlrc
 
@@ -158,6 +158,13 @@ Additionally, the switch  -r curlrcFilePath  can be used to specify a file. If t
 the search above.
 
 Please note that not all curl configuration will be honoured, as we explicitly set --url, etc
+
+Configuration
+Command line switches can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
+By default, the following locations are searched and files sourced as configuration in order:-
+
+    /etc/${ourName}.d/configuration
+    ~/.${ourName}
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
@@ -179,8 +186,8 @@ function loadAnyConfiguration()
 	netrcFilePath=""
 	curlrcFilePath=""
 	
-	if [ -r /etc/"$ourName"/configuration ]; then
-		source /etc/"$ourName"/configuration
+	if [ -r /etc/"$ourName".d/configuration ]; then
+		source /etc/"$ourName".d/configuration
 	fi
 	if [ -r ~/."$ourName" ]; then
 		source ~/."$ourName"
