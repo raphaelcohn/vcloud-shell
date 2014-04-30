@@ -215,9 +215,8 @@ function loadAnyConfiguration()
 	configuration_curl_maxRedirs=5
 	configuration_curl_retries=20
 	
-	
-	if [ -r /etc/"$ourName".d/configuration ]; then
-		source /etc/"$ourName".d/configuration
+	if [ -r /etc/"$ourName"/configuration ]; then
+		source /etc/"$ourName"/configuration
 	fi
 	if [ -r ~/."$ourName" ]; then
 		source ~/."$ourName"

@@ -81,10 +81,11 @@ function xml_starlet_keyValueTsv()
 }
 
 readonly xml_starlet_slash='/'
+readonly xml_starlet_at='@'
 function xml_starlet_convertXPath()
 {
-	# remove @
-	fieldName="${attributeOrElement/@/}"
+	# remove @ (doesn't work)
+	fieldName="${attributeOrElement/${xml_starlet_at}/}"
 	
 	# remove ../
 	fieldName="${attributeOrElement//..${xml_starlet_slash}/}"

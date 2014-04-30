@@ -83,7 +83,7 @@ function curl_wrapper()
 		curl_wrapperConfigArg --netrc-file "$HOME" .netrc
 		curl_wrapperConfigArg --netrc-file /etc netrc
 		curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
-		curl_wrapperConfigArg --netrc-file /etc "$ourName".netrc
+		curl_wrapperConfigArg --netrc-file "$configPath" netrc
 	else
 		curlArgs+=('--netrc-file' "$netrcFilePath")
 	fi
@@ -94,9 +94,9 @@ function curl_wrapper()
 		curl_wrapperConfigArg --config "$HOME" .curlrc
 		curl_wrapperConfigArg --config /etc curlrc
 		curl_wrapperConfigArg --config "$HOME" "$ourName".curlrc
-		curl_wrapperConfigArg --config /etc "$ourName".curlrc
+		curl_wrapperConfigArg --config "$configPath" curlrc
 		local configFile
-		for configFile in /etc/"$ourName".d/curlrc.d/*.curlrc
+		for configFile in "$configPath"/curlrc.d/*.curlrc
 		do
 			if [ -f "$configFile" ]; then
 				curlArgs+=('--config' "$configFile")

@@ -120,23 +120,40 @@ function copyToOutputFolder()
 	mkdir -m 0755 -p "$outputPath"
 	
 	readonly binFolder="$outputPath"/usr/bin
-	mkdir "$binFolder"
+	readonly etcFolder="$outputPath"/etc
+	
+	mkdir -m 0755 -p "$binFolder"
+	mkdir -m 0755 -p "$etcFolder"
 	
 	readonly vcloudCurlFile="$outputPath"/usr/bin/vcloud-curl
 	cp "$sourcePath"/vcloud-curl "$vcloudCurlFile"
 	chmod 0755 "$vcloudCurlFile"
 	
-	local -r etcFolder="$outputPath"/etc
-	rsync -a "$sourcePath"/config "$etcFolder"/vcloud-curl.d/
+	readonly configPath="$etcFolder"/vcloud-curl
+	mkdir -m 0755 -p "$configPath"
+	
+	rsync -a --exclude=.gitignore "$sourcePath"/config/ "$configPath"/
+}
+
+function createConfiguration()
+{
+	cat >"$configPath"/configuration <<-EOF
+		language="en_GB.UTF-8"
+		configPath=/etc/vcloud-curl
+		pathsPath=/etc/vcloud-curl/paths
+		beVerbose="no"
+		beDebug="no"
+		netrcFilePath=""
+		curlrcFilePath=""
+		format="xml"
+		heading=1
+	EOF
 }
 
 function concatenateFunctions()
 {
-	temporaryFiles_newFileToRemoveOnExit
-	readonly temporaryConcatenatedFunctions="$TMP_FILE"
-	
 	(
-		pushd "$functionsPath" 1>/dev/null 2>/dev/null
+		pushd "$1" 1>/dev/null 2>/dev/null
 		
 			local functionFile
 			for functionFile in *.functions
@@ -190,8 +207,13 @@ function main()
 	sourceFunctions
 	
 	trapHandlers_addNext temporaryFiles_removeAll
+	
 	copyToOutputFolder
-	concatenateFunctions
+	createConfiguration
+	
+	temporaryFiles_newFileToRemoveOnExit
+	readonly temporaryConcatenatedFunctions="$TMP_FILE"
+	concatenateFunctions "$functionsPath"
 	generateEdScriptForFunctions
 	patchFunctions
 	
