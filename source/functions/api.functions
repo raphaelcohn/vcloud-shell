@@ -44,14 +44,16 @@ function api_vdc()
 		id-bash)
 			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:AllocationModel' \
-				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
+				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
+				'_:ComputeCapacity/_:Memory/_:Units' '_:ComputeCapacity/_:Memory/_:Allocated' '_:ComputeCapacity/_:Memory/_:Limit' '_:ComputeCapacity/_:Memory/_:Reserved' '_:ComputeCapacity/_:Memory/_:Used' '_:ComputeCapacity/_:Memory/_:Overhead' \
 				'_:NicQuota' '_:NetworkQuota' '_:UsedNetworkCount' '_:VmQuota' '_:IsEnabled'
 		;;
 		
 		id-tsv)
 			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:AllocationModel' \
-				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
+				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
+				'_:ComputeCapacity/_:Memory/_:Units' '_:ComputeCapacity/_:Memory/_:Allocated' '_:ComputeCapacity/_:Memory/_:Limit' '_:ComputeCapacity/_:Memory/_:Reserved' '_:ComputeCapacity/_:Memory/_:Used' '_:ComputeCapacity/_:Memory/_:Overhead' \
 				'_:NicQuota' '_:NetworkQuota' '_:UsedNetworkCount' '_:VmQuota' '_:IsEnabled'
 		;;
 		
