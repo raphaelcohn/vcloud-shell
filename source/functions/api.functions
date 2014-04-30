@@ -1,3 +1,38 @@
+function api_supportedSystemsInfo()
+{
+	if [ $# -ne 0 ]; then
+		exitError "command supportedSystemsInfo takes no <args>"
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInRelativeApiCall GET /api/supportedSystemsInfo/
+	
+	local -r prefix="api_supportedSystemsInfo"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+		;;
+		
+		tsv)
+			:
+		;;
+		
+		*)
+			exitError "Please specify format as either xml or links, not $format"
+		;;
+		
+	esac
+}
+
 function api_admin()
 {
 	if [ $# -ne 1 ]; then
@@ -33,6 +68,18 @@ function api_admin()
 		
 		xml)
 			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			# Not every settings entry has a Link
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
 		;;
 		
 		id-bash)
@@ -186,6 +233,10 @@ function api_org()
 
 function api_orgs()
 {
+	if [ $# -ne 0 ]; then
+		exitError "command orgs takes no <args>"
+	fi
+	
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall GET /api/org/
 	
@@ -326,12 +377,15 @@ function api_sessions()
 		
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	done < <(xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	
 }
 
 function api_versions()
 {
 	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes='/api/versions'
 	api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]="${configuration_api_baseUrl}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
+	# found from /api/admin/<uuid>, not in the map from /api/sessions
+	api_map['/api/supportedSystemsInfo/']="${configuration_api_baseUrl}/api/supportedSystemsInfo/"
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
