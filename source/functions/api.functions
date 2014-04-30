@@ -9,7 +9,7 @@ function api_executeCommand()
 	for api_commandLineFunction in "${api_commandLineFunctions[@]}"
 	do
 		if [ "$api_commandLineFunction" = "$ourCommand" ]; then
-			api_${commandLineCommand} "$@"
+			api_${ourCommand} "$@"
 			return 0
 		fi
 	done
