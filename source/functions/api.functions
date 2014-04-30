@@ -8,7 +8,7 @@ function api_executeCommand()
 	local api_commandLineFunction
 	for api_commandLineFunction in "${api_commandLineFunctions[@]}"
 	do
-		if [ "$api_commandLineFunction" = "$commandLineCommand" ]; then
+		if [ "$api_commandLineFunction" = "$ourCommand" ]; then
 			api_${commandLineCommand} "$@"
 			return 0
 		fi
