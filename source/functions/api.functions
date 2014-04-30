@@ -35,10 +35,63 @@ function api_admin()
 		;;
 		
 		id)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
 		;;
 		
-		# links settings/links settings/* users groups catalogs vdcs networks
+		# links
+		
+		# could we generate a bash source-able file of key=value?
+		settings-org-general)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings' '_:CanPublishCatalogs' '_:CanPublishExternally' '_:CanSubscribe' '_:DeployedVMQuota' '_:StoredVmQuota' '_:UseServerBootSequence' '_:DelayAfterPowerOnSeconds'
+		;;
+		
+		settings-vapp-lease)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings' '_:DeleteOnStorageLeaseExpiration' '_:StorageLeaseSeconds' '_:DeploymentLeaseSeconds'
+		;;
+		
+		settings-vapp-template-lease)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings' '_:DeleteOnStorageLeaseExpiration' '_:StorageLeaseSeconds'
+		;;
+		
+		settings-org-ldap)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgLdapSettings' '_:OrgLdapMode' '_:CustomUsersOu'
+		;;
+		
+		settings-org-email)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings' '_:IsDefaultSmtpServer' '_:IsDefaultOrgEmail' '_:FromEmailAddress' '_:DefaultSubjectPrefix' '_:IsAlertEmailToAllAdmins' '_:SmtpServerSettings/_:IsUseAuthentication' '_:SmtpServerSettings/_:Host' '_:SmtpServerSettings/_:Port' '_:SmtpServerSettings/_:Username'
+		;;
+		
+		settings-org-password-policy)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings' '_:AccountLockoutEnabled' '_:InvalidLoginsBeforeLockout' '_:AccountLockoutIntervalMinutes'
+		;;
+		
+		settings-org-operation-limits)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings' '_:ConsolesPerVmLimit' '_:OperationsPerUser' '_:OperationsPerOrg'
+		;;
+		
+		settings-org-federation)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgFederationSettings' '_:Enabled'
+		;;
+		
+		users)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Users/_:UserReference' '@href' '@type' '@name'
+		;;
+		
+		groups)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Groups/_:GroupReference' '@href' '@type' '@name'
+		;;
+		
+		catalogs)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Catalogs/_:CatalogReference' '@href' '@type' '@name'
+		;;
+		
+		vdcs)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Vdcs/_:Vdc' '@href' '@type' '@name'
+		;;
+		
+		networks)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Networks/_:Network' '@href' '@type' '@name'
+		;;
 		
 		*)
 			exitError "Please specify format as either xml, links, id or data, not $format"
@@ -63,15 +116,15 @@ function api_admins()
 		;;
 		
 		links)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
 		;;
 		
 		id)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
 		;;
 		
 		data)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:VCloud' '_:Description'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud' '_:Description'
 		;;
 		
 		*)
@@ -117,11 +170,11 @@ function api_org()
 		;;
 		
 		links)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
 		;;
 		
 		id)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
 		;;
 		
 		*)
@@ -143,7 +196,7 @@ function api_orgs()
 		;;
 		
 		links)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name'
 		;;
 		
 		*)
@@ -170,11 +223,11 @@ function api_session()
 		;;
 		
 		links)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@href' '@type' '@name'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@href' '@type' '@name'
 		;;
 		
 		id)
-			xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
 		;;
 		
 		*)
@@ -259,7 +312,7 @@ function api_sessions()
 		api_map["$apiKey"]="$href"
 		
 	# _: means the default namespace (not needed if there's no xmlns definition)
-	done < <(xml_startlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	done < <(xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
 }
 
 function api_versions()
@@ -282,7 +335,7 @@ function api_versions()
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	temporaryFiles_newFileToRemoveOnExit
 	local -r tsvFilePath="$TMP_FILE"
-	xml_startlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
 	
 	if ! grep --quiet "^${configuration_api_version}"$'\t' "$tsvFilePath"; then
 		informationMessage FAIL "API version (configuration_api_version) $configuration_api_version is not supported"

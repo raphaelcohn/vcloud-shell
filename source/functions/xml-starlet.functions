@@ -1,4 +1,4 @@
-function xml_startlet_extractTsv()
+function xml_starlet_extractTsv()
 {
 	local -r filePath="$1"
 	local -r xpathMatch="$2"
