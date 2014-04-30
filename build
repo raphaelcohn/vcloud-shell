@@ -64,8 +64,6 @@ function setPaths()
 	readonly sourcePath="$rootPath"/source
 	readonly functionsPath="$sourcePath"/functions
 	readonly outputPath="$rootPath"/output
-	
-	readonly vcloudCurlFile="$sourcePath"/vcloud-curl
 }
 
 function sourceFunctions()
@@ -80,8 +78,15 @@ function copyToOutputFolder()
 	rm -rf "$outputPath"
 	mkdir -m 0755 -p "$outputPath"
 	
-	rsync -a "$sourcePath"/ "$outputPath"/
-	rm -rf "$outputPath"/functions
+	readonly binFolder="$outputPath"/usr/bin
+	mkdir "$binFolder"
+	
+	readonly vcloudCurlFile="$outputPath"/usr/bin/vcloud-curl
+	cp "$sourcePath"/vcloud-curl "$vcloudCurlFile"
+	chmod 0755 "$vcloudCurlFile"
+	
+	local -r etcFolder="$outputPath"/etc
+	rsync -a "$sourcePath"/config "$etcFolder"/vcloud-curl.d/
 }
 
 function concatenateFunctions()
@@ -104,7 +109,7 @@ function concatenateFunctions()
 			for functionFolder in *
 			do
 				if [ -d "$functionFolder" ]; then
-					sourceFunctions "$functionFolder"
+					concatenateFunctions "$functionFolder"
 				fi
 			done
 		
@@ -132,7 +137,7 @@ function generateEdScriptForFunctions()
 
 function patchFunctions()
 {
-	patch --ed "$outputPath"/vcloud-curl "$temporaryPatchFile"
+	patch --ed "$vcloudCurlFile" "$temporaryPatchFile"
 }
 
 function main()
