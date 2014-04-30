@@ -18,7 +18,6 @@ function api_executeCommand()
 	return 1
 }
 
-# add a traphandler to logout after login
 function api_logout()
 {
 	# don't logout if curl was the cause of the error (eg because a retry timed out)
