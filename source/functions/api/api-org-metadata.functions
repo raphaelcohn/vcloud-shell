@@ -53,3 +53,4 @@ function api_org_metadata()
 		
 	esac
 }
+api_commandLineFunctions+=(org_metadata)

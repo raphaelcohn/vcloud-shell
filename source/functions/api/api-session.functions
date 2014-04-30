@@ -32,3 +32,4 @@ function api_session()
 		
 	esac
 }
+api_commandLineFunctions+=(session)

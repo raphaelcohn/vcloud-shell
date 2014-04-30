@@ -83,3 +83,4 @@ function api_vdc()
 		
 	esac
 }
+api_commandLineFunctions+=(vdc)

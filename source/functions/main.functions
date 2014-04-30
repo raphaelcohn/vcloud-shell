@@ -31,11 +31,11 @@ function main_login()
 }
 main_functions+=(main_login)
 
-function main_curl()
+function main_executeCommandLine()
 {
-	api_${commandLineCommand} "${commandLineArgs[@]}"
+	api_executeCommand "${commandLineCommand}" "${commandLineArgs[@]}"
 }
-main_functions+=(main_curl)
+main_functions+=(main_executeCommandLine)
 
 function main_executeMainFunctions()
 {

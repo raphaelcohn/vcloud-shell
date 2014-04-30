@@ -34,3 +34,4 @@ function api_supportedSystemsInfo()
 		
 	esac
 }
+api_commandLineFunctions+=(supportedSystemsInfo)

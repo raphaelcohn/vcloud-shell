@@ -1,3 +1,22 @@
+api_commandLineFunctions=()
+
+function api_executeCommand()
+{
+	local -r ourCommand="$1"
+	shift 1
+	
+	local api_commandLineFunction
+	for api_commandLineFunction in "${api_commandLineFunctions[@]}"
+	do
+		if [ "$api_commandLineFunction" = "$commandLineCommand" ]; then
+			api_${commandLineCommand} "$@"
+			return 0
+		fi
+	done
+	
+	informationMessage FAIL "No known command $ourCommand"
+	return 1
+}
 
 api_token=""
 function api_sessions()

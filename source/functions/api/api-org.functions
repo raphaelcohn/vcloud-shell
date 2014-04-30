@@ -52,3 +52,4 @@ function api_org()
 		
 	esac
 }
+api_commandLineFunctions+=(org)

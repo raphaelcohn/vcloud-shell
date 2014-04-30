@@ -1,4 +1,3 @@
-
 function api_admin()
 {
 	if [ $# -ne 1 ]; then
@@ -106,3 +105,4 @@ function api_admin()
 		
 	esac
 }
+api_commandLineFunctions+=(admin)
