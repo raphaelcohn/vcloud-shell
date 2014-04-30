@@ -42,6 +42,7 @@ function curl_wrapperSetAcceptHeader()
 	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
 }
 
+curl_lastExitCode=0
 function curl_wrapper()
 {
 	local -r verb="$1"
@@ -174,14 +175,14 @@ function curl_wrapper()
 	
 	set +e
 	curl "${curlArgs[@]}" 1>"$downloadDetailsFilePath"
-	local -ir exitCode=$?
+	curl_lastExitCode=$?
 	set -e
 	
 	if [ "$beDebug" = "yes" ]; then
 		cat "$asciiTraceFilePath" 1>&2
 	fi
 	
-	case $exitCode in
+	case $curl_lastExitCode in
 		
 		0)
 			curl_httpResponseCode="$(awk '{print $1}' "$downloadDetailsFilePath")"

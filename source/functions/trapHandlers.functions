@@ -19,7 +19,6 @@ function trapHandlers_addNext()
 	trapHandlers+=("$trapHandler")
 }
 
-# not used currently
 function trapHandlers_removeLast()
 {
 	unset trapHandlers[$((${#trapHandlers[*]}-1))]

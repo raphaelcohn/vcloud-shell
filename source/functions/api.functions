@@ -21,11 +21,17 @@ function api_executeCommand()
 # add a traphandler to logout after login
 function api_logout()
 {
+	# don't logout if curl was the cause of the error (eg because a retry timed out)
+	if [ $curl_lastExitCode -ne 0 ]; then
+		return 0
+	fi
+	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInRelativeApiCall 204 DELETE /api/session/
+	curl_wrapperLoggedInAbsoluteApiCall 204 DELETE "$api_logoutAbsoluteUrl"
 }
 
 api_token=""
+api_logoutAbsoluteUrl=""
 function api_sessions()
 {
 	declare -A curl_requestHeaders=()
@@ -106,6 +112,7 @@ function api_sessions()
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	done < <(heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
 	
+	api_logoutAbsoluteUrl="${api_map['/api/session/']}"
 }
 
 function api_versions()
