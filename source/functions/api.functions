@@ -75,13 +75,13 @@ function api_admin()
 		links)
 			# Not every settings entry has a Link
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
 		;;
 		
 		id-bash)
