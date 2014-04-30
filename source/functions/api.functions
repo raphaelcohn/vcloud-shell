@@ -1,3 +1,87 @@
+# Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)
+function api_vdc()
+{
+	if [ $# -ne 2 ]; then
+		exitError "command admin requires <orgName> <vdcName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	
+	# Could be abstracted, too
+	temporaryFiles_newFileToRemoveOnExit
+	local -r adminTsvFile="$TMP_FILE"
+	format=links-vdcs heading=0 api_admin "$orgName" >"$adminTsvFile"
+	
+	# THERE ARE TWO VARIANTS OF THIS LOOP: match by name, and match by mimeType
+	local foundHref=""
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$vdcName" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$adminTsvFile"
+	
+	# duplicate
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find vdc $vdcName"
+		exitError 1
+	fi
+	
+	# duplicate
+	local curl_downloadFilePath
+	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	
+	local -r prefix="vdc"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
+				'_:Description' '_:AllocationModel' \
+				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
+				'_:NicQuota' '_:NetworkQuota' '_:UsedNetworkCount' '_:VmQuota' '_:IsEnabled'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
+				'_:Description' '_:AllocationModel' \
+				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
+				'_:NicQuota' '_:NetworkQuota' '_:UsedNetworkCount' '_:VmQuota' '_:IsEnabled'
+		;;
+		
+		links)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:Link' '@href' '@type' '@rel'
+		;;
+		
+		links-resource-entities)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:ResourceEntities/_:ResourceEntity' '@href' '@type' '@name'
+		;;
+		
+		links-networks)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:AvailableNetworks/_:Network' '@href' '@type' '@name'
+		;;
+		
+		links-storage-profiles)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:VdcStorageProfiles/_:VdcStorageProfile' '@href' '@type' '@name'
+		;;
+		
+		capabilities)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:Capabilities/_:SupportedHardwareVersions' '_:SupportedHardwareVersion'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml, id-bash, id-tsv or links, not $format"
+		;;
+		
+	esac
+}
+
 function api_org_metadata()
 {
 	if [ $# -ne 1 ]; then
@@ -28,7 +112,7 @@ function api_org_metadata()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
 	
-	local -r prefix="admin"
+	local -r prefix="org_metadata"
 	case "$format" in
 		
 		xml)
@@ -172,28 +256,28 @@ function api_admin()
 				'_:OrgFederationSettings/_:Enabled'
 		;;
 		
-		users)
+		links-users)
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Users/_:UserReference' '@href' '@type' '@name'
 		;;
 		
-		groups)
+		links-groups)
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Groups/_:GroupReference' '@href' '@type' '@name'
 		;;
 		
-		catalogs)
+		links-catalogs)
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Catalogs/_:CatalogReference' '@href' '@type' '@name'
 		;;
 		
-		vdcs)
+		links-vdcs)
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Vdcs/_:Vdc' '@href' '@type' '@name'
 		;;
 		
-		networks)
+		links-networks)
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Networks/_:Network' '@href' '@type' '@name'
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, users, groups, catalogs, vdcs or networks, not $format"
+			exitError "Please specify format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, links-users, links-groups, links-catalogs, links-vdcs or links-networks, not $format"
 		;;
 		
 	esac
