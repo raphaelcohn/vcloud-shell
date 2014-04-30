@@ -1,0 +1,54 @@
+function api_org()
+{
+	if [ $# -ne 1 ]; then
+		exitError "command org requires <orgName>"
+	fi
+	local -r orgName="$1"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r orgsTsvFile="$TMP_FILE"
+	format=links heading=0 api_orgs >"$orgsTsvFile"
+	
+	local foundHref=""
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$orgName" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$orgsTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find org $orgName"
+		exitError 1
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	
+	local -r prefix="org"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml, links, or id, not $format"
+		;;
+		
+	esac
+}

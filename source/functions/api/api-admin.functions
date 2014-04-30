@@ -1,0 +1,108 @@
+
+function api_admin()
+{
+	if [ $# -ne 1 ]; then
+		exitError "command admin requires <orgName>"
+	fi
+	
+	local -r orgName="$1"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r orgsTsvFile="$TMP_FILE"
+	format=links heading=0 api_admins >"$orgsTsvFile"
+	
+	local foundHref=""
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$orgName" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$orgsTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find org $orgName"
+		exitError 1
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	
+	local -r prefix="admin"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			# Not every settings entry has a Link
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
+			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+		;;
+		
+		settings-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
+				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
+				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
+				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \
+				'_:OrgLdapSettings/_:OrgLdapMode' '_:OrgLdapSettings/_:CustomUsersOu' \
+				'_:OrgEmailSettings/_:IsDefaultSmtpServer' '_:OrgEmailSettings/_:IsDefaultOrgEmail' '_:OrgEmailSettings/_:FromEmailAddress' '_:OrgEmailSettings/_:DefaultSubjectPrefix' '_:OrgEmailSettings/_:IsAlertEmailToAllAdmins' '_:OrgEmailSettings/_:SmtpServerSettings/_:IsUseAuthentication' '_:OrgEmailSettings/_:SmtpServerSettings/_:Host' '_:OrgEmailSettings/_:SmtpServerSettings/_:Port' '_:OrgEmailSettings/_:SmtpServerSettings/_:Username' \
+				'_:OrgPasswordPolicySettings/_:AccountLockoutEnabled' '_:OrgPasswordPolicySettings/_:InvalidLoginsBeforeLockout' '_:OrgPasswordPolicySettings/_:AccountLockoutIntervalMinutes' \
+				'_:OrgOperationLimitsSettings/_:ConsolesPerVmLimit' '_:OrgOperationLimitsSettings/_:OperationsPerUser' '_:OrgOperationLimitsSettings/_:OperationsPerOrg' \
+				'_:OrgFederationSettings/_:Enabled'
+		;;
+		
+		settings-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
+				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
+				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
+				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \
+				'_:OrgLdapSettings/_:OrgLdapMode' '_:OrgLdapSettings/_:CustomUsersOu' \
+				'_:OrgEmailSettings/_:IsDefaultSmtpServer' '_:OrgEmailSettings/_:IsDefaultOrgEmail' '_:OrgEmailSettings/_:FromEmailAddress' '_:OrgEmailSettings/_:DefaultSubjectPrefix' '_:OrgEmailSettings/_:IsAlertEmailToAllAdmins' '_:OrgEmailSettings/_:SmtpServerSettings/_:IsUseAuthentication' '_:OrgEmailSettings/_:SmtpServerSettings/_:Host' '_:OrgEmailSettings/_:SmtpServerSettings/_:Port' '_:OrgEmailSettings/_:SmtpServerSettings/_:Username' \
+				'_:OrgPasswordPolicySettings/_:AccountLockoutEnabled' '_:OrgPasswordPolicySettings/_:InvalidLoginsBeforeLockout' '_:OrgPasswordPolicySettings/_:AccountLockoutIntervalMinutes' \
+				'_:OrgOperationLimitsSettings/_:ConsolesPerVmLimit' '_:OrgOperationLimitsSettings/_:OperationsPerUser' '_:OrgOperationLimitsSettings/_:OperationsPerOrg' \
+				'_:OrgFederationSettings/_:Enabled'
+		;;
+		
+		links-users)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Users/_:UserReference' '@href' '@type' '@name'
+		;;
+		
+		links-groups)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Groups/_:GroupReference' '@href' '@type' '@name'
+		;;
+		
+		links-catalogs)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Catalogs/_:CatalogReference' '@href' '@type' '@name'
+		;;
+		
+		links-vdcs)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Vdcs/_:Vdc' '@href' '@type' '@name'
+		;;
+		
+		links-networks)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Networks/_:Network' '@href' '@type' '@name'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, links-users, links-groups, links-catalogs, links-vdcs or links-networks, not $format"
+		;;
+		
+	esac
+}

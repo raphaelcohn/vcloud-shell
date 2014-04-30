@@ -1,0 +1,55 @@
+function api_org_metadata()
+{
+	if [ $# -ne 1 ]; then
+		exitError "command admin requires <orgName>"
+	fi
+	
+	local -r orgName="$1"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r adminTsvFile="$TMP_FILE"
+	format=links heading=0 api_admin "$orgName" >"$adminTsvFile"
+	
+	local foundHref=""
+	local href mimeType rel
+	while IFS=$'\t' read -r -d $'\n' href mimeType rel
+	do
+		if [ "$mimeType" = "application/vnd.vmware.vcloud.metadata+xml" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$adminTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find org $orgName"
+		exitError 1
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	
+	local -r prefix="org_metadata"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+		;;
+		
+		links)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Metadata/_:Link' '@href' '@type' '@rel'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml, id-bash, id-tsv or links, not $format"
+		;;
+		
+	esac
+}

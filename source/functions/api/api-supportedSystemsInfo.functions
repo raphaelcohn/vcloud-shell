@@ -1,0 +1,36 @@
+function api_supportedSystemsInfo()
+{
+	if [ $# -ne 0 ]; then
+		exitError "command supportedSystemsInfo takes no <args>"
+	fi
+	
+	local curl_downloadFilePath
+	curl_wrapperLoggedInRelativeApiCall GET /api/supportedSystemsInfo/
+	
+	local -r prefix="api_supportedSystemsInfo"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+		;;
+		
+		tsv)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo/_:OperatingSystemFamilyInfo/_:OperatingSystem' \
+				'../_:Name' '../_:OperatingSystemFamilyId' \
+				'_:OperatingSystemId' '_:DefaultHardDiskAdapterType' '_:MinimumHardDiskSizeGigabytes' '_:MinimumMemoryMegabytes' '_:Name' '_:InternalName' '_:Supported' '_:x64' '_:MaximumCpuCount' '_:MinimumHardwareVersion' '_:PersonalizationEnabled' '_:PersonalizationAuto' '_:SysprepPackagingSupported' '_:SupportsMemHotAdd' '_:cimOsId' '_:CimVersion' '_:SupportedForCreate'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml, id-bash, id-tsv or links, not $format"
+		;;
+		
+	esac
+}

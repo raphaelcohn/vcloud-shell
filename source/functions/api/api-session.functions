@@ -1,0 +1,34 @@
+function api_session()
+{
+	if [ $# -ne 0 ]; then
+		exitError "command session takes no <args>"
+	fi
+
+	local curl_downloadFilePath
+	curl_wrapperLoggedInRelativeApiCall GET /api/session/
+	
+	local -r prefix="session"
+	case "$format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@href' '@type' '@name'
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+		;;
+		
+		*)
+			exitError "Please specify format as either xml, links or id, not $format"
+		;;
+		
+	esac
+}
