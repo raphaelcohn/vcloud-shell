@@ -150,7 +150,22 @@ function createConfiguration()
 	EOF
 }
 
-function concatenateFunctions()
+function concatenateFunctionsAll()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	readonly temporaryConcatenatedFunctions="$TMP_FILE"
+	(
+		cat <<-EOF
+			function sourceFunctions()
+			{
+			    :
+			}
+		EOF
+	) >"$temporaryConcatenatedFunctions"
+	concatenateFunctionsRecursively "$functionsPath"
+}
+
+function concatenateFunctionsRecursively()
 {
 	(
 		pushd "$1" 1>/dev/null 2>/dev/null
@@ -160,6 +175,7 @@ function concatenateFunctions()
 			do
 				if [ -f "$functionFile" ]; then
 					cat "$functionFile"
+					printf '\n'
 				fi
 			done
 		
@@ -167,12 +183,12 @@ function concatenateFunctions()
 			for functionFolder in *
 			do
 				if [ -d "$functionFolder" ]; then
-					concatenateFunctions "$functionFolder"
+					concatenateFunctionsRecursively "$functionFolder"
 				fi
 			done
 		
 		popd 1>/dev/null 2>/dev/null
-	) >"$temporaryConcatenatedFunctions"
+	) >>"$temporaryConcatenatedFunctions"
 }
 
 function generateEdScriptForFunctions()
@@ -211,9 +227,7 @@ function main()
 	copyToOutputFolder
 	createConfiguration
 	
-	temporaryFiles_newFileToRemoveOnExit
-	readonly temporaryConcatenatedFunctions="$TMP_FILE"
-	concatenateFunctions "$functionsPath"
+	concatenateFunctionsAll
 	generateEdScriptForFunctions
 	patchFunctions
 	
