@@ -55,7 +55,7 @@ function api_admin()
 			foundHref="$href"
 			break
 		fi
-	done <"$orgsTsvFile"
+	done < <(tail -n +2 "$orgsTsvFile")
 	
 	if [ -z "$foundHref" ]; then
 		informationMessage FAIL "Could not find org $orgName"
@@ -197,7 +197,7 @@ function api_org()
 			foundHref="$href"
 			break
 		fi
-	done <"$orgsTsvFile"
+	done < <(tail -n +2 "$orgsTsvFile")
 	
 	if [ -z "$foundHref" ]; then
 		informationMessage FAIL "Could not find org $orgName"
@@ -378,7 +378,7 @@ function api_sessions()
 		api_map["$apiKey"]="$href"
 		
 	# _: means the default namespace (not needed if there's no xmlns definition)
-	done < <(xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	done < <(xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name' | tail -n +2)
 	
 }
 
@@ -404,7 +404,7 @@ function api_versions()
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	temporaryFiles_newFileToRemoveOnExit
 	local -r tsvFilePath="$TMP_FILE"
-	xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' | tail -n +2 >"$tsvFilePath"
 	
 	if ! grep --quiet "^${configuration_api_version}"$'\t' "$tsvFilePath"; then
 		informationMessage FAIL "API version (configuration_api_version) $configuration_api_version is not supported"

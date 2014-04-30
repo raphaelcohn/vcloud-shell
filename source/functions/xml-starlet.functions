@@ -9,13 +9,20 @@ function xml_starlet_extractTsv()
 	local -i afterFirst=0
 	for attributeOrElement in "$@"
 	do
+		xml_starlet_convertXPath
+		
 		if [ $afterFirst -eq 1 ]; then
+			echo -n $'\t'
 			outputArguments+=('--output' $'\t')
 		else
 			afterFirst=1
 		fi
+		echo -n "$fieldName"
+		
 		outputArguments+=('--value-of' "$attributeOrElement")
 	done
+	
+	printf '\n'
 	
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" --nl "$filePath"
 }
@@ -56,7 +63,7 @@ function xml_starlet_keyValueTsv()
 	for attributeOrElement in "$@"
 	do
 		xml_starlet_convertXPath
-	
+		
 		outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
 	done
 
@@ -68,6 +75,9 @@ function xml_starlet_convertXPath()
 {
 	# remove @
 	fieldName="${attributeOrElement//@/}"
+	
+	# remove ../
+	fieldName="${attributeOrElement//..${xml_starlet_slash}/}"
 	
 	# remove _:
 	fieldName="${fieldName//_:/}"
