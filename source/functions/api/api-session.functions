@@ -5,7 +5,7 @@ function api_session()
 	fi
 
 	local curl_downloadFilePath
-	curl_wrapperLoggedInRelativeApiCall GET /api/session/
+	curl_wrapperLoggedInRelativeApiCall 200 GET /api/session/
 	
 	local -r prefix="session"
 	case "$format" in

@@ -26,7 +26,7 @@ function api_org_metadata()
 	fi
 	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
 	
 	local -r prefix="org_metadata"
 	case "$format" in

@@ -32,7 +32,7 @@ function api_vdc()
 	
 	# duplicate
 	local curl_downloadFilePath
-	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
+	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
 	
 	local -r prefix="vdc"
 	case "$format" in

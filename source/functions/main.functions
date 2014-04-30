@@ -28,12 +28,17 @@ function main_login()
 	api_versions
 	
 	api_sessions
+	
+	#trapHandlers_addNext api_logout
 }
 main_functions+=(main_login)
 
 function main_executeCommandLine()
 {
 	api_executeCommand "${commandLineCommand}" "${commandLineArgs[@]}"
+	
+	# should not invoke this if the last curl exit code wasn't 0!
+	api_logout
 }
 main_functions+=(main_executeCommandLine)
 

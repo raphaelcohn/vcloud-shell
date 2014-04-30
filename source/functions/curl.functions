@@ -1,7 +1,8 @@
 function curl_wrapperLoggedInAbsoluteApiCall()
 {
-	local -r verb="$1"
-	local -r absolutePath="$2"
+	local -ir curl_expectedHttpResponseCode=$1
+	local -r verb="$2"
+	local -r absolutePath="$3"
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
@@ -12,18 +13,28 @@ function curl_wrapperLoggedInAbsoluteApiCall()
 	
 	curl_wrapper "$verb" "$absolutePath"
 	
-	if [ $curl_httpResponseCode -ne 200 ]; then
-		informationMessage FAIL "${relativePath}: Failed to call ${absolutePath} (HTTP Response Code was $curl_httpResponseCode)"
-		exit 1
-	fi
+	curl_validateResponseCode $curl_expectedHttpResponseCode "Could not connect to $absolutePath"
 }
 
 function curl_wrapperLoggedInRelativeApiCall()
 {
-	local -r verb="$1"
-	local -r relativePath="$2"
+	local -ir curl_expectedHttpResponseCode=$1
+	local -r verb="$2"
+	local -r relativePath="$3"
 	
-	curl_wrapperLoggedInAbsoluteApiCall "$verb" "${api_map["${relativePath}"]}"
+	curl_wrapperLoggedInAbsoluteApiCall $curl_expectedHttpResponseCode "$verb" "${api_map["${relativePath}"]}"
+}
+
+function curl_validateResponseCode()
+{
+	local -ir expectedResponseCode=$1
+	local -r errorMessage="$2"
+	
+	if [ $curl_httpResponseCode -ne $expectedResponseCode ]; then
+		informationMessage FAIL "$errorMessage (HTTP Response Code was $curl_httpResponseCode)"
+		xml_starlet_keyValueTsv "Error" "$curl_downloadFilePath" '/_:Error' '@majorErrorCode' '@minorErrorCode' '@message' 1>&2
+		exit 1
+	fi
 }
 
 function curl_wrapperSetAcceptHeader()
@@ -119,7 +130,7 @@ function curl_wrapper()
 	case "$verb" in
 		
 		HEAD)
-			curlArgs+=('-X' 'HEAD')
+			curlArgs+=('--request' 'HEAD')
 		;;
 		
 		GET)
@@ -128,6 +139,10 @@ function curl_wrapper()
 		
 		POST)
 			curlArgs+=('--data' '')
+		;;
+		
+		DELETE)
+			curlArgs+=('--request' 'DELETE')
 		;;
 		
 		*)

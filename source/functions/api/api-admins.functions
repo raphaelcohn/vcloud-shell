@@ -5,7 +5,7 @@ function api_admins()
 	fi
 	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInRelativeApiCall GET /api/admin/
+	curl_wrapperLoggedInRelativeApiCall 200 GET /api/admin/
 	
 	local -r prefix="admins"
 	case "$format" in

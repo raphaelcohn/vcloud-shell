@@ -5,7 +5,7 @@ function api_supportedSystemsInfo()
 	fi
 	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInRelativeApiCall GET /api/supportedSystemsInfo/
+	curl_wrapperLoggedInRelativeApiCall 200 GET /api/supportedSystemsInfo/
 	
 	local -r prefix="api_supportedSystemsInfo"
 	case "$format" in
