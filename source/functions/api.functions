@@ -88,7 +88,7 @@ function api_admin()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links, id or data, not $format"
+			exitError "Please specify format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, users, groups, catalogs, vdcs or networks, not $format"
 		;;
 		
 	esac
@@ -114,21 +114,16 @@ function api_admins()
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
 		;;
 		
-		
 		id-bash)
-			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
 		;;
 		
 		id-tsv)
-			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
-		;;
-		
-		data)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud' '_:Description'
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links, id or data, not $format"
+			exitError "Please specify format as either xml, links, id-bash or id-tsv, not $format"
 		;;
 		
 	esac
