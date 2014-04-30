@@ -1,5 +1,50 @@
 #!/usr/bin/env bash
 
+readonly tab=$'\t'
+function informationMessage()
+{
+	local messageKind="$1"
+	local message="$2"
+	
+	case "$messageKind" in
+		
+		WARN|FAIL)
+			echo "$ourName: $messageKind: $message" 1>&2
+		;;
+		
+		DEBUG)
+			if [ "$beDebug" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+		
+		*)
+			if [ "$beVerbose" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
+		;;
+	
+	esac
+}
+
+# The purpose of these functions is to provide internal implementations of logic we can't be 100%
+# sure of exists in the environment or is implemented as we would like for critical pieces of code.
+# Such a critical piece is code executed before and during command line arg parsing (eg exitError)
+function purebash_dirname()
+{
+	local -r converted="${1%/*}"
+	if [ "$converted" = "$1" ]; then
+		echo "."
+	else
+		echo "$converted"
+	fi
+}
+
+function purebash_basename()
+{
+	echo "${1##*/}"
+}
+
 function findOurNameAndPath()
 {
 	readonly ourName="$(purebash_basename "$0")"
@@ -10,7 +55,7 @@ function findOurNameAndPath()
 
 function setPaths()
 {
-	pushd "$crudeOurPath"/.. 1>/dev/null 2>/dev/null
+	pushd "$crudeOurPath" 1>/dev/null 2>/dev/null
 		
 		readonly rootPath="$(pwd)"
 		
@@ -35,7 +80,7 @@ function copyToOutputFolder()
 	rm -rf "$outputPath"
 	mkdir -m 0755 -p "$outputPath"
 	
-	rsync -a -v "$sourcePath"/ "$outputPath"/
+	rsync -a "$sourcePath"/ "$outputPath"/
 	rm -rf "$outputPath"/functions
 }
 
