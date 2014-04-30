@@ -65,14 +65,18 @@ function xml_starlet_keyValueTsv()
 	declare -a outputArguments=()
 	local attributeOrElement
 	local fieldName
-
+	local -i afterFirst=0
 	for attributeOrElement in "$@"
 	do
 		xml_starlet_convertXPath
 		
 		outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
 	done
-
+	
+	if [ $heading -eq 1 ]; then
+		echo "Key${tab}Value"
+	fi
+	
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" "$filePath"
 }
 
