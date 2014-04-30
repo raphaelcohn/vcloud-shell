@@ -28,49 +28,43 @@ function api_admin()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
 	
+	local -r prefix="Prefix"
 	case "$format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
 		;;
 		
-		id)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
 		;;
 		
-		# links
-		
-		# could we generate a bash source-able file of key=value?
-		settings-org-general)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings' '_:CanPublishCatalogs' '_:CanPublishExternally' '_:CanSubscribe' '_:DeployedVMQuota' '_:StoredVmQuota' '_:UseServerBootSequence' '_:DelayAfterPowerOnSeconds'
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
 		;;
 		
-		settings-vapp-lease)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings' '_:DeleteOnStorageLeaseExpiration' '_:StorageLeaseSeconds' '_:DeploymentLeaseSeconds'
+		settings-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
+				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
+				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
+				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \
+				'_:OrgLdapSettings/_:OrgLdapMode' '_:OrgLdapSettings/_:CustomUsersOu' \
+				'_:OrgEmailSettings/_:IsDefaultSmtpServer' '_:OrgEmailSettings/_:IsDefaultOrgEmail' '_:OrgEmailSettings/_:FromEmailAddress' '_:OrgEmailSettings/_:DefaultSubjectPrefix' '_:OrgEmailSettings/_:IsAlertEmailToAllAdmins' '_:OrgEmailSettings/_:SmtpServerSettings/_:IsUseAuthentication' '_:OrgEmailSettings/_:SmtpServerSettings/_:Host' '_:OrgEmailSettings/_:SmtpServerSettings/_:Port' '_:OrgEmailSettings/_:SmtpServerSettings/_:Username' \
+				'_:OrgPasswordPolicySettings/_:AccountLockoutEnabled' '_:OrgPasswordPolicySettings/_:InvalidLoginsBeforeLockout' '_:OrgPasswordPolicySettings/_:AccountLockoutIntervalMinutes' \
+				'_:OrgOperationLimitsSettings/_:ConsolesPerVmLimit' '_:OrgOperationLimitsSettings/_:OperationsPerUser' '_:OrgOperationLimitsSettings/_:OperationsPerOrg' \
+				'_:OrgFederationSettings/_:Enabled'
 		;;
 		
-		settings-vapp-template-lease)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings' '_:DeleteOnStorageLeaseExpiration' '_:StorageLeaseSeconds'
-		;;
-		
-		settings-org-ldap)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgLdapSettings' '_:OrgLdapMode' '_:CustomUsersOu'
-		;;
-		
-		settings-org-email)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings' '_:IsDefaultSmtpServer' '_:IsDefaultOrgEmail' '_:FromEmailAddress' '_:DefaultSubjectPrefix' '_:IsAlertEmailToAllAdmins' '_:SmtpServerSettings/_:IsUseAuthentication' '_:SmtpServerSettings/_:Host' '_:SmtpServerSettings/_:Port' '_:SmtpServerSettings/_:Username'
-		;;
-		
-		settings-org-password-policy)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings' '_:AccountLockoutEnabled' '_:InvalidLoginsBeforeLockout' '_:AccountLockoutIntervalMinutes'
-		;;
-		
-		settings-org-operation-limits)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings' '_:ConsolesPerVmLimit' '_:OperationsPerUser' '_:OperationsPerOrg'
-		;;
-		
-		settings-org-federation)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgFederationSettings' '_:Enabled'
+		settings-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
+				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
+				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
+				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \
+				'_:OrgLdapSettings/_:OrgLdapMode' '_:OrgLdapSettings/_:CustomUsersOu' \
+				'_:OrgEmailSettings/_:IsDefaultSmtpServer' '_:OrgEmailSettings/_:IsDefaultOrgEmail' '_:OrgEmailSettings/_:FromEmailAddress' '_:OrgEmailSettings/_:DefaultSubjectPrefix' '_:OrgEmailSettings/_:IsAlertEmailToAllAdmins' '_:OrgEmailSettings/_:SmtpServerSettings/_:IsUseAuthentication' '_:OrgEmailSettings/_:SmtpServerSettings/_:Host' '_:OrgEmailSettings/_:SmtpServerSettings/_:Port' '_:OrgEmailSettings/_:SmtpServerSettings/_:Username' \
+				'_:OrgPasswordPolicySettings/_:AccountLockoutEnabled' '_:OrgPasswordPolicySettings/_:InvalidLoginsBeforeLockout' '_:OrgPasswordPolicySettings/_:AccountLockoutIntervalMinutes' \
+				'_:OrgOperationLimitsSettings/_:ConsolesPerVmLimit' '_:OrgOperationLimitsSettings/_:OperationsPerUser' '_:OrgOperationLimitsSettings/_:OperationsPerOrg' \
+				'_:OrgFederationSettings/_:Enabled'
 		;;
 		
 		users)
@@ -109,6 +103,7 @@ function api_admins()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall GET /api/admin/
 	
+	local -r prefix="admins"
 	case "$format" in
 		
 		xml)
@@ -119,8 +114,13 @@ function api_admins()
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
 		;;
 		
-		id)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name'
 		;;
 		
 		data)
@@ -163,6 +163,7 @@ function api_org()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInAbsoluteApiCall GET "$foundHref"
 	
+	local -r prefix="org"
 	case "$format" in
 		
 		xml)
@@ -173,8 +174,12 @@ function api_org()
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
 		;;
 		
-		id)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
 		;;
 		
 		*)
@@ -189,6 +194,7 @@ function api_orgs()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall GET /api/org/
 	
+	local -r prefix="orgs"
 	case "$format" in
 		
 		xml)
@@ -196,7 +202,15 @@ function api_orgs()
 		;;
 		
 		links)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name'
+			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@href' '@type' '@name'
+		;;
+		
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:OrgList' '@type' '@href'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:OrgList' '@type' '@href'
 		;;
 		
 		*)
@@ -215,7 +229,7 @@ function api_session()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall GET /api/session/
 	
-	
+	local -r prefix="session"
 	case "$format" in
 		
 		xml)
@@ -226,8 +240,12 @@ function api_session()
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@href' '@type' '@name'
 		;;
 		
-		id)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+		id-bash)
+			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+		;;
+		
+		id-tsv)
+			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
 		;;
 		
 		*)

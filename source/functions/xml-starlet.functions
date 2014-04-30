@@ -19,3 +19,59 @@ function xml_starlet_extractTsv()
 	
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" --nl "$filePath"
 }
+
+readonly quote="'"
+function xml_starlet_keyValueBash()
+{
+	local -r prefix="$1"
+	local -r filePath="$2"
+	local -r xpathMatch="$3"
+	shift 3
+	
+	declare -a outputArguments=()
+	local attributeOrElement
+	local fieldName
+	
+	for attributeOrElement in "$@"
+	do
+		xml_starlet_convertXPath
+		
+		outputArguments+=('--output' "${prefix}_${fieldName}=${quote}" '--value-of' "$attributeOrElement" --output "${quote}" '--nl')
+	done
+	
+	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" "$filePath"
+}
+
+function xml_starlet_keyValueTsv()
+{
+	local -r prefix="$1"
+	local -r filePath="$2"
+	local -r xpathMatch="$3"
+	shift 3
+
+	declare -a outputArguments=()
+	local attributeOrElement
+	local fieldName
+
+	for attributeOrElement in "$@"
+	do
+		xml_starlet_convertXPath
+	
+		outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
+	done
+
+	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" "$filePath"
+}
+
+readonly xml_starlet_slash='/'
+function xml_starlet_convertXPath()
+{
+	# remove @
+	fieldName="${attributeOrElement//@/}"
+	
+	# remove _:
+	fieldName="${fieldName//_:/}"
+	
+	# remove /
+	fieldName="${fieldName//${xml_starlet_slash}/_}"
+}
