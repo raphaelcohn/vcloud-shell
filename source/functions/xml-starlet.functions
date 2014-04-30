@@ -84,7 +84,7 @@ readonly xml_starlet_slash='/'
 function xml_starlet_convertXPath()
 {
 	# remove @
-	fieldName="${attributeOrElement//@/}"
+	fieldName="${attributeOrElement/@/}"
 	
 	# remove ../
 	fieldName="${attributeOrElement//..${xml_starlet_slash}/}"
