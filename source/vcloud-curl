@@ -118,6 +118,7 @@ Argumented Switches
     -n netrcFilePath      (not used if not present)
     -r curlrcFilePath     (not used if not present)
     -o format             ${format}
+    -t yes|no             ${heading}
     --                    End of arguments
 
 command
@@ -202,6 +203,7 @@ function loadAnyConfiguration()
 	netrcFilePath=""
 	curlrcFilePath=""
 	format="xml"
+	heading=1
 	
 	# PUT IN api.conf
 	configuration_api_baseUrl=https://api.vcd.portal.skyscapecloud.com
@@ -228,7 +230,7 @@ function parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:s:p:f:n:r:o: option
+	while getopts :hvdc:s:p:f:n:r:o:t: option
 	do
 		case "$option" in
 			
@@ -266,6 +268,24 @@ function parseCommandLine()
 			
 			o)
 				format="$OPTARG"
+			;;
+			
+			t)
+				case "$OPTARG" in
+					
+					1|yes|true|on)
+						heading=1
+					;;
+					
+					0|no|true|off)
+						heading=0
+					;;
+					
+					*)
+						heading=1
+					;;
+					
+				esac
 			;;
 			
 			'?')

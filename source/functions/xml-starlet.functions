@@ -12,17 +12,23 @@ function xml_starlet_extractTsv()
 		xml_starlet_convertXPath
 		
 		if [ $afterFirst -eq 1 ]; then
-			echo -n $'\t'
+			if [ $heading -eq 1 ]; then
+				echo -n $'\t'
+			fi
 			outputArguments+=('--output' $'\t')
 		else
 			afterFirst=1
 		fi
-		echo -n "$fieldName"
+		if [ $heading -eq 1 ]; then
+			echo -n "$fieldName"
+		fi
 		
 		outputArguments+=('--value-of' "$attributeOrElement")
 	done
 	
-	printf '\n'
+	if [ $heading -eq 1 ]; then
+		printf '\n'
+	fi
 	
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" --nl "$filePath"
 }
