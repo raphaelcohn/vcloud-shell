@@ -1,0 +1,139 @@
+#!/usr/bin/env bash
+
+function findOurNameAndPath()
+{
+	readonly ourName="$(purebash_basename "$0")"
+	pushd "$(purebash_dirname "$0")" >/dev/null
+		readonly crudeOurPath="$(pwd)"
+	popd >/dev/null
+}
+
+function setPaths()
+{
+	pushd "$crudeOurPath"/.. 1>/dev/null 2>/dev/null
+		
+		readonly rootPath="$(pwd)"
+		
+	popd 1>/dev/null 2>/dev/null
+	
+	readonly sourcePath="$rootPath"/source
+	readonly functionsPath="$sourcePath"/functions
+	readonly outputPath="$rootPath"/output
+	
+	readonly vcloudCurlFile="$sourcePath"/vcloud-curl
+}
+
+function sourceFunctions()
+{
+	source "$functionsPath"/temporaryFiles.functions
+	source "$functionsPath"/trapHandlers.functions
+	source "$functionsPath"/language.functions
+}
+
+function copyToOutputFolder()
+{
+	rm -rf "$outputPath"
+	mkdir -m 0755 -p "$outputPath"
+	
+	rsync -a -v "$sourcePath"/ "$outputPath"/
+	rm -rf "$outputPath"/functions
+}
+
+function concatenateFunctions()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	readonly temporaryConcatenatedFunctions="$TMP_FILE"
+	
+	(
+		pushd "$functionsPath" 1>/dev/null 2>/dev/null
+		
+			local functionFile
+			for functionFile in *.functions
+			do
+				if [ -f "$functionFile" ]; then
+					cat "$functionFile"
+				fi
+			done
+		
+			local functionFolder
+			for functionFolder in *
+			do
+				if [ -d "$functionFolder" ]; then
+					sourceFunctions "$functionFolder"
+				fi
+			done
+		
+		popd 1>/dev/null 2>/dev/null
+	) >"$temporaryConcatenatedFunctions"
+}
+
+function generateEdScriptForFunctions()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	readonly temporaryPatchFile="$TMP_FILE"
+	
+	# We'll use patch with an ed script
+	# Find first line number (one-based)
+	local -ir startingLineNumber=$(grep --line-number '^#start VCLOUD_CURL_SOURCE_FUNCTIONS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	local -ir endingLineNumber=$(grep --line-number '^#end VCLOUD_CURL_SOURCE_FUNCTIONS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	
+	# Generate an ed script
+	(
+		echo "${startingLineNumber},${endingLineNumber}c"
+		cat "$temporaryConcatenatedFunctions"
+		echo "."
+	) >"$temporaryPatchFile"
+}
+
+function patchFunctions()
+{
+	patch --ed "$outputPath"/vcloud-curl "$temporaryPatchFile"
+}
+
+function main()
+{
+	findOurNameAndPath
+	setPaths
+	sourceFunctions
+	
+	trapHandlers_addNext temporaryFiles_removeAll
+	copyToOutputFolder
+	concatenateFunctions
+	generateEdScriptForFunctions
+	patchFunctions
+	
+	# we can model the paths using bash's alias command; but package-manager.functions is harder to work with
+}
+
+main "$@"
+
+
+
+
+
+
+function multilineSed()
+{
+	local -r searchForPattern="$1"
+	local -r replacePattern="$2"
+	# line feeds can be replaced with ; to make a concise one-liner
+	# Inspiration from http://austinmatzko.com/2008/04/26/sed-multi-line-search-and-replace/
+	# And http://www.refining-linux.org/archives/27/20-Multi-line-sed-search-and-replace/
+	sed -n '
+# if the first line copy the pattern to the hold buffer
+1h
+# if not the first line then append the pattern to the hold buffer
+1!H
+# if the last line then ...
+$ {
+    # copy from the hold to the pattern buffer
+    g
+    # do the search and replace
+    s/<h2.*</h2>/No title here/g
+    # print
+    p
+}
+'
+}
+
+# Or  sed -e '/<h2/,/<\/h2>/{s/<h2.*/No text here/p;d}' sample.php

@@ -331,7 +331,7 @@ function validateCommandLineArguments()
 
 function sourceFunctions()
 {
-#if 0
+#start VCLOUD_CURL_SOURCE_FUNCTIONS
 	local -r pathToFunctions="$1"
 	pushd "$pathToFunctions" 1>/dev/null 2>/dev/null
 		
@@ -352,9 +352,7 @@ function sourceFunctions()
 		done
 		
 	popd 1>/dev/null 2>/dev/null
-#else
-#include "_generated.all.functions"
-#endif
+#end VCLOUD_CURL_SOURCE_FUNCTIONS
 }
 
 function main()
