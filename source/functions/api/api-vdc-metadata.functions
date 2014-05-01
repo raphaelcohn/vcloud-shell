@@ -8,7 +8,7 @@ function api_vdc_metadata()
 	local -r vdcName="$2"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks metadata "application/vnd.vmware.vcloud.metadata+xml" \
+	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 		api_vdc "$orgName" "$vdcName"
 	
 	api_formatMetadata

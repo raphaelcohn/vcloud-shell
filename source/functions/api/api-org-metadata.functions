@@ -7,7 +7,7 @@ function api_org_metadata()
 	local -r orgName="$1"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks metadata "application/vnd.vmware.vcloud.metadata+xml" \
+	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 		api_admin "$orgName"
 	
 	api_formatMetadata

@@ -9,7 +9,7 @@ function api_vdc()
 	local -r vdcName="$2"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_findNamedResourceHrefInLinks vdc "$vdcName" \
+	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_findNamedResourceHrefInLinks vdc "$vdcName" '' \
 		api_admin "$orgName"
 	
 	local -r prefix="${FUNCNAME[0]:4}"

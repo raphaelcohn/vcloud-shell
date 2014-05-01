@@ -6,7 +6,7 @@ function api_org()
 	local -r orgName="$1"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_findNamedResourceHrefInLinks org "$orgName" \
+	api_makeCallAndFindHrefInLinksAndGet links api_findNamedResourceHrefInLinks org "$orgName" '' \
 		api_orgs
 	
 	local -r prefix="${FUNCNAME[0]:4}"

@@ -1,0 +1,44 @@
+#eg ./vcloud-curl -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
+# ?type=user&page=1&pageSize=25&format=records"
+function api_vdc_edgeGateways()
+{
+	if [ $# -ne 2 ]; then
+		exitError "command ${FUNCNAME[0]:4} requires <orgName> <vdcName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	
+	# default pageSize is 25
+	# references / records / idrecords
+	
+	# references  <EdgeGatewayReference type="application/vnd.vmware.admin.edgeGateway+xml" name="nft0009di2-1" id="urn:vcloud:gateway:cc182ffc-42bc-4a48-abcd-e2317c092e03" href="https://api.vcd.portal.skyscapecloud.com/api/admin/edgeGateway/cc182ffc-42bc-4a48-abcd-e2317c092e03"/>
+	# records  <EdgeGatewayRecord vdc="https://api.vcd.portal.skyscapecloud.com/api/vdc/2ed07e0b-ec25-44f4-9477-0b53de01bbd6" numberOfOrgNetworks="5" numberOfExtNetworks="1" name="nft0009di2-1" isBusy="false" haStatus="DISABLED" gatewayStatus="READY" href="https://api.vcd.portal.skyscapecloud.com/api/admin/edgeGateway/cc182ffc-42bc-4a48-abcd-e2317c092e03" isSyslogServerSettingInSync="true" taskStatus="success" taskOperation="networkConfigureEdgeGatewayServices" task="https://api.vcd.portal.skyscapecloud.com/api/task/fc5f935a-99b1-4614-8d9c-757c765a9821" taskDetails=" "/>
+	# idrecords  <EdgeGatewayRecord vdc="urn:vcloud:vdc:2ed07e0b-ec25-44f4-9477-0b53de01bbd6" numberOfOrgNetworks="5" numberOfExtNetworks="1" name="nft0009di2-1" isBusy="false" haStatus="DISABLED" gatewayStatus="READY" id="urn:vcloud:gateway:cc182ffc-42bc-4a48-abcd-e2317c092e03" isSyslogServerSettingInSync="true" taskStatus="success" taskOperation="networkConfigureEdgeGatewayServices" task="urn:vcloud:task:fc5f935a-99b1-4614-8d9c-757c765a9821" taskDetails=" "/>
+	
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndGet links api_findRelHrefInLinks edgeGateways 'edgeGateways' '?pageSize=100&format=references' \
+		api_vdc "$orgName" "$vdcName"
+	
+	local -r prefix="${FUNCNAME[0]:4}"
+	case "$switch_format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-*)
+			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:QueryResultRecords' '@type' '@href' '@name' '@total' '@pageSize' '@page'
+		;;
+		
+		links)
+			xml_starlet_tsv_links_rel '/_:QueryResultRecords/_:Link'
+		;;
+		
+		*)
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv, or links, not $switch_format"
+		;;
+		
+	esac
+}
+api_commandLineFunctions+=(vdc_edgeGateways)

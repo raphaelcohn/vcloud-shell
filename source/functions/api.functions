@@ -42,14 +42,37 @@ function api_findMimeTypeHrefInLinks()
 	fi
 }
 
+function api_findRelHrefInLinks()
+{
+	local -r linksTsvFile="$1"
+	local -r resourceKind="$2"
+	local -r resourceRel="$3"
+	
+	local href mimeType rel
+	while IFS=$'\t' read -r -d $'\n' href mimeType rel
+	do
+		if [ "$rel" = "$resourceRel" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$linksTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find $resourceKind rel $resourceRel"
+		exitError 1
+	fi
+}
+
+# query args - how?
 function api_findHrefInLinksAndGet()
 {
 	local -r callback="$1"
-	shift 1
+	local -r queryString="$2"
+	shift 2
 	
 	local foundHref=""
 	${callback} "$@"
-	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
+	curl_wrapperLoggedInAbsoluteApiCall 200 GET "${foundHref}${queryString}"
 }
 
 function api_makeCallAndFindHrefInLinksAndGet()
@@ -58,14 +81,15 @@ function api_makeCallAndFindHrefInLinksAndGet()
 	local -r callback="$2"
 	local -r resourceKind="$3"
 	local -r resourceNameOrMimeType="$4"
-	shift 4
+	local -r queryString="$5"
+	shift 5
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
 	switch_format="$ourFormat" switch_outputHeadingLine=0 "$@" >"$linksTsvFile"
 	
-	api_findHrefInLinksAndGet "$callback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	api_findHrefInLinksAndGet "$callback" "$queryString" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 }
 
 function api_formatMetadata()

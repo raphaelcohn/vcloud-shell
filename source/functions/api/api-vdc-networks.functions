@@ -10,7 +10,7 @@ function api_vdc_network()
 	local -r networkName="$3"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-networks api_findNamedResourceHrefInLinks network "$networkName" \
+	api_makeCallAndFindHrefInLinksAndGet links-networks api_findNamedResourceHrefInLinks network "$networkName" '' \
 		api_vdc "$orgName" "$vdcName"
 	
 	local -r prefix="${FUNCNAME[0]:4}"

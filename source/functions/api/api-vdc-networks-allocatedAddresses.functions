@@ -9,7 +9,7 @@ function api_vdc_network_allocatedAddresses()
 	local -r networkName="$3"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks addresses "application/vnd.vmware.vcloud.allocatedNetworkAddress+xml" \
+	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks addresses "application/vnd.vmware.vcloud.allocatedNetworkAddress+xml" '' \
 		api_vdc_network "$orgName" "$vdcName" "$networkName"
 	
 	local -r prefix="${FUNCNAME[0]:4}"
