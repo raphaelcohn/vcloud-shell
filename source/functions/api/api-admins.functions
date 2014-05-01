@@ -15,15 +15,15 @@ function api_admins()
 		;;
 		
 		links)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
 		;;
 		
 		id-bash)
-			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
+			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
 		;;
 		
 		id-tsv)
-			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
+			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
 		;;
 		
 		*)

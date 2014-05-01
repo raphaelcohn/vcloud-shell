@@ -17,15 +17,15 @@ function api_org()
 		;;
 		
 		links)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
 		;;
 		
 		id-bash)
-			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
 		;;
 		
 		id-tsv)
-			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
 		;;
 		
 		*)

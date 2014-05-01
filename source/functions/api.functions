@@ -177,7 +177,7 @@ function api_sessions()
 		api_map["$apiKey"]="$href"
 		
 	# _: means the default namespace (not needed if there's no xmlns definition)
-	done < <(switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	done < <(switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
 	
 	api_logoutAbsoluteUrl="${api_map['/api/session/']}"
 }
@@ -202,7 +202,7 @@ function api_versions()
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	temporaryFiles_newFileToRemoveOnExit
 	local -r tsvFilePath="$TMP_FILE"
-	switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
 	
 	if ! grep --quiet "^${defaults_api_version}"$'\t' "$tsvFilePath"; then
 		informationMessage FAIL "API version (defaults_api_version) $defaults_api_version is not supported"

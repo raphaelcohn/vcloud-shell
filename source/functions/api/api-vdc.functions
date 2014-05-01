@@ -20,7 +20,7 @@ function api_vdc()
 		;;
 		
 		id-bash)
-			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:AllocationModel' \
 				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
 				'_:ComputeCapacity/_:Memory/_:Units' '_:ComputeCapacity/_:Memory/_:Allocated' '_:ComputeCapacity/_:Memory/_:Limit' '_:ComputeCapacity/_:Memory/_:Reserved' '_:ComputeCapacity/_:Memory/_:Used' '_:ComputeCapacity/_:Memory/_:Overhead' \
@@ -28,7 +28,7 @@ function api_vdc()
 		;;
 		
 		id-tsv)
-			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:AllocationModel' \
 				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
 				'_:ComputeCapacity/_:Memory/_:Units' '_:ComputeCapacity/_:Memory/_:Allocated' '_:ComputeCapacity/_:Memory/_:Limit' '_:ComputeCapacity/_:Memory/_:Reserved' '_:ComputeCapacity/_:Memory/_:Used' '_:ComputeCapacity/_:Memory/_:Overhead' \
@@ -36,23 +36,23 @@ function api_vdc()
 		;;
 		
 		links)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:Link' '@href' '@type' '@rel'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:Link' '@href' '@type' '@rel'
 		;;
 		
 		links-resource-entities)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:ResourceEntities/_:ResourceEntity' '@href' '@type' '@name'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:ResourceEntities/_:ResourceEntity' '@href' '@type' '@name'
 		;;
 		
 		links-networks)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:AvailableNetworks/_:Network' '@href' '@type' '@name'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:AvailableNetworks/_:Network' '@href' '@type' '@name'
 		;;
 		
 		links-storage-profiles)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:VdcStorageProfiles/_:VdcStorageProfile' '@href' '@type' '@name'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:VdcStorageProfiles/_:VdcStorageProfile' '@href' '@type' '@name'
 		;;
 		
 		capabilities)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Vdc/_:Capabilities/_:SupportedHardwareVersions' '_:SupportedHardwareVersion'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:Capabilities/_:SupportedHardwareVersions' '_:SupportedHardwareVersion'
 		;;
 		
 		*)

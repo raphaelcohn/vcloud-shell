@@ -18,15 +18,15 @@ function api_org_metadata()
 		;;
 		
 		id-bash)
-			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
 		;;
 		
 		id-tsv)
-			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
 		;;
 		
 		links)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Metadata/_:Link' '@href' '@type' '@rel'
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Metadata/_:Link' '@href' '@type' '@rel'
 		;;
 		
 		*)

@@ -15,15 +15,15 @@ function api_supportedSystemsInfo()
 		;;
 		
 		id-bash)
-			xml_starlet_keyValueBash "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
 		;;
 		
 		id-tsv)
-			xml_starlet_keyValueTsv "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
 		;;
 		
 		tsv)
-			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo/_:OperatingSystemFamilyInfo/_:OperatingSystem' \
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo/_:OperatingSystemFamilyInfo/_:OperatingSystem' \
 				'../_:Name' '../_:OperatingSystemFamilyId' \
 				'_:OperatingSystemId' '_:DefaultHardDiskAdapterType' '_:MinimumHardDiskSizeGigabytes' '_:MinimumMemoryMegabytes' '_:Name' '_:InternalName' '_:Supported' '_:x64' '_:MaximumCpuCount' '_:MinimumHardwareVersion' '_:PersonalizationEnabled' '_:PersonalizationAuto' '_:SysprepPackagingSupported' '_:SupportsMemHotAdd' '_:cimOsId' '_:CimVersion' '_:SupportedForCreate'
 		;;

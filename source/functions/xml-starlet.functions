@@ -1,4 +1,4 @@
-function xml_starlet_extractTsv()
+function xml_starlet_tsv()
 {
 	local -r filePath="$1"
 	local -r xpathMatch="$2"
@@ -34,48 +34,43 @@ function xml_starlet_extractTsv()
 }
 
 readonly quote="'"
-function xml_starlet_keyValueBash()
+function xml_starlet_keyValue()
 {
-	local -r prefix="$1"
-	local -r filePath="$2"
-	local -r xpathMatch="$3"
-	shift 3
+	local -r variant="$1"
+	local -r prefix="$2"
+	local -r filePath="$3"
+	local -r xpathMatch="$4"
+	shift 4
 	
 	declare -a outputArguments=()
 	local attributeOrElement
 	local fieldName
-	
-	for attributeOrElement in "$@"
-	do
-		xml_starlet_convertXPath
+	case "$variant" in
 		
-		outputArguments+=('--output' "${prefix}_${fieldName}=${quote}" '--value-of' "$attributeOrElement" --output "${quote}" '--nl')
-	done
-	
-	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" "$filePath"
-}
-
-function xml_starlet_keyValueTsv()
-{
-	local -r prefix="$1"
-	local -r filePath="$2"
-	local -r xpathMatch="$3"
-	shift 3
-
-	declare -a outputArguments=()
-	local attributeOrElement
-	local fieldName
-	local -i afterFirst=0
-	for attributeOrElement in "$@"
-	do
-		xml_starlet_convertXPath
+		bash)
+			for attributeOrElement in "$@"
+			do
+				xml_starlet_convertXPath
+				
+				outputArguments+=('--output' "${prefix}_${fieldName}=${quote}" '--value-of' "$attributeOrElement" --output "${quote}" '--nl')
+			done
+		;;
 		
-		outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
-	done
-	
-	if [ $switch_outputHeadingLine -eq 1 ]; then
-		echo "Key${tab}Value"
-	fi
+		tsv)
+			local -i afterFirst=0
+			for attributeOrElement in "$@"
+			do
+				xml_starlet_convertXPath
+				
+				outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
+			done
+			
+			if [ $switch_outputHeadingLine -eq 1 ]; then
+				echo "Key${tab}Value"
+			fi
+		;;
+		
+	esac
 	
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" "$filePath"
 }
