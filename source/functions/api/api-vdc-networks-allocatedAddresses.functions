@@ -27,7 +27,9 @@ function api_vdc_network_allocatedAddresses()
 			xml_starlet_tsv_links_relName '/_:AllocatedIpAddresses/_:Link'
 		;;
 		
-		# TODO: much more
+		settings)
+			xml_starlet_tsv_links_relName '/_:AllocatedIpAddresses/_:IpAddress/_:Link' '../_:IpAddress' '../@isDeployed' '../@allocationType'
+		;;
 		
 		*)
 			exitError "Please specify switch_format as either xml, id-bash, id-tsv, links or settings, not $switch_format"

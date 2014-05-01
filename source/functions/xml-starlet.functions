@@ -1,16 +1,21 @@
 function xml_starlet_tsv_links_relName()
 {
-	xml_starlet_tsv "$curl_downloadFilePath" "$1" '@href' '@type' '@rel' '@name'
+	xml_starlet_tsv_downloadFilePath "$1" '@href' '@type' '@rel' '@name' "${@:2}"
 }
 
 function xml_starlet_tsv_links_name()
 {
-	xml_starlet_tsv "$curl_downloadFilePath" "$1" '@href' '@type' '@name'
+	xml_starlet_tsv_downloadFilePath "$1" '@href' '@type' '@name' "${@:2}"
 }
 
 function xml_starlet_tsv_links_rel()
 {
-	xml_starlet_tsv "$curl_downloadFilePath" "$1" '@href' '@type' '@rel'
+	xml_starlet_tsv_downloadFilePath "$1" '@href' '@type' '@rel' "${@:2}"
+}
+
+function xml_starlet_tsv_downloadFilePath()
+{
+	xml_starlet_tsv "$curl_downloadFilePath" "$@"
 }
 
 function xml_starlet_tsv()

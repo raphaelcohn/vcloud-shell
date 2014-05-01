@@ -44,7 +44,7 @@ function api_vdc()
 		;;
 		
 		capabilities)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:Capabilities/_:SupportedHardwareVersions' '_:SupportedHardwareVersion'
+			xml_starlet_tsv_downloadFilePath '/_:Vdc/_:Capabilities/_:SupportedHardwareVersions' '_:SupportedHardwareVersion'
 		;;
 		
 		*)

@@ -31,7 +31,7 @@ function api_vdc_network()
 		;;
 		
 		settings)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:OrgVdcNetwork/_:Configuration/_:IpScopes/_:IpScope/_:IpRanges/_:IpRange' \
+			xml_starlet_tsv_downloadFilePath '/_:OrgVdcNetwork/_:Configuration/_:IpScopes/_:IpScope/_:IpRanges/_:IpRange' \
 				'../../_:IsInherited' '../../_:Gateway' '../../_:Netmask' '../../_:Dns1' '../../_:IsEnabled' \
 				'_:StartAddress' '_:EndAddress'
 		;;

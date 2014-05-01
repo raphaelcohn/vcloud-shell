@@ -19,7 +19,7 @@ function api_supportedSystemsInfo()
 		;;
 		
 		tsv)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo/_:OperatingSystemFamilyInfo/_:OperatingSystem' \
+			xml_starlet_tsv_downloadFilePath '/_:SupportedOperatingSystemsInfo/_:OperatingSystemFamilyInfo/_:OperatingSystem' \
 				'../_:Name' '../_:OperatingSystemFamilyId' \
 				'_:OperatingSystemId' '_:DefaultHardDiskAdapterType' '_:MinimumHardDiskSizeGigabytes' '_:MinimumMemoryMegabytes' '_:Name' '_:InternalName' '_:Supported' '_:x64' '_:MaximumCpuCount' '_:MinimumHardwareVersion' '_:PersonalizationEnabled' '_:PersonalizationAuto' '_:SysprepPackagingSupported' '_:SupportsMemHotAdd' '_:cimOsId' '_:CimVersion' '_:SupportedForCreate'
 		;;
