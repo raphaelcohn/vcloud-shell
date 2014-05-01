@@ -7,7 +7,7 @@ function api_admins()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/admin/
 	
-	local -r prefix="admins"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -15,7 +15,7 @@ function api_admins()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:VCloud/_:OrganizationReferences/_:OrganizationReference' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:VCloud/_:OrganizationReferences/_:OrganizationReference'
 		;;
 		
 		id-*)

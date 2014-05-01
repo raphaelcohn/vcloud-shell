@@ -13,7 +13,7 @@ function api_vdc_network()
 	api_makeCallAndFindHrefInLinksAndGet links-networks api_findNamedResourceHrefInLinks network "$networkName" \
 		api_vdc "$orgName" "$vdcName"
 	
-	local -r prefix="vdc_network"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -27,7 +27,7 @@ function api_vdc_network()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:OrgVdcNetwork/_:Link' '@href' '@type' '@rel'
+			xml_starlet_tsv_links_rel '/_:OrgVdcNetwork/_:Link'
 		;;
 		
 		settings)

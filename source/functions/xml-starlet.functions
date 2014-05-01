@@ -1,3 +1,18 @@
+function xml_starlet_tsv_links_relName()
+{
+	xml_starlet_tsv "$curl_downloadFilePath" "$1" '@href' '@type' '@rel' '@name'
+}
+
+function xml_starlet_tsv_links_name()
+{
+	xml_starlet_tsv "$curl_downloadFilePath" "$1" '@href' '@type' '@name'
+}
+
+function xml_starlet_tsv_links_rel()
+{
+	xml_starlet_tsv "$curl_downloadFilePath" "$1" '@href' '@type' '@rel'
+}
+
 function xml_starlet_tsv()
 {
 	local -r filePath="$1"
@@ -37,7 +52,7 @@ readonly quote="'"
 function xml_starlet_keyValue()
 {
 	local -r variant="$1"
-	local -r prefix="$2"
+	local -r prefix="${FUNCNAME[0]:4}"
 	local -r filePath="$3"
 	local -r xpathMatch="$4"
 	shift 4

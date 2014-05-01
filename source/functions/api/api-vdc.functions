@@ -12,7 +12,7 @@ function api_vdc()
 	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_findNamedResourceHrefInLinks vdc "$vdcName" \
 		api_admin "$orgName"
 	
-	local -r prefix="vdc"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -28,19 +28,19 @@ function api_vdc()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:Link' '@href' '@type' '@rel'
+			xml_starlet_tsv_links_rel '/_:Vdc/_:Link'
 		;;
 		
 		links-resource-entities)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:ResourceEntities/_:ResourceEntity' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:Vdc/_:ResourceEntities/_:ResourceEntity'
 		;;
 		
 		links-networks)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:AvailableNetworks/_:Network' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:Vdc/_:AvailableNetworks/_:Network'
 		;;
 		
 		links-storage-profiles)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Vdc/_:VdcStorageProfiles/_:VdcStorageProfile' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:Vdc/_:VdcStorageProfiles/_:VdcStorageProfile'
 		;;
 		
 		capabilities)

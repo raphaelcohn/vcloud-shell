@@ -9,7 +9,7 @@ function api_org()
 	api_makeCallAndFindHrefInLinksAndGet links api_findNamedResourceHrefInLinks org "$orgName" \
 		api_orgs
 	
-	local -r prefix="org"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -17,7 +17,7 @@ function api_org()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Org/_:Link' '@rel' '@href' '@type' '@name'
+			xml_starlet_tsv_links_relName '/_:Org/_:Link'
 		;;
 		
 		id-*)

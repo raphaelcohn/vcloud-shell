@@ -10,27 +10,27 @@ function api_admin()
 	api_makeCallAndFindHrefInLinksAndGet links api_findNamedResourceHrefInLinks org "$orgName" \
 		api_admins
 	
-	local -r prefix="admin"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
 		;;
 		
-		links)
-			# Not every settings entry has a Link
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
-			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
-		;;
-		
 		id-*)
 			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+		;;
+		
+		links)
+			# Not every settings entry has a Link
+			xml_starlet_tsv_links_rel '/_:AdminOrg/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link'
+			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link'
 		;;
 		
 		settings-*)
@@ -46,23 +46,23 @@ function api_admin()
 		;;
 		
 		links-users)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Users/_:UserReference' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:AdminOrg/_:Users/_:UserReference'
 		;;
 		
 		links-groups)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Groups/_:GroupReference' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:AdminOrg/_:Groups/_:GroupReference'
 		;;
 		
 		links-catalogs)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Catalogs/_:CatalogReference' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:AdminOrg/_:Catalogs/_:CatalogReference'
 		;;
 		
 		links-vdcs)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Vdcs/_:Vdc' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:AdminOrg/_:Vdcs/_:Vdc'
 		;;
 		
 		links-networks)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Networks/_:Network' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:AdminOrg/_:Networks/_:Network'
 		;;
 		
 		*)

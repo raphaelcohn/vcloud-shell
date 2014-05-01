@@ -7,7 +7,7 @@ function api_session()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/session/
 	
-	local -r prefix="session"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -15,7 +15,7 @@ function api_session()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Session/_:Link' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:Session/_:Link'
 		;;
 		
 		id-*)

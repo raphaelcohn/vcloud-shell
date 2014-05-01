@@ -7,7 +7,7 @@ function api_supportedSystemsInfo()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/supportedSystemsInfo/
 	
-	local -r prefix="api_supportedSystemsInfo"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)

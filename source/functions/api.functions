@@ -70,7 +70,7 @@ function api_makeCallAndFindHrefInLinksAndGet()
 
 function api_formatMetadata()
 {
-	local -r prefix="metadata"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -82,7 +82,7 @@ function api_formatMetadata()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:Metadata/_:Link' '@href' '@type' '@rel'
+			xml_starlet_tsv_links '/_:Metadata/_:Link'
 		;;
 		
 		*)

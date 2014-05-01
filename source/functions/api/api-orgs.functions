@@ -7,7 +7,7 @@ function api_orgs()
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/org/
 	
-	local -r prefix="orgs"
+	local -r prefix="${FUNCNAME[0]:4}"
 	case "$switch_format" in
 		
 		xml)
@@ -15,7 +15,7 @@ function api_orgs()
 		;;
 		
 		links)
-			xml_starlet_tsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@href' '@type' '@name'
+			xml_starlet_tsv_links_name '/_:OrgList/_:Org'
 		;;
 		
 		id-*)
