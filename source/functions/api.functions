@@ -68,6 +68,30 @@ function api_makeCallAndFindHrefInLinksAndGet()
 	api_findHrefInLinksAndGet "$callback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 }
 
+function api_formatMetadata()
+{
+	local -r prefix="metadata"
+	case "$switch_format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-*)
+			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+		;;
+		
+		links)
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:Metadata/_:Link' '@href' '@type' '@rel'
+		;;
+		
+		*)
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
+		;;
+		
+	esac
+}
+
 function api_executeCommand()
 {
 	local -r ourCommand="$1"

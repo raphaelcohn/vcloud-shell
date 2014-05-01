@@ -1,0 +1,17 @@
+function api_vdc_network_metadata()
+{
+	if [ $# -ne 3 ]; then
+		exitError "command vcd_network requires <orgName> <vdcName> <networkName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r networkName="$3"
+	
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks metadata "application/vnd.vmware.vcloud.metadata+xml" \
+		api_vdc_network "$orgName" "$vdcName" "$networkName"
+	
+	api_formatMetadata
+}
+api_commandLineFunctions+=(vdc_network_metadata)

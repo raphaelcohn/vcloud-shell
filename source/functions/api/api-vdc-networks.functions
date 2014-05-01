@@ -13,7 +13,7 @@ function api_vdc_network()
 	api_makeCallAndFindHrefInLinksAndGet links-networks api_findNamedResourceHrefInLinks network "$networkName" \
 		api_vdc "$orgName" "$vdcName"
 	
-	local -r prefix="vdc"
+	local -r prefix="vdc_network"
 	case "$switch_format" in
 		
 		xml)
@@ -26,8 +26,18 @@ function api_vdc_network()
 				'_:Configuration/_:FenceMode' '_:Configuration/_:RetainNetInfoAcrossDeployments'
 		;;
 		
+		links)
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:OrgVdcNetwork/_:Link' '@href' '@type' '@rel'
+		;;
+		
+		settings)
+			xml_starlet_tsv "$curl_downloadFilePath" '/_:OrgVdcNetwork/_:Configuration/_:IpScopes/_:IpScope/_:IpRanges/_:IpRange' \
+				'../../_:IsInherited' '../../_:Gateway' '../../_:Netmask' '../../_:Dns1' '../../_:IsEnabled' \
+				'_:StartAddress' '_:EndAddress'
+		;;
+		
 		*)
-			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv, links or settings, not $switch_format"
 		;;
 		
 	esac
