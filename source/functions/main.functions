@@ -9,7 +9,7 @@ main_functions+=(main_registerTrapHandlers)
 function main_loadDefaults()
 {
 	# /etc/"$ourName"
-	local -r defaultsFile="$switch_configPath"/defaults
+	local defaultsFile="$switch_configPath"/defaults
 	if [ -r "$defaultsFile" ]; then
 		source "$defaultsFile"
 	fi
