@@ -2,7 +2,7 @@
 function api_vdc()
 {
 	if [ $# -ne 2 ]; then
-		exitError "command admin requires <orgName> <vdcName>"
+		exitError "command ${FUNCNAME[0]:4} requires <orgName> <vdcName>"
 	fi
 	
 	local -r orgName="$1"

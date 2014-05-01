@@ -1,7 +1,7 @@
 function api_admins()
 {
 	if [ $# -ne 0 ]; then
-		exitError "command admins takes no <args>"
+		exitError "command ${FUNCNAME[0]:4} takes no <args>"
 	fi
 	
 	local curl_downloadFilePath

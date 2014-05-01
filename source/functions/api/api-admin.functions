@@ -1,7 +1,7 @@
 function api_admin()
 {
 	if [ $# -ne 1 ]; then
-		exitError "command admin requires <orgName>"
+		exitError "command ${FUNCNAME[0]:4} requires <orgName>"
 	fi
 	
 	local -r orgName="$1"

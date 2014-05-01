@@ -1,7 +1,7 @@
 function api_org()
 {
 	if [ $# -ne 1 ]; then
-		exitError "command org requires <orgName>"
+		exitError "command ${FUNCNAME[0]:4} requires <orgName>"
 	fi
 	local -r orgName="$1"
 	

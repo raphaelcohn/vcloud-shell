@@ -1,7 +1,7 @@
 function api_vdc_network_metadata()
 {
 	if [ $# -ne 3 ]; then
-		exitError "command vcd_network requires <orgName> <vdcName> <networkName>"
+		exitError "command ${FUNCNAME[0]:4} requires <orgName> <vdcName> <networkName>"
 	fi
 	
 	local -r orgName="$1"
