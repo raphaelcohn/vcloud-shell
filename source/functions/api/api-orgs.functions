@@ -18,12 +18,8 @@ function api_orgs()
 			xml_starlet_tsv "$curl_downloadFilePath" '/_:OrgList/_:Org' '@href' '@type' '@name'
 		;;
 		
-		id-bash)
-			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:OrgList' '@type' '@href'
-		;;
-		
-		id-tsv)
-			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:OrgList' '@type' '@href'
+		id-*)
+			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:OrgList' '@type' '@href'
 		;;
 		
 		*)

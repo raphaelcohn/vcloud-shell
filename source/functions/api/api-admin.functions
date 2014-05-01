@@ -29,28 +29,12 @@ function api_admin()
 			switch_outputHeadingLine=0 xml_starlet_tsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
 		;;
 		
-		id-bash)
-			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+		id-*)
+			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
 		;;
 		
-		id-tsv)
-			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
-		;;
-		
-		settings-bash)
-			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
-				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
-				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
-				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \
-				'_:OrgLdapSettings/_:OrgLdapMode' '_:OrgLdapSettings/_:CustomUsersOu' \
-				'_:OrgEmailSettings/_:IsDefaultSmtpServer' '_:OrgEmailSettings/_:IsDefaultOrgEmail' '_:OrgEmailSettings/_:FromEmailAddress' '_:OrgEmailSettings/_:DefaultSubjectPrefix' '_:OrgEmailSettings/_:IsAlertEmailToAllAdmins' '_:OrgEmailSettings/_:SmtpServerSettings/_:IsUseAuthentication' '_:OrgEmailSettings/_:SmtpServerSettings/_:Host' '_:OrgEmailSettings/_:SmtpServerSettings/_:Port' '_:OrgEmailSettings/_:SmtpServerSettings/_:Username' \
-				'_:OrgPasswordPolicySettings/_:AccountLockoutEnabled' '_:OrgPasswordPolicySettings/_:InvalidLoginsBeforeLockout' '_:OrgPasswordPolicySettings/_:AccountLockoutIntervalMinutes' \
-				'_:OrgOperationLimitsSettings/_:ConsolesPerVmLimit' '_:OrgOperationLimitsSettings/_:OperationsPerUser' '_:OrgOperationLimitsSettings/_:OperationsPerOrg' \
-				'_:OrgFederationSettings/_:Enabled'
-		;;
-		
-		settings-tsv)
-			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
+		settings-*)
+			xml_starlet_keyValue ${switch_format:9} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
 				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
 				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
 				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \

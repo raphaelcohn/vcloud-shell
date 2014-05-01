@@ -17,12 +17,8 @@ function api_org_metadata()
 			cat "$curl_downloadFilePath"
 		;;
 		
-		id-bash)
-			xml_starlet_keyValue bash "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
-		;;
-		
-		id-tsv)
-			xml_starlet_keyValue tsv "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+		id-*)
+			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
 		;;
 		
 		links)
