@@ -48,7 +48,7 @@ function api_vdc()
 		;;
 		
 		*)
-			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $switch_format"
 		;;
 		
 	esac

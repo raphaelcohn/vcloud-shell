@@ -1,4 +1,4 @@
-# eg ./vcloud-curl -f id-tsv vdc 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
+#eg ./vcloud-curl -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
 function api_vdc_network()
 {
 	if [ $# -ne 3 ]; then
@@ -7,9 +7,29 @@ function api_vdc_network()
 	
 	local -r orgName="$1"
 	local -r vdcName="$2"
-	local -r networkName="$2"
+	local -r networkName="$3"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r adminTsvFile="$TMP_FILE"
-	switch_format=links-vdcs switch_outputHeadingLine=0 api_vdc "$orgName" "$vdcName" >"$adminTsvFile"
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndGet links-networks api_findNamedResourceHrefInLinks network "$networkName" \
+		api_vdc "$orgName" "$vdcName"
+	
+	local -r prefix="vdc"
+	case "$switch_format" in
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-*)
+			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:OrgVdcNetwork' '@status' '@name' '@id' '@type' '@href' \
+				'_:Description' '_:IsShared' \
+				'_:Configuration/_:FenceMode' '_:Configuration/_:RetainNetInfoAcrossDeployments'
+		;;
+		
+		*)
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
+		;;
+		
+	esac
 }
+api_commandLineFunctions+=(vdc_network)
