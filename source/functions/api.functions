@@ -82,7 +82,7 @@ function api_formatMetadata()
 		;;
 		
 		links)
-			xml_starlet_tsv_links '/_:Metadata/_:Link'
+			xml_starlet_tsv_links_rel '/_:Metadata/_:Link'
 		;;
 		
 		*)
