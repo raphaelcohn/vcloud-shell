@@ -8,7 +8,7 @@ function api_supportedSystemsInfo()
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/supportedSystemsInfo/
 	
 	local -r prefix="api_supportedSystemsInfo"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -29,7 +29,7 @@ function api_supportedSystemsInfo()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, id-bash, id-tsv or links, not $format"
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
 		;;
 		
 	esac

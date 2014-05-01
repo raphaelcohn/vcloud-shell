@@ -8,7 +8,7 @@ function api_org_metadata()
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r adminTsvFile="$TMP_FILE"
-	format=links heading=0 api_admin "$orgName" >"$adminTsvFile"
+	switch_format=links switch_outputHeadingLine=0 api_admin "$orgName" >"$adminTsvFile"
 	
 	local foundHref=""
 	local href mimeType rel
@@ -29,7 +29,7 @@ function api_org_metadata()
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
 	
 	local -r prefix="org_metadata"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -48,7 +48,7 @@ function api_org_metadata()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, id-bash, id-tsv or links, not $format"
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
 		;;
 		
 	esac

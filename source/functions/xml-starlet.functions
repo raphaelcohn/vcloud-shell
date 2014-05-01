@@ -12,21 +12,21 @@ function xml_starlet_extractTsv()
 		xml_starlet_convertXPath
 		
 		if [ $afterFirst -eq 1 ]; then
-			if [ $heading -eq 1 ]; then
+			if [ $switch_outputHeadingLine -eq 1 ]; then
 				echo -n $'\t'
 			fi
 			outputArguments+=('--output' $'\t')
 		else
 			afterFirst=1
 		fi
-		if [ $heading -eq 1 ]; then
+		if [ $switch_outputHeadingLine -eq 1 ]; then
 			echo -n "$fieldName"
 		fi
 		
 		outputArguments+=('--value-of' "$attributeOrElement")
 	done
 	
-	if [ $heading -eq 1 ]; then
+	if [ $switch_outputHeadingLine -eq 1 ]; then
 		printf '\n'
 	fi
 	
@@ -73,7 +73,7 @@ function xml_starlet_keyValueTsv()
 		outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
 	done
 	
-	if [ $heading -eq 1 ]; then
+	if [ $switch_outputHeadingLine -eq 1 ]; then
 		echo "Key${tab}Value"
 	fi
 	

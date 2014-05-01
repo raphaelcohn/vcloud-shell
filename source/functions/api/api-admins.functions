@@ -8,7 +8,7 @@ function api_admins()
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/admin/
 	
 	local -r prefix="admins"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -27,7 +27,7 @@ function api_admins()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links, id-bash or id-tsv, not $format"
+			exitError "Please specify switch_format as either xml, links, id-bash or id-tsv, not $switch_format"
 		;;
 		
 	esac

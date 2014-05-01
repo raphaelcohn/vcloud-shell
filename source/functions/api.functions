@@ -45,7 +45,7 @@ function api_sessions()
 	curl_validateResponseCode 200 "Could not connect to $url"
 	
 	if [ $curl_httpResponseCode -ne 200 ]; then
-		informationMessage FAIL "Could not log in to $configuration_api_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
+		informationMessage FAIL "Could not log in to $switch_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
 		exit 1
 	fi
 	
@@ -109,7 +109,7 @@ function api_sessions()
 		api_map["$apiKey"]="$href"
 		
 	# _: means the default namespace (not needed if there's no xmlns definition)
-	done < <(heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	done < <(switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
 	
 	api_logoutAbsoluteUrl="${api_map['/api/session/']}"
 }
@@ -117,9 +117,9 @@ function api_sessions()
 function api_versions()
 {
 	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes='/api/versions'
-	api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]="${configuration_api_baseUrl}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
+	api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]="${switch_baseUrl}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
 	# found from /api/admin/<uuid>, not in the map from /api/sessions
-	api_map['/api/supportedSystemsInfo/']="${configuration_api_baseUrl}/api/supportedSystemsInfo/"
+	api_map['/api/supportedSystemsInfo/']="${switch_baseUrl}/api/supportedSystemsInfo/"
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
@@ -134,15 +134,15 @@ function api_versions()
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	temporaryFiles_newFileToRemoveOnExit
 	local -r tsvFilePath="$TMP_FILE"
-	heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
 	
-	if ! grep --quiet "^${configuration_api_version}"$'\t' "$tsvFilePath"; then
-		informationMessage FAIL "API version (configuration_api_version) $configuration_api_version is not supported"
+	if ! grep --quiet "^${defaults_api_version}"$'\t' "$tsvFilePath"; then
+		informationMessage FAIL "API version (defaults_api_version) $defaults_api_version is not supported"
 		exit 1
 	fi
 	
 	local version
 	local sessionsUrl
-	IFS=$'\t' read -r -d $'\n' version sessionsUrl <<<"$(grep "^${configuration_api_version}"$'\t' "$tsvFilePath")"
+	IFS=$'\t' read -r -d $'\n' version sessionsUrl <<<"$(grep "^${defaults_api_version}"$'\t' "$tsvFilePath")"
 	api_map['/api/sessions']="$sessionsUrl"
 }

@@ -1,0 +1,4 @@
+# These can be trivially overwritten in ~/.curlrc, /etc/curlrc, etc
+defaults_curl_userAgent="$ourName"
+defaults_curl_maxRedirs=5
+defaults_curl_retries=20

@@ -1,0 +1,13 @@
+function dependency_RedHat_checkFunction()
+{
+	if [ -f /etc/redhat-release ]; then
+		readonly distributionName="RedHat"
+		return 0
+	fi
+}
+dependency_checkFunctions+=(dependency_RedHat_checkFunction)
+
+function dependency_RedHat_packageManager()
+{
+	dependency_CentOS_packageManager
+}

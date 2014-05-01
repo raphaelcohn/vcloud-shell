@@ -8,7 +8,7 @@ function api_session()
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/session/
 	
 	local -r prefix="session"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -27,7 +27,7 @@ function api_session()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links or id, not $format"
+			exitError "Please specify switch_format as either xml, links or id, not $switch_format"
 		;;
 		
 	esac

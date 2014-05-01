@@ -11,7 +11,7 @@ function api_vdc()
 	# Could be abstracted, too
 	temporaryFiles_newFileToRemoveOnExit
 	local -r adminTsvFile="$TMP_FILE"
-	format=links-vdcs heading=0 api_admin "$orgName" >"$adminTsvFile"
+	switch_format=links-vdcs switch_outputHeadingLine=0 api_admin "$orgName" >"$adminTsvFile"
 	
 	# THERE ARE TWO VARIANTS OF THIS LOOP: match by name, and match by mimeType
 	local foundHref=""
@@ -35,7 +35,7 @@ function api_vdc()
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
 	
 	local -r prefix="vdc"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -78,7 +78,7 @@ function api_vdc()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, id-bash, id-tsv or links, not $format"
+			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
 		;;
 		
 	esac

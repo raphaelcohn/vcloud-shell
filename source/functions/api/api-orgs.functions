@@ -8,7 +8,7 @@ function api_orgs()
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/org/
 	
 	local -r prefix="orgs"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -27,7 +27,7 @@ function api_orgs()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml or links, not $format"
+			exitError "Please specify switch_format as either xml or links, not $switch_format"
 		;;
 		
 	esac

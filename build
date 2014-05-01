@@ -13,13 +13,13 @@ function informationMessage()
 		;;
 		
 		DEBUG)
-			if [ "$beDebug" = "yes" ]; then
+			if [ "$switch_beDebug" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
 		
 		*)
-			if [ "$beVerbose" = "yes" ]; then
+			if [ "$switch_beVerbose" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
@@ -114,40 +114,73 @@ function sourceFunctions()
 	source "$functionsPath"/language.functions
 }
 
+function setInstallPaths()
+{
+	readonly etcPath="/etc"
+	readonly binPath="/usr/bin"
+}
+
 function copyToOutputFolder()
 {
 	rm -rf "$outputPath"
 	mkdir -m 0755 -p "$outputPath"
 	
-	readonly binFolder="$outputPath"/usr/bin
-	readonly etcFolder="$outputPath"/etc
+	readonly binFolder="${outputPath}${binPath}"
+	readonly etcFolder="${outputPath}${etcPath}"
 	
 	mkdir -m 0755 -p "$binFolder"
 	mkdir -m 0755 -p "$etcFolder"
 	
-	readonly vcloudCurlFile="$outputPath"/usr/bin/vcloud-curl
+	readonly vcloudCurlFile="$binFolder"/vcloud-curl
 	cp "$sourcePath"/vcloud-curl "$vcloudCurlFile"
 	chmod 0755 "$vcloudCurlFile"
 	
-	readonly configPath="$etcFolder"/vcloud-curl
-	mkdir -m 0755 -p "$configPath"
+	readonly switch_configPath="$etcFolder"/vcloud-curl
+	mkdir -m 0755 -p "$switch_configPath"
 	
-	rsync -a --exclude=.gitignore "$sourcePath"/config/ "$configPath"/
+	rsync -a --exclude=.gitignore "$sourcePath"/config/ "$switch_configPath"/
 }
 
-function createConfiguration()
+function patchConfigPaths()
 {
-	cat >"$configPath"/configuration <<-EOF
-		language="en_GB.UTF-8"
-		configPath=/etc/vcloud-curl
-		pathsPath=/etc/vcloud-curl/paths
-		beVerbose="no"
-		beDebug="no"
-		netrcFilePath=""
-		curlrcFilePath=""
-		format="xml"
-		heading=1
-	EOF
+	sed -e "s;etcPath=.*$;etcPath='${etcPath}';g" "$vcloudCurlFile" >"$vcloudCurlFile".new
+	rm "$vcloudCurlFile"
+	mv "$vcloudCurlFile".new "$vcloudCurlFile"
+	
+	sed -e 's;switch_configPath=.*$;switch_configPath="$etcPath"/"$ourName";g' "$vcloudCurlFile" >"$vcloudCurlFile".new
+	rm "$vcloudCurlFile"
+	mv "$vcloudCurlFile".new "$vcloudCurlFile"
+}
+
+function concatenateDefaults()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	readonly temporaryConcatenatedDefaults="$TMP_FILE"
+	
+	cat "$switch_configPath"/defaults "$switch_configPath"/defaults.d/*.defaults >"$temporaryConcatenatedDefaults"
+}
+
+function generateEdScriptForDefaults()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	readonly temporaryDefaultsPatchFile="$TMP_FILE"
+	
+	# We'll use patch with an ed script
+	# Find first line number (one-based)
+	local -ir startingLineNumber=$(grep --line-number '^#start VCLOUD_CURL_DEFAULTS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	local -ir endingLineNumber=$(grep --line-number '^#end VCLOUD_CURL_DEFAULTS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	
+	# Generate an ed script
+	(
+		echo "${startingLineNumber},${endingLineNumber}c"
+		cat "$temporaryConcatenatedDefaults"
+		echo "."
+	) >"$temporaryDefaultsPatchFile"
+}
+
+function patchDefaults()
+{
+	patch --ed "$vcloudCurlFile" "$temporaryDefaultsPatchFile"
 }
 
 function concatenateFunctionsAll()
@@ -194,7 +227,7 @@ function concatenateFunctionsRecursively()
 function generateEdScriptForFunctions()
 {
 	temporaryFiles_newFileToRemoveOnExit
-	readonly temporaryPatchFile="$TMP_FILE"
+	readonly temporaryFunctionsPatchFile="$TMP_FILE"
 	
 	# We'll use patch with an ed script
 	# Find first line number (one-based)
@@ -206,12 +239,12 @@ function generateEdScriptForFunctions()
 		echo "${startingLineNumber},${endingLineNumber}c"
 		cat "$temporaryConcatenatedFunctions"
 		echo "."
-	) >"$temporaryPatchFile"
+	) >"$temporaryFunctionsPatchFile"
 }
 
 function patchFunctions()
 {
-	patch --ed "$vcloudCurlFile" "$temporaryPatchFile"
+	patch --ed "$vcloudCurlFile" "$temporaryFunctionsPatchFile"
 }
 
 function main()
@@ -224,45 +257,18 @@ function main()
 	
 	trapHandlers_addNext temporaryFiles_removeAll
 	
+	setInstallPaths
 	copyToOutputFolder
-	createConfiguration
+	
+	patchConfigPaths
+	
+	concatenateDefaults
+	generateEdScriptForDefaults
+	patchDefaults
 	
 	concatenateFunctionsAll
 	generateEdScriptForFunctions
 	patchFunctions
-	
-	# we can model the paths using bash's alias command; but package-manager.functions is harder to work with
 }
 
 main "$@"
-
-
-
-
-
-
-function multilineSed()
-{
-	local -r searchForPattern="$1"
-	local -r replacePattern="$2"
-	# line feeds can be replaced with ; to make a concise one-liner
-	# Inspiration from http://austinmatzko.com/2008/04/26/sed-multi-line-search-and-replace/
-	# And http://www.refining-linux.org/archives/27/20-Multi-line-sed-search-and-replace/
-	sed -n '
-# if the first line copy the pattern to the hold buffer
-1h
-# if not the first line then append the pattern to the hold buffer
-1!H
-# if the last line then ...
-$ {
-    # copy from the hold to the pattern buffer
-    g
-    # do the search and replace
-    s/<h2.*</h2>/No title here/g
-    # print
-    p
-}
-'
-}
-
-# Or  sed -e '/<h2/,/<\/h2>/{s/<h2.*/No text here/p;d}' sample.php

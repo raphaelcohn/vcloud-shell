@@ -1,27 +1,55 @@
 main_functions=()
 
-main_functions+=(language_setDefaults)
-
 function main_registerTrapHandlers()
 {
 	trapHandlers_addNext temporaryFiles_removeAll
 }
 main_functions+=(main_registerTrapHandlers)
 
-main_functions+=(dependency_installDependencies)
-
-main_configDefaultsPath=""
-function main_setSomePaths()
+function main_loadDefaults()
 {
-	return 0
+	# /etc/"$ourName"
+	local -r defaultsFile="$switch_configPath"/defaults
+	if [ -r "$defaultsFile" ]; then
+		source "$defaultsFile"
+	fi
 	
-	main_configDefaultsPath="$configPath"/defaults
-	if [ ! -d "$main_configDefaultsPath" ]; then
-		informationMessage FAIL "Defaults config missing at path $main_configDefaultsPath"
-		exit 1
+	local -r defaultsFolder="$switch_configPath"/defaults.d
+	if [ -d "$defaultsFolder" ]; then
+		pushd "$defaultsFolder" 1>/dev/null 2>/dev/null
+			
+			for defaultsFile in *.defaults
+			do
+				if [ -f "$defaultsFile" ]; then
+					source "$defaultsFile"
+				fi
+			done
+			
+		popd 1>/dev/null 2>/dev/null
 	fi
 }
-main_functions+=(main_setSomePaths)
+main_functions+=(main_loadDefaults)
+
+function main_validateDefault()
+{
+	local -r variableName="$1"
+	
+	if [ -z "${!variableName}" ]; then
+		informationMessage FAIL "Default $variableName has no value"
+	fi
+}
+
+function main_validateDefaults()
+{
+	main_validateDefault switch_baseUrl
+	main_validateDefault defaults_api_version
+	main_validateDefault defaults_curl_userAgent
+	main_validateDefault defaults_curl_maxRedirs
+	main_validateDefault defaults_curl_retries
+}
+main_functions+=(main_validateDefaults)
+
+main_functions+=(dependency_installDependencies)
 
 function main_login()
 {

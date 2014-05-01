@@ -39,7 +39,7 @@ function curl_validateResponseCode()
 
 function curl_wrapperSetAcceptHeader()
 {
-	curl_requestHeaders['Accept']="application/*+xml;version=${configuration_api_version}"
+	curl_requestHeaders['Accept']="application/*+xml;version=${defaults_api_version}"
 }
 
 curl_lastExitCode=0
@@ -67,43 +67,43 @@ function curl_wrapper()
 	curlArgs+=('-q')
 	
 	# Arguments that can be overridden by configuration
-	curlArgs+=('--user-agent' "$configuration_curl_userAgent")
+	curlArgs+=('--user-agent' "$defaults_curl_userAgent")
 	
 	# Some of the vCloud API calls use redirection
-	curlArgs+=('--max-redirs' "$configuration_curl_maxRedirs")
+	curlArgs+=('--max-redirs' "$defaults_curl_maxRedirs")
 	
-	curlArgs+=('--retry' "$configuration_curl_retries")
+	curlArgs+=('--retry' "$defaults_curl_retries")
 	
 	# NOTE: Whilst this sequences of commands can add multiple --netrc switches, only the last is acted upon, unlike --config, which is acted on multiple times
 	# Technically, .netrc only exists in $HOME, but we want to give a little more flexibility
 	# netrc files have lines likes machine host.domain.com login myself password secret (machine X, username Y, password X)
 	
-	if [ -z "$netrcFilePath" ]; then
+	if [ -z "$switch_netrcFilePath" ]; then
 		curl_wrapperConfigArg --netrc-file "$CURL_HOME" .netrc
 		curl_wrapperConfigArg --netrc-file "$HOME" .netrc
-		curl_wrapperConfigArg --netrc-file /etc netrc
+		curl_wrapperConfigArg --netrc-file "$etcPath" netrc
+		curl_wrapperConfigArg --netrc-file "$switch_configPath" netrc
 		curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
-		curl_wrapperConfigArg --netrc-file "$configPath" netrc
 	else
-		curlArgs+=('--netrc-file' "$netrcFilePath")
+		curlArgs+=('--netrc-file' "$switch_netrcFilePath")
 	fi
 	
 	# Overridding of configuration occurs after setting are options; machine-wide always wins
-	if [ -z "$curlrcFilePath" ]; then
+	if [ -z "$switch_curlrcFilePath" ]; then
 		curl_wrapperConfigArg --config "$CURL_HOME" .curlrc
 		curl_wrapperConfigArg --config "$HOME" .curlrc
-		curl_wrapperConfigArg --config /etc curlrc
-		curl_wrapperConfigArg --config "$HOME" "$ourName".curlrc
-		curl_wrapperConfigArg --config "$configPath" curlrc
+		curl_wrapperConfigArg --config "$etcPath" curlrc
+		curl_wrapperConfigArg --config "$switch_configPath" curlrc
 		local configFile
-		for configFile in "$configPath"/curlrc.d/*.curlrc
+		for configFile in "$switch_configPath"/curlrc.d/*.curlrc
 		do
 			if [ -f "$configFile" ]; then
 				curlArgs+=('--config' "$configFile")
 			fi
 		done
+		curl_wrapperConfigArg --config "$HOME" "$ourName".curlrc
 	else
-		curlArgs+=('--config' "$curlrcFilePath")
+		curlArgs+=('--config' "$switch_curlrcFilePath")
 	fi
 	
 	# Override any setting of URL, TLS, etc after configuration loaded
@@ -178,7 +178,7 @@ function curl_wrapper()
 	curl_lastExitCode=$?
 	set -e
 	
-	if [ "$beDebug" = "yes" ]; then
+	if [ "$switch_beDebug" = "yes" ]; then
 		cat "$asciiTraceFilePath" 1>&2
 	fi
 	

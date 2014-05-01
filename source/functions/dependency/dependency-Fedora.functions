@@ -1,0 +1,13 @@
+function dependency_Fedora_checkFunction()
+{
+	if [ -f /etc/fedora-release ]; then
+		readonly distributionName="Fedora"
+		return 0
+	fi
+}
+dependency_checkFunctions+=(dependency_Fedora_checkFunction)
+
+function dependency_Fedora_packageManager()
+{
+	dependency_CentOS_packageManager
+}

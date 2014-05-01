@@ -13,13 +13,13 @@ function informationMessage()
 		;;
 		
 		DEBUG)
-			if [ "$beDebug" = "yes" ]; then
+			if [ "$switch_beDebug" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
 		
 		*)
-			if [ "$beVerbose" = "yes" ]; then
+			if [ "$switch_beVerbose" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
@@ -104,22 +104,25 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-c configPath] [-f functionsPath] [-p pathsPath] [-n netrcFilePath ] [-o format] -- command <args>
+Usage: ${ourName} [-v] [-d] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] [-f switch_format] [-t switch_outputHeadingLine] -- command <args>
 
 Argument-less Switches
-    -h  show this help
-    -v  be more verbose
+    Switch  Explanation            Default       Configuration*
+    -h      show this help
+    -v      be more verbose        ${beVerbose}  beVerbose
+    -d      output debug messages  ${beDebug}    beDebug
 
 Argumented Switches
-    Argument              Default
-    -c configPath         ${configPath}
-    -f functionsPath      ${functionsPath}
-    -p pathsPath          ${pathsPath}
-    -n netrcFilePath      (not used if not present)
-    -r curlrcFilePath     (not used if not present)
-    -o format             ${format}
-    -t yes|no             ${heading}
-    --                    End of arguments
+    Switch  Configuration*            Default
+    -c      switch_configPath         ${switch_configPath}
+    -n      switch_netrcFilePath      ${switch_netrcFilePath} (not used if not present)
+    -r      switch_curlrcFilePath     ${switch_curlrcFilePath} (not used if not present)
+    -u      switch_baseUrl            ${switch_baseUrl}
+    -f      switch_format             ${switch_format}
+    -t      switch_outputHeadingLine  ${switch_outputHeadingLine} (yes|on|true|1 or no|off|false|0)
+    --                                End of arguments, beginning of commands
+
+*See below
 
 command
 This is a command followed by optional <args>. Supported commands are:-
@@ -127,65 +130,70 @@ This is a command followed by optional <args>. Supported commands are:-
     orgs        List of organisations
     org <name>  Org details for <name>, eg 98-184-1-151d73
 
+Configuration
+Command line switches (switch_) can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
+By default, the following locations are searched and files sourced as configuration in order before the command line is processed:-
+
+    ~/.${ourName}
+    <VCLOUD_CURL_CONFIGURATION>  (an environment variable)
+
 Format
-Format controls output. The list of valid formats varies by command, but xml is always supported and links produces links.
+Format controls output. The list of valid switch_formats varies by command, but xml is always supported and links produces links.
 
 netrc Files
-netrc files are searched for automatically, and are used to specify user name and password credentials. If more than one
-file is found, then the last one found is the one used. By default, the locations searched in order are:-
-    
-    CURL_HOME/.netrc
-    HOME/.netrc
-    /etc/netrc
-    HOME/$ourName.netrc
-    /etc/$ourName.netrc
+netrc files and are used to specify user name and password credentials. netrc files are searched for automatically
+unless  -n switch_netrcFilePath  is specified.
+The locations searched in order are:-
 
-Additionally, the switch  -n netrcFilePath  can be used to specify a file. If this file exists, then it is used in preference to
-the search above.
+    <CURL_HOME>/.netrc
+    <HOME>/.netrc
+    ${etcPath}/netrc
+    <switch_configPath>/netrc
+    <HOME>/$ourName.netrc
 
-The netrc file should consist of lines in the format machine HOSTNAME login USER@ORGANIZATION password PASSWORD. The first
+If more than one file is found, then the last one found is the one used.
+
+The netrc file should consist of lines in the switch_format machine HOSTNAME login USER@ORGANIZATION password PASSWORD. The first
 matching entry is used, or, if no matching entries are present, the final 'default' entry. More details are in  man 5 netrc.
 
 HOSTNAME should be that of the vCloud portal. For Skyscape, it is  api.vcd.portal.skyscapecloud.com . In the vCloud 5.1 API
 documentation, this is the value 'vcloud.example.com'.
 
 curlc Files
-curlc files are searched for automatically, and are used to specify curl overrides. A typical use case is to configure proxy
-servers. If more than one file is found, then all are used, with any conflicting settings resolved with 'last one wins'.
-By default, the locations searched in order are:-
-    
-    CURL_HOME/.curlrc
-    ~/.curlrc
-    /etc/curlrc
-    ~/$ourName.curlrc
-    /etc/$ourName.curlrc
-    All files matching /etc/"$ourName".d/curlrc.d/*.curlrc
+curlrc files are used to specify additional options for curl. A typical use case is to configure proxy servers. curlc files are searched
+for automatically unless  -r switch_curlrcFilePath is specified.  By default, the locations searched in order are:-
 
-Additionally, the switch  -r curlrcFilePath  can be used to specify a file. If this file exists, then it is used in preference to
-the search above.
+    <CURL_HOME>/.curlrc
+    <HOME>/.curlrc
+    ${etcPath}/curlrc
+    <switch_configPath>/curlrc
+    <switch_configPath>/curlrc.d/*.curlrc
+    <HOME>/$ourName.curlrc
+    <switch_curlrcFilePath>
+
+If more than one file is found, then all are used, with any conflicting settings resolved with 'last one wins'.
 
 Please note that not all curl configuration will be honoured, as we explicitly set --url, etc
 
-Configuration
-Command line switches can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
-By default, the following locations are searched and files sourced as configuration in order:-
-
-    /etc/${ourName}.d/configuration
-    ~/.${ourName}
+Defaults
+Defaults are used to control common use cases. Defaults for values are sourced as key=value pairs from the following locations:-
+    
+    Location                                   Currently
+    <switch_configPath>/defaults               ${switch_configPath}.d/defaults
+    <switch_configPath>/defaults.d/*.defaults  ${switch_configPath}.d/defaults.d/*.defaults
 
 The values that can be configured are:-
     
-    configPath
-    functionsPath
-    pathsPath
-    netrcFilePath
-    curlrcFilePath
-    beVerbose        Set to yes or no
-    beDebug          Set to yes or no
+    Value                     Built-in Value
+    defaults_api_version      ${defaults_api_version}
+    defaults_curl_userAgent   ${defaults_curl_userAgent}
+    defaults_curl_maxRedirs   ${defaults_curl_maxRedirs}
+    defaults_curl_retries     ${defaults_curl_retries}
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
-to automatically install any missing dependencies. The PATH variable is reset to the location of these programs.
+to automatically install any missing dependencies. The PATH variable is reset to empty if they are used. Paths are used if a file
+<switch_configPath>/paths.d/<distributionName> exists for the detected <distributionName>.
 " 1>&2
 	exit $1
 }
@@ -194,32 +202,34 @@ commandLineCommand=""
 commandLineArgs=()
 function loadAnyConfiguration()
 {
-	language="en_GB.UTF-8"
-	configPath="$crudeOurPath"/config
-	functionsPath="$crudeOurPath"/functions
-	pathsPath="$configPath"/paths
-	beVerbose="no"
-	beDebug="no"
-	netrcFilePath=""
-	curlrcFilePath=""
-	format="xml"
-	heading=1
+	switch_language="en_GB.UTF-8"
+	switch_beVerbose="no"
+	switch_beDebug="no"
 	
-	# PUT IN api.conf
-	configuration_api_baseUrl=https://api.vcd.portal.skyscapecloud.com
-	configuration_api_version=5.5
+	switch_netrcFilePath=""
+	switch_curlrcFilePath=""
+	switch_baseUrl="https://api.vcd.portal.skyscapecloud.com"
+	switch_format="xml"
+	switch_outputHeadingLine=1
 	
-	# PUT IN curl.conf
-	# These can be trivially overwritten in ~/.curlrc, /etc/curlrc, etc
-	configuration_curl_userAgent="$ourName"
-	configuration_curl_maxRedirs=5
-	configuration_curl_retries=20
+#start VCLOUD_CURL_CONFIG_PATH
+	etcPath="/etc"
+	switch_configPath="$crudeOurPath"/config
+#end VCLOUD_CURL_CONFIG_PATH
+#start VCLOUD_CURL_DEFAULTS
+	# Insert all our defaults as shipped, too
+#end VCLOUD_CURL_DEFAULTS
 	
-	if [ -r /etc/"$ourName"/configuration ]; then
-		source /etc/"$ourName"/configuration
+	local -r userConfiguration=~/."$ourName"
+	if [ -r "$userConfiguration" ]; then
+		source "$userConfiguration"
 	fi
-	if [ -r ~/."$ourName" ]; then
-		source ~/."$ourName"
+	
+	local -r environmentVariableConfiguration="$VCLOUD_CURL_CONFIGURATION"
+	if [ -n "$environmentVariableConfiguration" ]; then
+		if [ -r "$environmentVariableConfiguration" ]; then
+			source "$VCLOUD_CURL_CONFIGURATION"
+		fi
 	fi
 }
 
@@ -229,7 +239,7 @@ function parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:s:p:f:n:r:o:t: option
+	while getopts :hvdc:s:n:r:f:t: option
 	do
 		case "$option" in
 			
@@ -238,50 +248,46 @@ function parseCommandLine()
 			;;
 			
 			v)
-				beVerbose="yes"
+				switch_beVerbose="yes"
 			;;
 			
 			d)
-				beDebug="yes"
+				switch_beDebug="yes"
 			;;
 			
 			c)
-				configPath="$OPTARG"
+				switch_configPath="$OPTARG"
 			;;
 			
-			f)
-				functionsPath="$OPTARG"
-			;;
-			
-			p)
-				pathsPath="$OPTARG"
+			u)
+				switch_baseUrl="$OPTARG"
 			;;
 			
 			n)
-				netrcFilePath="$OPTARG"
+				switch_netrcFilePath="$OPTARG"
 			;;
 			
 			r)
-				curlrcFilePath="$OPTARG"
+				switch_curlrcFilePath="$OPTARG"
 			;;
 			
-			o)
-				format="$OPTARG"
+			f)
+				switch_format="$OPTARG"
 			;;
 			
 			t)
 				case "$OPTARG" in
 					
 					1|yes|true|on)
-						heading=1
+						switch_outputHeadingLine=1
 					;;
 					
 					0|no|true|off)
-						heading=0
+						switch_outputHeadingLine=0
 					;;
 					
 					*)
-						heading=1
+						switch_outputHeadingLine=1
 					;;
 					
 				esac
@@ -302,16 +308,8 @@ function parseCommandLine()
 	
 	function makeCommandLinePathsAbsolute()
 	{
-		pushd "$configPath" 1>/dev/null
-			configPath="$(pwd)"
-		popd 1>/dev/null
-
-		pushd "$functionsPath" 1>/dev/null
-			functionsPath="$(pwd)"
-		popd 1>/dev/null
-
-		pushd "$pathsPath" 1>/dev/null
-			pathsPath="$(pwd)"
+		pushd "$switch_configPath" 1>/dev/null
+			switch_configPath="$(pwd)"
 		popd 1>/dev/null
 	}
 	makeCommandLinePathsAbsolute
@@ -319,27 +317,19 @@ function parseCommandLine()
 
 function validateCommandLineArguments()
 {
-	if [ ! -d "$configPath" ]; then
-		exitError "Config path $configPath does not exist or is not a directory"
+	if [ ! -d "$switch_configPath" ]; then
+		exitError "Config path $switch_configPath does not exist or is not a directory"
 	fi
 	
-	if [ ! -d "$functionsPath" ]; then
-		exitError "Paths path $functionsPath does not exist or is not a directory"
-	fi
-	
-	if [ ! -d "$pathsPath" ]; then
-		exitError "Paths path $pathsPath does not exist or is not a directory"
-	fi
-	
-	if [ -n "$netrcFilePath" ]; then
-		if [ ! -f "$netrcFilePath" ]; then
-			exitError "-n netrcFilePath $netrcFilePath does not exist or is not a file"
+	if [ -n "$switch_netrcFilePath" ]; then
+		if [ ! -f "$switch_netrcFilePath" ]; then
+			exitError "-n switch_netrcFilePath $switch_netrcFilePath does not exist or is not a file"
 		fi
 	fi
 	
-	if [ -n "$curlrcFilePath" ]; then
-		if [ ! -f "$curlrcFilePath" ]; then
-			exitError "-r curlrcFilePath $curlrcFilePath does not exist or is not a file"
+	if [ -n "$switch_curlrcFilePath" ]; then
+		if [ ! -f "$switch_curlrcFilePath" ]; then
+			exitError "-r switch_curlrcFilePath $switch_curlrcFilePath does not exist or is not a file"
 		fi
 	fi
 	
@@ -350,6 +340,11 @@ function validateCommandLineArguments()
 
 #start VCLOUD_CURL_SOURCE_FUNCTIONS
 function sourceFunctions()
+{
+	sourceFunctionsRecursively "$crudeOurPath"/functions
+}
+
+function sourceFunctionsRecursively()
 {
 	local -r pathToFunctions="$1"
 	pushd "$pathToFunctions" 1>/dev/null 2>/dev/null
@@ -366,7 +361,7 @@ function sourceFunctions()
 		for functionFolder in *
 		do
 			if [ -d "$functionFolder" ]; then
-				sourceFunctions "$functionFolder"
+				sourceFunctionsRecursively "$functionFolder"
 			fi
 		done
 		
@@ -383,7 +378,7 @@ function main()
 	parseCommandLine "$@"
 	validateCommandLineArguments
 	
-	sourceFunctions "$functionsPath"
+	sourceFunctions
 	
 	declare -A api_map
 	main_executeMainFunctions

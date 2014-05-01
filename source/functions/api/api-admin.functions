@@ -8,7 +8,7 @@ function api_admin()
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r orgsTsvFile="$TMP_FILE"
-	format=links heading=0 api_admins >"$orgsTsvFile"
+	switch_format=links switch_outputHeadingLine=0 api_admins >"$orgsTsvFile"
 	
 	local foundHref=""
 	local href mimeType name
@@ -29,7 +29,7 @@ function api_admin()
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
 	
 	local -r prefix="admin"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -38,13 +38,13 @@ function api_admin()
 		links)
 			# Not every settings entry has a Link
 			xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
-			heading=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link' '@href' '@type' '@rel'
+			switch_outputHeadingLine=0 xml_starlet_extractTsv "$curl_downloadFilePath" '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link' '@href' '@type' '@rel'
 		;;
 		
 		id-bash)
@@ -100,7 +100,7 @@ function api_admin()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, links-users, links-groups, links-catalogs, links-vdcs or links-networks, not $format"
+			exitError "Please specify switch_format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, links-users, links-groups, links-catalogs, links-vdcs or links-networks, not $switch_format"
 		;;
 		
 	esac

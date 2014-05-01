@@ -7,7 +7,7 @@ function api_org()
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r orgsTsvFile="$TMP_FILE"
-	format=links heading=0 api_orgs >"$orgsTsvFile"
+	switch_format=links switch_outputHeadingLine=0 api_orgs >"$orgsTsvFile"
 	
 	local foundHref=""
 	local href mimeType name
@@ -28,7 +28,7 @@ function api_org()
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
 	
 	local -r prefix="org"
-	case "$format" in
+	case "$switch_format" in
 		
 		xml)
 			cat "$curl_downloadFilePath"
@@ -47,7 +47,7 @@ function api_org()
 		;;
 		
 		*)
-			exitError "Please specify format as either xml, links, or id, not $format"
+			exitError "Please specify switch_format as either xml, links, or id, not $switch_format"
 		;;
 		
 	esac
