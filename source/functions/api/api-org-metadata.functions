@@ -6,27 +6,9 @@ function api_org_metadata()
 	
 	local -r orgName="$1"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r adminTsvFile="$TMP_FILE"
-	switch_format=links switch_outputHeadingLine=0 api_admin "$orgName" >"$adminTsvFile"
-	
-	local foundHref=""
-	local href mimeType rel
-	while IFS=$'\t' read -r -d $'\n' href mimeType rel
-	do
-		if [ "$mimeType" = "application/vnd.vmware.vcloud.metadata+xml" ]; then
-			foundHref="$href"
-			break
-		fi
-	done <"$adminTsvFile"
-	
-	if [ -z "$foundHref" ]; then
-		informationMessage FAIL "Could not find org $orgName"
-		exitError 1
-	fi
-	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
+	api_makeCallAndFindHrefInLinksAndGet links api_findMimeTypeHrefInLinks metadata "application/vnd.vmware.vcloud.metadata+xml" \
+		api_admin "$orgName"
 	
 	local -r prefix="org_metadata"
 	case "$switch_format" in

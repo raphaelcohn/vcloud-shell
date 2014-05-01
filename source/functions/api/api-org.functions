@@ -5,27 +5,9 @@ function api_org()
 	fi
 	local -r orgName="$1"
 	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r orgsTsvFile="$TMP_FILE"
-	switch_format=links switch_outputHeadingLine=0 api_orgs >"$orgsTsvFile"
-	
-	local foundHref=""
-	local href mimeType name
-	while IFS=$'\t' read -r -d $'\n' href mimeType name
-	do
-		if [ "$name" = "$orgName" ]; then
-			foundHref="$href"
-			break
-		fi
-	done <"$orgsTsvFile"
-	
-	if [ -z "$foundHref" ]; then
-		informationMessage FAIL "Could not find org $orgName"
-		exitError 1
-	fi
-	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
+	api_makeCallAndFindHrefInLinksAndGet links api_findNamedResourceHrefInLinks org "$orgName" \
+		api_orgs
 	
 	local -r prefix="org"
 	case "$switch_format" in

@@ -1,4 +1,4 @@
-# eg ./vcloud-curl -o id-tsv vdc 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
+# eg ./vcloud-curl -f id-tsv vdc 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
 function api_vdc()
 {
 	if [ $# -ne 2 ]; then
@@ -8,31 +8,9 @@ function api_vdc()
 	local -r orgName="$1"
 	local -r vdcName="$2"
 	
-	# Could be abstracted, too
-	temporaryFiles_newFileToRemoveOnExit
-	local -r adminTsvFile="$TMP_FILE"
-	switch_format=links-vdcs switch_outputHeadingLine=0 api_admin "$orgName" >"$adminTsvFile"
-	
-	# THERE ARE TWO VARIANTS OF THIS LOOP: match by name, and match by mimeType
-	local foundHref=""
-	local href mimeType name
-	while IFS=$'\t' read -r -d $'\n' href mimeType name
-	do
-		if [ "$name" = "$vdcName" ]; then
-			foundHref="$href"
-			break
-		fi
-	done <"$adminTsvFile"
-	
-	# duplicate
-	if [ -z "$foundHref" ]; then
-		informationMessage FAIL "Could not find vdc $vdcName"
-		exitError 1
-	fi
-	
-	# duplicate
 	local curl_downloadFilePath
-	curl_wrapperLoggedInAbsoluteApiCall 200 GET "$foundHref"
+	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_findNamedResourceHrefInLinks vdc "$vdcName" \
+		api_admin "$orgName"
 	
 	local -r prefix="vdc"
 	case "$switch_format" in
