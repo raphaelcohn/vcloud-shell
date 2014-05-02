@@ -24,3 +24,8 @@ Design vcloud-shell
 - split out format commands
 - allow ability to clear cache / force cache per line
 - implement downloads_last
+
+TODO
+* remove a metadata key (? DELETE)
+* edit a metadata key (PUT)
+* remove all metadata (? DELETE)
