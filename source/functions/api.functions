@@ -136,6 +136,28 @@ function api_callbackGetHrefFromNameAndMimeType
 	fi
 }
 
+function api_makeCallAndFindHrefInLinksAndPost()
+{
+	local -r ourFormat="$1"
+	local -r callback="$2"
+	local -r resourceKind="$3"
+	local -r resourceNameOrMimeType="$4"
+	local -r queryString="$5"
+	local -r contentType="$6"
+	shift 6
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r linksTsvFile="$TMP_FILE"
+	
+	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
+	
+	local foundHref=""
+	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	curl_wrapperLoggedInAbsoluteApiCall 202 POST "${foundHref}${queryString}" "Content-Type" "${contentType}"
+	
+	downloads[${lineNumber}]="$curl_downloadFilePath"
+}
+
 function api_makeCallAndFindHrefInLinksAndGet()
 {
 	local -r ourFormat="$1"
@@ -185,7 +207,7 @@ function api_sessions()
 	
 	curl_wrapperSetAcceptHeader
 	local -r url="${api_map['/api/sessions']}"
-	curl_wrapper POST "$url"
+	curl_post="" curl_wrapper POST "$url"
 	
 	curl_validateResponseCode 200 "Could not connect to $url"
 	

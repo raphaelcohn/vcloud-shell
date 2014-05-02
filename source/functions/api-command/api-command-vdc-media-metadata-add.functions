@@ -1,0 +1,21 @@
+function api_command_vdc_media_metadata_add()
+{
+	if [ $# -ne 4 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <metadataXmlFileName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r mediaName="$3"
+	local -r metadataXmlFileName="$4"
+	
+	local curl_downloadFilePath
+	curl_post="@${metadataXmlFileName}" api_makeCallAndFindHrefInLinksAndPost links api_callbackGetHrefFromRel rel "add" '' "application/vnd.vmware.vcloud.metadata+xml" \
+		api_command_vdc_media_metadata "$orgName" "$vdcName" "$mediaName"
+	
+	# Clear cached metadata
+	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${mediaName}"
+	unset api_downloadsCache["${mediaKey}"]
+	
+	api_format_task "${FUNCNAME[0]:12}"
+}

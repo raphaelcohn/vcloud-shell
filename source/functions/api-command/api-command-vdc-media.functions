@@ -1,0 +1,54 @@
+function api_command_vdc_media()
+{
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r mediaName="$3"
+	
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}_${mediaName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		function api_getHrefFromMimeTypeAndName_api_command_vdc_media()
+		{
+			api_callbackGetHrefFromNameAndMimeType "$@" "application/vnd.vmware.vcloud.media+xml"
+		}
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_media media "$mediaName" '' \
+			api_command_vdc "$orgName" "$vdcName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
+	
+	api_format_vdc_media
+}
+
+function api_format_vdc_media()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-*)
+			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Media' '@imageType' '@status' '@name' '@id' '@type' '@href' \
+				'_:Description' \
+				'_:VdcStorageProfile/@type' '_:VdcStorageProfile/@href' '_:VdcStorageProfile/@name' \
+				'_:Owner/_:User/@type' '_:Owner/_:User/@href' '_:Owner/_:User/@name'
+		;;
+		
+		links)
+			xml_starlet_tsv_links_relName '/_:Media/_:Link'
+		;;
+		
+	esac
+}

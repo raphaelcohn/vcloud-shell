@@ -1,0 +1,23 @@
+function api_command_vdc_media_metadata()
+{
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r mediaName="$3"
+	
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}_${mediaName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+			api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
+	
+	api_format_metadata "${FUNCNAME[0]:12}"
+}

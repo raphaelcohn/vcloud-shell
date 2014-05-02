@@ -13,6 +13,11 @@ function xml_starlet_tsv_links_rel()
 	xml_starlet_tsv_downloadFilePath "$1" '@href' '@type' '@rel' "${@:2}"
 }
 
+function xml_starlet_tsv_links_relOnly
+{
+	xml_starlet_tsv_downloadFilePath "$1" '@href' '@rel' "${@:2}"
+}
+
 function xml_starlet_tsv_downloadFilePath()
 {
 	xml_starlet_tsv "$curl_downloadFilePath" "$@"
