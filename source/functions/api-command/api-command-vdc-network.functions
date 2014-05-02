@@ -9,11 +9,23 @@ function api_command_vdc_network()
 	local -r vdcName="$2"
 	local -r networkName="$3"
 	
-	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-networks api_callbackGetHrefFromName network "$networkName" '' \
-		api_command_vdc "$orgName" "$vdcName"
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}_${networkName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links-networks api_callbackGetHrefFromName network "$networkName" '' \
+			api_command_vdc "$orgName" "$vdcName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
 	
-	local -r prefix="${FUNCNAME[0]:12}"
+	api_format_vdc_network
+}
+
+function api_format_network()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -46,4 +58,3 @@ function api_command_vdc_network()
 		
 	esac
 }
-Functions+=(vdc_network)

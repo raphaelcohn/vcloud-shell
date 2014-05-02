@@ -1,19 +1,21 @@
-function api_command_org_metadata()
+function api_command_vdc_network_metadata()
 {
-	if [ $# -ne 1 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName>"
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
 	fi
 	
 	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r networkName="$3"
 	
-	local -r key="${FUNCNAME[0]:12}_${orgName}"
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}_${networkName}"
 	local -r value="${api_downloadsCache["${key}"]}"
 	if [ -n "$value" ]; then
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
 		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
-			api_command_admin "$orgName"
+			api_command_vdc_network "$orgName" "$vdcName" "$networkName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi
 	

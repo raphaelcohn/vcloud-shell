@@ -68,6 +68,9 @@ function main_executeCommands()
 	(
 		declare -a captures=()
 		declare -a downloads=()
+		
+		declare -A api_downloadsCache
+		
 		local line
 		local -i lineNumber=0
 		

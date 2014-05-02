@@ -130,6 +130,7 @@ Commands are either ordinary bash syntax, or one of the following
     api <format> <action> [<arg> ...]      run an api command (see below)
     capture ...                            run an api command or a bash line, and capture stdout into a file for latter use
     format <format> <with-header> <action> [files]  format files (if not specified, defaults to last api call's raw XML)
+    reset                                  cleans out the cache used for GET calls
 
 Since commands are normal bash syntax, environment variables can be set before use, eg to control header lines in output:-
 

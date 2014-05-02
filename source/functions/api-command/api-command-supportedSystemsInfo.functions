@@ -4,12 +4,24 @@ function api_command_supportedSystemsInfo()
 		exitError "api ${FUNCNAME[0]:12} takes no <args>"
 	fi
 	
-	local curl_downloadFilePath
-	curl_wrapperLoggedInRelativeApiCall 200 GET /api/supportedSystemsInfo/
+	local -r key="${FUNCNAME[0]:12}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		curl_wrapperLoggedInRelativeApiCall 200 GET /api/supportedSystemsInfo/
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
 	
 	downloads[${lineNumber}]="$curl_downloadFilePath"
 	
-	local -r prefix="${FUNCNAME[0]:12}"
+	api_format_supportedSystemsInfo
+}
+
+function api_format_supportedSystemsInfo()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -36,4 +48,3 @@ function api_command_supportedSystemsInfo()
 		
 	esac
 }
-Functions+=(supportedSystemsInfo)

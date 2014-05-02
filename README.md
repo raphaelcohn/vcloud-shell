@@ -15,6 +15,6 @@ vCloud Curl Tools
 Shell
 Design vcloud-shell
 
-- given a list of command lines are stdin or after the command
-- record each lines stdout in a file, so a subsequent line can reference a previous one
-- possibly commands to reformat output (eg was links, now give me it as id)
+- split out format commands
+- allow ability to clear cache / force cache per line
+- implement downloads_last

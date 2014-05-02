@@ -4,12 +4,24 @@ function api_command_orgs()
 		exitError "api ${FUNCNAME[0]:12} takes no <args>"
 	fi
 	
-	local curl_downloadFilePath
-	curl_wrapperLoggedInRelativeApiCall 200 GET /api/org/
+	local -r key="${FUNCNAME[0]:12}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		curl_wrapperLoggedInRelativeApiCall 200 GET /api/org/
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
 	
 	downloads[${lineNumber}]="$curl_downloadFilePath"
 	
-	local -r prefix="${FUNCNAME[0]:12}"
+	api_format_orgs
+}
+
+function api_format_orgs()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -34,4 +46,3 @@ function api_command_orgs()
 		
 	esac
 }
-Functions+=(orgs)

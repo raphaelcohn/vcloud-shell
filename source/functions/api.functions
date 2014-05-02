@@ -32,11 +32,20 @@ function format()
 	local -r formatCommand="$3"
 	shift 3
 	
-	if [ $# -eq 0 ]; then
-		api_format_${formatCommand} ${downloads_last}
-	else
-		api_format_${formatCommand} "$@"
-	fi
+	local curl_downloadFilePath
+	for curl_downloadFilePath in "$@"
+	do
+		api_format_${formatCommand}
+	done
+}
+
+function reset()
+{
+	local key
+	for key in "${!api_downloadsCache[@]}"
+	do
+		unset api_downloadsCache["${key}"]
+	done
 }
 
 function api_callbackGetHrefFromName()

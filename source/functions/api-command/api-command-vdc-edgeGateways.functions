@@ -16,11 +16,23 @@ function api_command_vdc_edgeGateways()
 	# records  <EdgeGatewayRecord vdc="https://api.vcd.portal.skyscapecloud.com/api/vdc/2ed07e0b-ec25-44f4-9477-0b53de01bbd6" numberOfOrgNetworks="5" numberOfExtNetworks="1" name="nft0009di2-1" isBusy="false" haStatus="DISABLED" gatewayStatus="READY" href="https://api.vcd.portal.skyscapecloud.com/api/admin/edgeGateway/cc182ffc-42bc-4a48-abcd-e2317c092e03" isSyslogServerSettingInSync="true" taskStatus="success" taskOperation="networkConfigureEdgeGatewayServices" task="https://api.vcd.portal.skyscapecloud.com/api/task/fc5f935a-99b1-4614-8d9c-757c765a9821" taskDetails=" "/>
 	# idrecords  <EdgeGatewayRecord vdc="urn:vcloud:vdc:2ed07e0b-ec25-44f4-9477-0b53de01bbd6" numberOfOrgNetworks="5" numberOfExtNetworks="1" name="nft0009di2-1" isBusy="false" haStatus="DISABLED" gatewayStatus="READY" id="urn:vcloud:gateway:cc182ffc-42bc-4a48-abcd-e2317c092e03" isSyslogServerSettingInSync="true" taskStatus="success" taskOperation="networkConfigureEdgeGatewayServices" task="urn:vcloud:task:fc5f935a-99b1-4614-8d9c-757c765a9821" taskDetails=" "/>
 	
-	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromRel edgeGateways 'edgeGateways' '?pageSize=100&format=references' \
-		api_command_vdc "$orgName" "$vdcName"
-	
-	local -r prefix="${FUNCNAME[0]:12}"
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromRel edgeGateways 'edgeGateways' '?pageSize=100&format=references' \
+			api_command_vdc "$orgName" "$vdcName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
+
+		api_format_vdc_edgeGateways
+	}
+
+function api_format_vdc_edgeGateways()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -45,4 +57,3 @@ function api_command_vdc_edgeGateways()
 		
 	esac
 }
-Functions+=(vdc_edgeGateways)

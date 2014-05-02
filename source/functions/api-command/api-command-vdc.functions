@@ -8,11 +8,23 @@ function api_command_vdc()
 	local -r orgName="$1"
 	local -r vdcName="$2"
 	
-	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_callbackGetHrefFromName vdc "$vdcName" '' \
-		api_command_admin "$orgName"
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links-vdcs api_callbackGetHrefFromName vdc "$vdcName" '' \
+			api_command_admin "$orgName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
 	
-	local -r prefix="${FUNCNAME[0]:12}"
+	api_format_vdc
+}
+
+function api_format_vdc()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -60,4 +72,3 @@ function api_command_vdc()
 		
 	esac
 }
-Functions+=(vdc)

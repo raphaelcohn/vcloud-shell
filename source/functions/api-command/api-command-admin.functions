@@ -6,11 +6,23 @@ function api_command_admin()
 	
 	local -r orgName="$1"
 	
-	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromName org "$orgName" '' \
-		api_command_admins
+	local -r key="${FUNCNAME[0]:12}_${orgName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromName org "$orgName" '' \
+			api_command_admins
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
 	
-	local -r prefix="${FUNCNAME[0]:12}"
+	api_format_admin
+}
+
+function api_format_admin()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -75,4 +87,3 @@ function api_command_admin()
 		
 	esac
 }
-Functions+=(admin)

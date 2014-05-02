@@ -9,18 +9,27 @@ function api_command_vdc_vApp()
 	local -r vdcName="$2"
 	local -r vAppName="$3"
 	
-	function api_getHrefFromMimeTypeAndName_api_vdc()
-	{
-		# application/vnd.vmware.vcloud.media+xml
-		# application/vnd.vmware.vcloud.vAppTemplate+xml
-		api_callbackGetHrefFromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vApp+xml"
-	}
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		function api_getHrefFromMimeTypeAndName_api_vdc()
+		{
+			# application/vnd.vmware.vcloud.media+xml
+			# application/vnd.vmware.vcloud.vAppTemplate+xml
+			api_callbackGetHrefFromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vApp+xml"
+		}
+		local curl_downloadFilePath
+		api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_vdc vApp "$vAppName" '' \
+			api_command_vdc "$orgName" "$vdcName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
 	
-	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_vdc vApp "$vAppName" '' \
-		api_command_vdc "$orgName" "$vdcName"
-	
-	local -r prefix="${FUNCNAME[0]:12}"
+	api_format_vdc_vApp
+}
+
+function api_format_vdc_vApp()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
 		
 		none)
@@ -33,4 +42,3 @@ function api_command_vdc_vApp()
 		
 	esac
 }
-Functions+=(vdc_vApp)

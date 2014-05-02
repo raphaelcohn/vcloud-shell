@@ -188,14 +188,15 @@ function curl_wrapper()
 			curl_httpResponseCode="$(awk '{print $1}' "$downloadDetailsFilePath")"
 			curl_downloadFilePath="$actualDownloadFilePath"
 			
-			while IFS=$'\t' read -r -d $'\n' name value
+			local headerName headerValue
+			while IFS=$'\t' read -r -d $'\n' headerName headerValue
 			do
 				# terminated by two trailing lines
-				if [ -z "$name" ]; then
+				if [ -z "$headerName" ]; then
 					continue
 				fi
 				# ,, converts to lower case (makes headers consistent to work with)
-				curl_responseHeaders["${name,,}"]="$value"
+				curl_responseHeaders["${headerName,,}"]="$headerValue"
 			done < <(tail -n +2 "$headersFilePath" | tr -d '\r' | awk -F': ' -v OFS=$'\t' '{print $1,$2}')
 			
 			return 0
