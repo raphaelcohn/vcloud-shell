@@ -1,4 +1,4 @@
-# eg ./vcloud-curl -f id-tsv vdc 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
+# eg ./vsh -f id-tsv vdc 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
 function api_command_vdc()
 {
 	if [ $# -ne 2 ]; then

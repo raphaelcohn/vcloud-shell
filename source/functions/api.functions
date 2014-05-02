@@ -8,8 +8,8 @@ function capture()
 	captures[${lineNumber}]="$captureFile"
 }
 
-# eg  ./vcloud-curl api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'
-# echo "api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'" | ./vcloud-curl
+# eg  ./vsh api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'
+# echo "api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'" | ./vsh
 function api()
 {
 	if [ $# -lt 2 ]; then
@@ -27,6 +27,7 @@ function format()
 	if [ $# -lt 3 ]; then
 		exitError "format must specify <format> <with-header> <action>"
 	fi
+	
 	local main_format="$1"
 	local defaults_outputHeadingLine="$2"
 	local -r formatCommand="$3"

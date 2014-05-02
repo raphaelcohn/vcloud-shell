@@ -1,4 +1,4 @@
-#eg ./vcloud-curl -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
+#eg ./vsh -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
 # ?type=user&page=1&pageSize=25&format=records"
 function api_command_vdc_edgeGateways()
 {

@@ -49,9 +49,9 @@ function setDebugging()
 {
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
-		export VCLOUD_CURL_BASH_DEBUGGING="yes"
-	elif [ ! -z "$VCLOUD_CURL_BASH_DEBUGGING" ]; then
-		if [ "$VCLOUD_CURL_BASH_DEBUGGING" = "yes" ]; then
+		export VSH_BASH_DEBUGGING="yes"
+	elif [ ! -z "$VSH_BASH_DEBUGGING" ]; then
+		if [ "$VSH_BASH_DEBUGGING" = "yes" ]; then
 			set -x
 		fi
 	fi
@@ -131,11 +131,11 @@ function copyToOutputFolder()
 	mkdir -m 0755 -p "$binFolder"
 	mkdir -m 0755 -p "$etcFolder"
 	
-	readonly vcloudCurlFile="$binFolder"/vcloud-curl
-	cp "$sourcePath"/vcloud-curl "$vcloudCurlFile"
+	readonly vcloudCurlFile="$binFolder"/vsh
+	cp "$sourcePath"/vsh "$vcloudCurlFile"
 	chmod 0755 "$vcloudCurlFile"
 	
-	readonly switch_configPath="$etcFolder"/vcloud-curl
+	readonly switch_configPath="$etcFolder"/vsh
 	mkdir -m 0755 -p "$switch_configPath"
 	
 	rsync -a --exclude=.gitignore "$sourcePath"/config/ "$switch_configPath"/
@@ -167,8 +167,8 @@ function generateEdScriptForDefaults()
 	
 	# We'll use patch with an ed script
 	# Find first line number (one-based)
-	local -ir startingLineNumber=$(grep --line-number '^#start VCLOUD_CURL_DEFAULTS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
-	local -ir endingLineNumber=$(grep --line-number '^#end VCLOUD_CURL_DEFAULTS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	local -ir startingLineNumber=$(grep --line-number '^#start VSH_DEFAULTS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	local -ir endingLineNumber=$(grep --line-number '^#end VSH_DEFAULTS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
 	
 	# Generate an ed script
 	(
@@ -231,8 +231,8 @@ function generateEdScriptForFunctions()
 	
 	# We'll use patch with an ed script
 	# Find first line number (one-based)
-	local -ir startingLineNumber=$(grep --line-number '^#start VCLOUD_CURL_SOURCE_FUNCTIONS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
-	local -ir endingLineNumber=$(grep --line-number '^#end VCLOUD_CURL_SOURCE_FUNCTIONS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	local -ir startingLineNumber=$(grep --line-number '^#start VSH_SOURCE_FUNCTIONS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
+	local -ir endingLineNumber=$(grep --line-number '^#end VSH_SOURCE_FUNCTIONS' "$vcloudCurlFile" | head -n 1 | cut -d':' -f1)
 	
 	# Generate an ed script
 	(

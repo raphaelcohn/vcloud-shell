@@ -83,7 +83,6 @@ function main_executeCommands()
 			"${commandLineArgs[@]}"
 			
 			lineNumber=$((lineNumber+1))
-			
 		fi
 		
 		cat "$switch_commandFile" | while IFS= read -r line

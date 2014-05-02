@@ -1,4 +1,4 @@
-#eg ./vcloud-curl -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
+#eg ./vsh -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
 function api_command_vdc_network()
 {
 	if [ $# -ne 3 ]; then

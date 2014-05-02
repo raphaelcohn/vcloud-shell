@@ -49,9 +49,9 @@ function setDebugging()
 {
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
-		export VCLOUD_CURL_BASH_DEBUGGING="yes"
-	elif [ ! -z "$VCLOUD_CURL_BASH_DEBUGGING" ]; then
-		if [ "$VCLOUD_CURL_BASH_DEBUGGING" = "yes" ]; then
+		export VSH_BASH_DEBUGGING="yes"
+	elif [ ! -z "$VSH_BASH_DEBUGGING" ]; then
+		if [ "$VSH_BASH_DEBUGGING" = "yes" ]; then
 			set -x
 		fi
 	fi
@@ -166,7 +166,7 @@ Command line switches (switch_) can be specified using a key=value file (with qu
 By default, the following locations are searched and files sourced as configuration in order before the command line is processed:-
 
     ~/.${ourName}
-    <VCLOUD_CURL_CONFIGURATION>  (an environment variable)
+    <VSH_CONFIGURATION>  (an environment variable)
 
 Format
 Format controls output. The list of valid main_formats varies by command, but xml is always supported and links produces links.
@@ -242,23 +242,23 @@ function loadAnyConfiguration()
 	switch_baseUrl="https://api.vcd.portal.skyscapecloud.com"
 	switch_commandFile="-"
 	
-#start VCLOUD_CURL_CONFIG_PATH
+#start VSH_CONFIG_PATH
 	etcPath="/etc"
 	switch_configPath="$crudeOurPath"/config
-#end VCLOUD_CURL_CONFIG_PATH
-#start VCLOUD_CURL_DEFAULTS
+#end VSH_CONFIG_PATH
+#start VSH_DEFAULTS
 	# Insert all our defaults as shipped, too
-#end VCLOUD_CURL_DEFAULTS
+#end VSH_DEFAULTS
 	
 	local -r userConfiguration=~/."$ourName"
 	if [ -r "$userConfiguration" ]; then
 		source "$userConfiguration"
 	fi
 	
-	local -r environmentVariableConfiguration="$VCLOUD_CURL_CONFIGURATION"
+	local -r environmentVariableConfiguration="$VSH_CONFIGURATION"
 	if [ -n "$environmentVariableConfiguration" ]; then
 		if [ -r "$environmentVariableConfiguration" ]; then
-			source "$VCLOUD_CURL_CONFIGURATION"
+			source "$VSH_CONFIGURATION"
 		fi
 	fi
 }
@@ -356,7 +356,7 @@ function validateCommandLineArguments()
 	fi
 }
 
-#start VCLOUD_CURL_SOURCE_FUNCTIONS
+#start VSH_SOURCE_FUNCTIONS
 function sourceFunctions()
 {
 	sourceFunctionsRecursively "$crudeOurPath"/functions
@@ -385,7 +385,7 @@ function sourceFunctionsRecursively()
 		
 	popd 1>/dev/null 2>/dev/null
 }
-#end VCLOUD_CURL_SOURCE_FUNCTIONS
+#end VSH_SOURCE_FUNCTIONS
 
 function main()
 {

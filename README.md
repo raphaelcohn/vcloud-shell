@@ -1,4 +1,4 @@
-vcloud-curl
+vsh
 ===========
 
 vCloud Curl Tools
