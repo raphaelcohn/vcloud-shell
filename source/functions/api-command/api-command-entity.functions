@@ -1,27 +1,28 @@
-function api_command_entityResolver()
+function api_command_entity()
 {
 	if [ $# -ne 1 ]; then
 		exitError "api ${FUNCNAME[0]:12} requires <urnId>"
 	fi
 	
-	local -r orgName="$1"
+	local -r urnId="$1"
 	
 	local -r key="${FUNCNAME[0]:12}_${urnId}"
 	local -r value="${api_downloadsCache["${key}"]}"
 	if [ -n "$value" ]; then
 		local curl_downloadFilePath="$value"
 	else
-		local -r entityResolverBaseUrl="${api_map['/api/entityResolver/']}"
+		local -r entityResolverBaseUrl="${api_map['/api/entity/']}"
+		local -r url="${entityResolverBaseUrl}${urnId}"
 		
 		local curl_downloadFilePath
-		curl_wrapperLoggedInAbsoluteApiCall 200 GET "${entityResolverBaseUrl}/${urnId}"
+		curl_wrapperLoggedInAbsoluteApiCall 200 GET "$url"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi
 	
-	api_format_entityResolver
+	api_format_entity
 }
 
-function api_format_entityResolver()
+function api_format_entity()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in
