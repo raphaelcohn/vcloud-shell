@@ -9,6 +9,7 @@ function capture()
 }
 
 # eg  ./vcloud-curl api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'
+# echo "api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'" | ./vcloud-curl
 function api()
 {
 	if [ $# -lt 2 ]; then
@@ -146,15 +147,21 @@ function api_makeCallAndFindHrefInLinksAndGet()
 	downloads[${lineNumber}]="$curl_downloadFilePath"
 }
 
+api_loggedOut=0
 function api_logout()
 {
+	if [ $api_loggedOut -eq 1 ]; then
+		return 0
+	fi
+	api_loggedOut=1
+	
 	# don't logout if curl was the cause of the error (eg because a retry timed out)
 	if [ $curl_lastExitCode -ne 0 ]; then
 		return 0
 	fi
 	
 	local curl_downloadFilePath
-	curl_wrapperLoggedInAbsoluteApiCall 204 DELETE "$api_logoutAbsoluteUrl"
+	main_format=none defaults_outputHeadingLine=0 curl_wrapperLoggedInAbsoluteApiCall 204 DELETE "$api_logoutAbsoluteUrl"
 }
 
 api_token=""

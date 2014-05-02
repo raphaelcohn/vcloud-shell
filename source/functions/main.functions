@@ -83,8 +83,7 @@ function main_executeCommands()
 			
 		fi
 		
-		# Execute any commands parsed
-		while IFS= read -r -d '$\n' line
+		cat "$switch_commandFile" | while IFS= read -r line
 		do
 			captures[${lineNumber}]='/dev/null'
 			downloads[${lineNumber}]='/dev/null'
@@ -93,7 +92,7 @@ function main_executeCommands()
 			
 			lineNumber=$((lineNumber+1))
 			
-		done <"$switch_commandFile"
+		done
 	)
 }
 main_functions+=(main_executeCommands)
