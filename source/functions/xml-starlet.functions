@@ -32,21 +32,21 @@ function xml_starlet_tsv()
 		xml_starlet_convertXPath
 		
 		if [ $afterFirst -eq 1 ]; then
-			if [ $switch_outputHeadingLine -eq 1 ]; then
+			if [ $defaults_outputHeadingLine -eq 1 ]; then
 				echo -n $'\t'
 			fi
 			outputArguments+=('--output' $'\t')
 		else
 			afterFirst=1
 		fi
-		if [ $switch_outputHeadingLine -eq 1 ]; then
+		if [ $defaults_outputHeadingLine -eq 1 ]; then
 			echo -n "$fieldName"
 		fi
 		
 		outputArguments+=('--value-of' "$attributeOrElement")
 	done
 	
-	if [ $switch_outputHeadingLine -eq 1 ]; then
+	if [ $defaults_outputHeadingLine -eq 1 ]; then
 		printf '\n'
 	fi
 	
@@ -57,7 +57,7 @@ readonly quote="'"
 function xml_starlet_keyValue()
 {
 	local -r variant="$1"
-	local -r prefix="${FUNCNAME[0]:4}"
+	local -r prefix="$2"
 	local -r filePath="$3"
 	local -r xpathMatch="$4"
 	shift 4
@@ -85,7 +85,7 @@ function xml_starlet_keyValue()
 				outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
 			done
 			
-			if [ $switch_outputHeadingLine -eq 1 ]; then
+			if [ $defaults_outputHeadingLine -eq 1 ]; then
 				echo "Key${tab}Value"
 			fi
 		;;

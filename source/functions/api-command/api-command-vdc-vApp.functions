@@ -1,0 +1,36 @@
+# eg  ./vcloud-curl -f xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'
+function api_command_vdc_vApp()
+{
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppName"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r vAppName="$3"
+	
+	function api_getHrefFromMimeTypeAndName_api_vdc()
+	{
+		# application/vnd.vmware.vcloud.media+xml
+		# application/vnd.vmware.vcloud.vAppTemplate+xml
+		api_callbackGetHrefFromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vApp+xml"
+	}
+	
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_vdc vApp "$vAppName" '' \
+		api_command_vdc "$orgName" "$vdcName"
+	
+	local -r prefix="${FUNCNAME[0]:12}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+	esac
+}
+Functions+=(vdc_vApp)

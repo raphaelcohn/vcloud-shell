@@ -1,6 +1,44 @@
-api_commandLineFunctions=()
+function capture()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	local -r captureFile="$TMP_FILE"
+	
+	"$@" >"$captureFile"
+	
+	captures[${lineNumber}]="$captureFile"
+}
 
-function api_findNamedResourceHrefInLinks()
+# eg  ./vcloud-curl api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'
+function api()
+{
+	if [ $# -lt 2 ]; then
+		exitError "api must specify <format> <action>"
+	fi
+	local main_format="$1"
+	local -r apiCommand="$2"
+	shift 2
+	
+	api_command_${apiCommand} "$@"
+}
+
+function format()
+{
+	if [ $# -lt 3 ]; then
+		exitError "format must specify <format> <with-header> <action>"
+	fi
+	local main_format="$1"
+	local defaults_outputHeadingLine="$2"
+	local -r formatCommand="$3"
+	shift 3
+	
+	if [ $# -eq 0 ]; then
+		api_format_${formatCommand} ${downloads_last}
+	else
+		api_format_${formatCommand} "$@"
+	fi
+}
+
+function api_callbackGetHrefFromName()
 {
 	local -r linksTsvFile="$1"
 	local -r resourceKind="$2"
@@ -21,7 +59,7 @@ function api_findNamedResourceHrefInLinks()
 	fi
 }
 
-function api_findMimeTypeHrefInLinks()
+function api_callbackGetHrefFromMimeType()
 {
 	local -r linksTsvFile="$1"
 	local -r resourceKind="$2"
@@ -42,7 +80,7 @@ function api_findMimeTypeHrefInLinks()
 	fi
 }
 
-function api_findRelHrefInLinks()
+function api_callbackGetHrefFromRel()
 {
 	local -r linksTsvFile="$1"
 	local -r resourceKind="$2"
@@ -63,16 +101,28 @@ function api_findRelHrefInLinks()
 	fi
 }
 
-# query args - how?
-function api_findHrefInLinksAndGet()
+function api_callbackGetHrefFromNameAndMimeType
 {
-	local -r callback="$1"
-	local -r queryString="$2"
-	shift 2
+	local -r linksTsvFile="$1"
+	local -r resourceKind="$2"
+	local -r resourceName="$3"
+	local -r resourceMimeType="$4"
 	
-	local foundHref=""
-	${callback} "$@"
-	curl_wrapperLoggedInAbsoluteApiCall 200 GET "${foundHref}${queryString}"
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$resourceName" ]; then
+			if [ "$mimeType" = "$resourceMimeType" ]; then
+				foundHref="$href"
+				break
+			fi
+		fi
+	done <"$linksTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find $resourceKind name $resourceName mime-type $resourceMimeType"
+		exitError 1
+	fi
 }
 
 function api_makeCallAndFindHrefInLinksAndGet()
@@ -87,51 +137,13 @@ function api_makeCallAndFindHrefInLinksAndGet()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	switch_format="$ourFormat" switch_outputHeadingLine=0 "$@" >"$linksTsvFile"
+	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
 	
-	api_findHrefInLinksAndGet "$callback" "$queryString" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
-}
-
-function api_formatMetadata()
-{
-	local -r prefix="${FUNCNAME[0]:4}"
-	case "$switch_format" in
-		
-		xml)
-			cat "$curl_downloadFilePath"
-		;;
-		
-		id-*)
-			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
-		;;
-		
-		settings)
-			xml_starlet_tsv_downloadFilePath '/_:Metadata/_:MetadataEntry' '_:Key' '_:TypedValue/_:Value' '_:TypedValue/@xsi:type'
-		;;
-		
-		*)
-			exitError "Please specify switch_format as either xml, id-bash, id-tsv, or settings, not $switch_format"
-		;;
-		
-	esac
-}
-
-function api_executeCommand()
-{
-	local -r ourCommand="$1"
-	shift 1
+	local foundHref=""
+	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	curl_wrapperLoggedInAbsoluteApiCall 200 GET "${foundHref}${queryString}"
 	
-	local api_commandLineFunction
-	for api_commandLineFunction in "${api_commandLineFunctions[@]}"
-	do
-		if [ "$api_commandLineFunction" = "$ourCommand" ]; then
-			api_${ourCommand} "$@"
-			return 0
-		fi
-	done
-	
-	informationMessage FAIL "No known command $ourCommand"
-	return 1
+	downloads[${lineNumber}]="$curl_downloadFilePath"
 }
 
 function api_logout()
@@ -225,7 +237,7 @@ function api_sessions()
 		api_map["$apiKey"]="$href"
 		
 	# _: means the default namespace (not needed if there's no xmlns definition)
-	done < <(switch_outputHeadingLine=0 xml_starlet_tsv_downloadFilePath '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	done < <(defaults_outputHeadingLine=0 xml_starlet_tsv_downloadFilePath '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
 	
 	api_logoutAbsoluteUrl="${api_map['/api/session/']}"
 }
@@ -250,7 +262,7 @@ function api_versions()
 	# _: means the default namespace (not needed if there's no xmlns definition)
 	temporaryFiles_newFileToRemoveOnExit
 	local -r tsvFilePath="$TMP_FILE"
-	switch_outputHeadingLine=0 xml_starlet_tsv_downloadFilePath '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	defaults_outputHeadingLine=0 xml_starlet_tsv_downloadFilePath '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
 	
 	if ! grep --quiet "^${defaults_api_version}"$'\t' "$tsvFilePath"; then
 		informationMessage FAIL "API version (defaults_api_version) $defaults_api_version is not supported"

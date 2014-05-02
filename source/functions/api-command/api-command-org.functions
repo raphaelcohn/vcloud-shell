@@ -1,0 +1,37 @@
+function api_command_org()
+{
+	if [ $# -ne 1 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName>"
+	fi
+	local -r orgName="$1"
+	
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromName org "$orgName" '' \
+		api_command_orgs
+	
+	local -r prefix="${FUNCNAME[0]:12}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		links)
+			xml_starlet_tsv_links_relName '/_:Org/_:Link'
+		;;
+		
+		id-*)
+			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+		;;
+		
+		*)
+			exitError "Please specify main_format as either xml, links, or id, not $main_format"
+		;;
+		
+	esac
+}
+Functions+=(org)

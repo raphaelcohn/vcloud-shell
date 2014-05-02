@@ -1,40 +1,44 @@
-function api_admin()
+function api_command_admin()
 {
 	if [ $# -ne 1 ]; then
-		exitError "command ${FUNCNAME[0]:4} requires <orgName>"
+		exitError "api ${FUNCNAME[0]:12} requires <orgName>"
 	fi
 	
 	local -r orgName="$1"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_findNamedResourceHrefInLinks org "$orgName" '' \
-		api_admins
+	api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromName org "$orgName" '' \
+		api_command_admins
 	
-	local -r prefix="${FUNCNAME[0]:4}"
-	case "$switch_format" in
+	local -r prefix="${FUNCNAME[0]:12}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
 		
 		xml)
 			cat "$curl_downloadFilePath"
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
+			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg' '@href' '@type' '@name' '_:FullName' '_:Description' '_:IsEnabled'
 		;;
 		
 		links)
 			# Not every settings entry has a Link
 			xml_starlet_tsv_links_rel '/_:AdminOrg/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link'
-			switch_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgGeneralSettings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:VAppLeaseSettings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:VAppTemplateLeaseSettings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgEmailSettings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgPasswordPolicySettings/_:Link'
+			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:AdminOrg/_:Settings/_:OrgOperationLimitsSettings/_:Link'
 		;;
 		
 		settings-*)
-			xml_starlet_keyValue ${switch_format:9} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
+			xml_starlet_keyValue ${main_format:9} "$prefix" "$curl_downloadFilePath" '/_:AdminOrg/_:Settings' \
 				'_:VAppLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppLeaseSettings/_:StorageLeaseSeconds' '_:VAppLeaseSettings/_:DeploymentLeaseSeconds' \
 				'_:VAppTemplateLeaseSettings/_:DeleteOnStorageLeaseExpiration' '_:VAppTemplateLeaseSettings/_:StorageLeaseSeconds' \
 				'_:OrgGeneralSettings/_:CanPublishCatalogs' '_:OrgGeneralSettings/_:CanPublishExternally' '_:OrgGeneralSettings/_:CanSubscribe' '_:OrgGeneralSettings/_:DeployedVMQuota' '_:OrgGeneralSettings/_:StoredVmQuota' '_:OrgGeneralSettings/_:UseServerBootSequence' '_:OrgGeneralSettings/_:DelayAfterPowerOnSeconds' \
@@ -66,9 +70,9 @@ function api_admin()
 		;;
 		
 		*)
-			exitError "Please specify switch_format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, links-users, links-groups, links-catalogs, links-vdcs or links-networks, not $switch_format"
+			exitError "Please specify main_format as either xml, links, id-bash, id-tsv, settings-bash, settings-tsv, links-users, links-groups, links-catalogs, links-vdcs or links-networks, not $main_format"
 		;;
 		
 	esac
 }
-api_commandLineFunctions+=(admin)
+Functions+=(admin)

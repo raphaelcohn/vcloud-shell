@@ -1,26 +1,30 @@
 # eg ./vcloud-curl -f id-tsv vdc 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
-function api_vdc()
+function api_command_vdc()
 {
 	if [ $# -ne 2 ]; then
-		exitError "command ${FUNCNAME[0]:4} requires <orgName> <vdcName>"
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName>"
 	fi
 	
 	local -r orgName="$1"
 	local -r vdcName="$2"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_findNamedResourceHrefInLinks vdc "$vdcName" '' \
-		api_admin "$orgName"
+	api_makeCallAndFindHrefInLinksAndGet links-vdcs api_callbackGetHrefFromName vdc "$vdcName" '' \
+		api_command_admin "$orgName"
 	
-	local -r prefix="${FUNCNAME[0]:4}"
-	case "$switch_format" in
+	local -r prefix="${FUNCNAME[0]:12}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
 		
 		xml)
 			cat "$curl_downloadFilePath"
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:AllocationModel' \
 				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
 				'_:ComputeCapacity/_:Memory/_:Units' '_:ComputeCapacity/_:Memory/_:Allocated' '_:ComputeCapacity/_:Memory/_:Limit' '_:ComputeCapacity/_:Memory/_:Reserved' '_:ComputeCapacity/_:Memory/_:Used' '_:ComputeCapacity/_:Memory/_:Overhead' \
@@ -32,6 +36,9 @@ function api_vdc()
 		;;
 		
 		links-resource-entities)
+			# vApps:  application/vnd.vmware.vcloud.vApp+xml  +  name
+			# vAppTemplates:  application/vnd.vmware.vcloud.vAppTemplate+xml  +  name
+			# Media:  application/vnd.vmware.vcloud.media+xml  +  name
 			xml_starlet_tsv_links_name '/_:Vdc/_:ResourceEntities/_:ResourceEntity'
 		;;
 		
@@ -48,9 +55,9 @@ function api_vdc()
 		;;
 		
 		*)
-			exitError "Please specify switch_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $switch_format"
+			exitError "Please specify main_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $main_format"
 		;;
 		
 	esac
 }
-api_commandLineFunctions+=(vdc)
+Functions+=(vdc)

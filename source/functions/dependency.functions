@@ -67,9 +67,6 @@ function dependency_setUpAliases()
 		absolutePath="${unaliasedBinaries["${binaryName}"]}"
 		alias "$binaryName"="$absolutePath"
 	done
-	
-	# Radical, but defensive
-	export PATH=""
 }
 dependency_functions+=(dependency_setUpAliases)
 

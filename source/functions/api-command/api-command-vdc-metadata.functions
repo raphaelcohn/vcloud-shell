@@ -1,0 +1,16 @@
+function api_command_vdc_metadata()
+{
+	if [ $# -ne 2 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+		api_command_vdc "$orgName" "$vdcName"
+	
+	api_format_metadata "${FUNCNAME[0]:12}"
+}
+Functions+=(vdc_metadata)

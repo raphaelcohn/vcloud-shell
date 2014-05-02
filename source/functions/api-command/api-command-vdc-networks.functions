@@ -1,8 +1,8 @@
 #eg ./vcloud-curl -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
-function api_vdc_network()
+function api_command_vdc_network()
 {
 	if [ $# -ne 3 ]; then
-		exitError "command ${FUNCNAME[0]:4} requires <orgName> <vdcName> <networkName>"
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
 	fi
 	
 	local -r orgName="$1"
@@ -10,18 +10,22 @@ function api_vdc_network()
 	local -r networkName="$3"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links-networks api_findNamedResourceHrefInLinks network "$networkName" '' \
-		api_vdc "$orgName" "$vdcName"
+	api_makeCallAndFindHrefInLinksAndGet links-networks api_callbackGetHrefFromName network "$networkName" '' \
+		api_command_vdc "$orgName" "$vdcName"
 	
-	local -r prefix="${FUNCNAME[0]:4}"
-	case "$switch_format" in
+	local -r prefix="${FUNCNAME[0]:12}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
 		
 		xml)
 			cat "$curl_downloadFilePath"
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:OrgVdcNetwork' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:OrgVdcNetwork' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:IsShared' \
 				'_:Configuration/_:FenceMode' '_:Configuration/_:RetainNetInfoAcrossDeployments'
 		;;
@@ -37,9 +41,9 @@ function api_vdc_network()
 		;;
 		
 		*)
-			exitError "Please specify switch_format as either xml, id-bash, id-tsv, links or settings, not $switch_format"
+			exitError "Please specify main_format as either xml, id-bash, id-tsv, links or settings, not $main_format"
 		;;
 		
 	esac
 }
-api_commandLineFunctions+=(vdc_network)
+Functions+=(vdc_network)

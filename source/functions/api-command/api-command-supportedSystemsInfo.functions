@@ -1,21 +1,27 @@
-function api_supportedSystemsInfo()
+function api_command_supportedSystemsInfo()
 {
 	if [ $# -ne 0 ]; then
-		exitError "command ${FUNCNAME[0]:4} takes no <args>"
+		exitError "api ${FUNCNAME[0]:12} takes no <args>"
 	fi
 	
 	local curl_downloadFilePath
 	curl_wrapperLoggedInRelativeApiCall 200 GET /api/supportedSystemsInfo/
 	
-	local -r prefix="${FUNCNAME[0]:4}"
-	case "$switch_format" in
+	downloads[${lineNumber}]="$curl_downloadFilePath"
+	
+	local -r prefix="${FUNCNAME[0]:12}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
 		
 		xml)
 			cat "$curl_downloadFilePath"
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${switch_format:3} "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
+			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:SupportedOperatingSystemsInfo' '@href' '@type'
 		;;
 		
 		tsv)
@@ -25,9 +31,9 @@ function api_supportedSystemsInfo()
 		;;
 		
 		*)
-			exitError "Please specify switch_format as either xml, id-bash, id-tsv or links, not $switch_format"
+			exitError "Please specify main_format as either xml, id-bash, id-tsv or links, not $main_format"
 		;;
 		
 	esac
 }
-api_commandLineFunctions+=(supportedSystemsInfo)
+Functions+=(supportedSystemsInfo)

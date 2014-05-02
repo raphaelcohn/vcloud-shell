@@ -61,11 +61,42 @@ function main_login()
 }
 main_functions+=(main_login)
 
-function main_executeCommandLine()
+main_format=xml
+function main_executeCommands()
 {
-	api_executeCommand "${commandLineCommand}" "${commandLineArgs[@]}"
+	# Uses a subshell so we don't affect the core program
+	(
+		declare -a captures=()
+		declare -a downloads=()
+		local line
+		local -i lineNumber=0
+		
+		# Execute command line first if present
+		if [ ${#commandLineArgs[@]} -ne 0 ]; then
+			
+			captures[${lineNumber}]='/dev/null'
+			downloads[${lineNumber}]='/dev/null'
+			
+			"${commandLineArgs[@]}"
+			
+			lineNumber=$((lineNumber+1))
+			
+		fi
+		
+		# Execute any commands parsed
+		while IFS= read -r -d '$\n' line
+		do
+			captures[${lineNumber}]='/dev/null'
+			downloads[${lineNumber}]='/dev/null'
+			
+			eval "${line}"
+			
+			lineNumber=$((lineNumber+1))
+			
+		done <"$switch_commandFile"
+	)
 }
-main_functions+=(main_executeCommandLine)
+main_functions+=(main_executeCommands)
 
 function main_executeMainFunctions()
 {

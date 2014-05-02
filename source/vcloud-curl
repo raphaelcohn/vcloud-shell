@@ -104,7 +104,7 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-d] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] [-f switch_format] [-t switch_outputHeadingLine] -- command <args>
+Usage: ${ourName} [-v] [-d] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] [-f switch_commandFile] -- [commands]
 
 Argument-less Switches
     Switch  Explanation            Default       Configuration*
@@ -118,17 +118,47 @@ Argumented Switches
     -n      switch_netrcFilePath      ${switch_netrcFilePath} (not used if not present)
     -r      switch_curlrcFilePath     ${switch_curlrcFilePath} (not used if not present)
     -u      switch_baseUrl            ${switch_baseUrl}
-    -f      switch_format             ${switch_format}
-    -t      switch_outputHeadingLine  ${switch_outputHeadingLine} (yes|on|true|1 or no|off|false|0)
+    -f      switch_commandFile        ${switch_commandFile} (- is stdin)
     --                                End of arguments, beginning of commands
 
 *See below
 
-command
-This is a command followed by optional <args>. Supported commands are:-
+commands
+This is a line of commands. It may also be specified as many lines (line feed separated), specified by switch_commandFile. Use  -  for stdin.
+Commands are either ordinary bash syntax, or one of the following
+
+    api <format> <action> [<arg> ...]      run an api command (see below)
+    capture ...                            run an api command or a bash line, and capture stdout into a file for latter use
+    format <format> <with-header> <action> [files]  format files (if not specified, defaults to last api call's raw XML)
+
+Since commands are normal bash syntax, environment variables can be set before use, eg to control header lines in output:-
+
+    defaults_outputHeadingLine=yes capture api tsv supportedSystemsInfo
+
+apis can have a <format> which outputs to stdout. Common values are below (note that some apis may have additional formats)
+
+    none       do not format (do not output to stdout)
+    xml        output raw XML
+    id-bash*   output bash source-able key-values
+    id-tsv*    output TSV key-values
+    links*     output links in TSV format
+    tsv*       output TSV data
+    settings*  output TSV settings
+
+* not supported by all formats. Each api call can have its standard out captured using 'capture'. Each api call has any downloaded data stored in raw (XML) in the
+array  downloads  , organised by line number of the commands (zero-based).
+
+capture stores a path to a file containing stdout. These can be retrieved from the array  captures  , by specifying a line number, eg:-
+
+    head -n 1 "${captures[2]}"  will output to stdout the first line of capture from stdout.
+
+If no line was captured, then /dev/null is output.
+
+api calls currently defined
 
     orgs        List of organisations
     org <name>  Org details for <name>, eg 98-184-1-151d73
+    ... [TODO: Generate this list, and the supported formats]
 
 Configuration
 Command line switches (switch_) can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
@@ -138,7 +168,7 @@ By default, the following locations are searched and files sourced as configurat
     <VCLOUD_CURL_CONFIGURATION>  (an environment variable)
 
 Format
-Format controls output. The list of valid switch_formats varies by command, but xml is always supported and links produces links.
+Format controls output. The list of valid main_formats varies by command, but xml is always supported and links produces links.
 
 netrc Files
 netrc files and are used to specify user name and password credentials. netrc files are searched for automatically
@@ -153,7 +183,7 @@ The locations searched in order are:-
 
 If more than one file is found, then the last one found is the one used.
 
-The netrc file should consist of lines in the switch_format machine HOSTNAME login USER@ORGANIZATION password PASSWORD. The first
+The netrc file should consist of lines in the main_format machine HOSTNAME login USER@ORGANIZATION password PASSWORD. The first
 matching entry is used, or, if no matching entries are present, the final 'default' entry. More details are in  man 5 netrc.
 
 HOSTNAME should be that of the vCloud portal. For Skyscape, it is  api.vcd.portal.skyscapecloud.com . In the vCloud 5.1 API
@@ -184,11 +214,12 @@ Defaults are used to control common use cases. Defaults for values are sourced a
 
 The values that can be configured are:-
     
-    Value                     Built-in Value
-    defaults_api_version      ${defaults_api_version}
-    defaults_curl_userAgent   ${defaults_curl_userAgent}
-    defaults_curl_maxRedirs   ${defaults_curl_maxRedirs}
-    defaults_curl_retries     ${defaults_curl_retries}
+    Value                       Built-in Value
+    defaults_api_version        ${defaults_api_version}
+    defaults_outputHeadingLine  ${defaults_outputHeadingLine}
+    defaults_curl_userAgent     ${defaults_curl_userAgent}
+    defaults_curl_maxRedirs     ${defaults_curl_maxRedirs}
+    defaults_curl_retries       ${defaults_curl_retries}
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
@@ -198,7 +229,6 @@ to automatically install any missing dependencies. The PATH variable is reset to
 	exit $1
 }
 
-commandLineCommand=""
 commandLineArgs=()
 function loadAnyConfiguration()
 {
@@ -209,8 +239,7 @@ function loadAnyConfiguration()
 	switch_netrcFilePath=""
 	switch_curlrcFilePath=""
 	switch_baseUrl="https://api.vcd.portal.skyscapecloud.com"
-	switch_format="xml"
-	switch_outputHeadingLine=1
+	switch_commandFile="-"
 	
 #start VCLOUD_CURL_CONFIG_PATH
 	etcPath="/etc"
@@ -239,7 +268,7 @@ function parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:s:n:r:f:t: option
+	while getopts :hvdc:s:n:r:f: option
 	do
 		case "$option" in
 			
@@ -272,25 +301,7 @@ function parseCommandLine()
 			;;
 			
 			f)
-				switch_format="$OPTARG"
-			;;
-			
-			t)
-				case "$OPTARG" in
-					
-					1|yes|true|on)
-						switch_outputHeadingLine=1
-					;;
-					
-					0|no|true|off)
-						switch_outputHeadingLine=0
-					;;
-					
-					*)
-						switch_outputHeadingLine=1
-					;;
-					
-				esac
+				switch_commandFile="$OPTARG"
 			;;
 			
 			'?')
@@ -302,8 +313,6 @@ function parseCommandLine()
 	
 	shift $((OPTIND - 1))
 	
-	commandLineCommand=("$1")
-	shift 1
 	commandLineArgs=("$@")
 	
 	function makeCommandLinePathsAbsolute()
@@ -333,8 +342,16 @@ function validateCommandLineArguments()
 		fi
 	fi
 	
-	if [ -z "${commandLineCommand}" ]; then
-		exitError "Please specify a command for the commandLine"
+	if [ -z "$switch_commandFile" ]; then
+		switch_commandFile='-'
+	fi
+	
+	if [ "$switch_commandFile" = '-' ]; then
+		switch_commandFile=/dev/stdin
+	else
+		if [ ! -r "$switch_commandFile" ]; then
+			exitError "Please specify a readable (or extant) switch_commandFile, not $switch_commandFile"
+		fi
 	fi
 }
 
