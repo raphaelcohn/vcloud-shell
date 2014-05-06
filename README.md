@@ -14,3 +14,7 @@ vCloud Curl Tools
 * fix format commands
 * refactor metadata API calls for media into common code
 * implement downloads_last
+
+* records and queries
+	* references / records / idrecords for EdgeGateways
+	* ditto for /api/query

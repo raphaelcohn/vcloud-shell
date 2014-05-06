@@ -1,4 +1,4 @@
-function api_command_vdc_media_metadata_replace()
+function api_command_vdc_media_metadata_merge()
 {
 	if [ $# -ne 4 ]; then
 		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <metadataXmlFileName>"
