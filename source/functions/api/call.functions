@@ -1,7 +1,7 @@
 function api_call_put()
 {
 	local -r ourFormat="$1"
-	local -r callback="$2"
+	local -r callbackToParseOutObjectUrl="$2"
 	local -r resourceKind="$3"
 	local -r resourceNameOrMimeType="$4"
 	local -r queryString="$5"
@@ -15,7 +15,7 @@ function api_call_put()
 	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_put="${putFile}" curl_wrapperLoggedInAbsoluteApiCall 202 PUT "${foundHref}${queryString}" "Content-Type" "${contentType}"
 	
 	downloads[${lineNumber}]="$curl_downloadFilePath"
@@ -24,7 +24,7 @@ function api_call_put()
 function api_call_post()
 {
 	local -r ourFormat="$1"
-	local -r callback="$2"
+	local -r callbackToParseOutObjectUrl="$2"
 	local -r resourceKind="$3"
 	local -r resourceNameOrMimeType="$4"
 	local -r queryString="$5"
@@ -38,7 +38,7 @@ function api_call_post()
 	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall 202 POST "${foundHref}${queryString}" "Content-Type" "${contentType}"
 	
 	downloads[${lineNumber}]="$curl_downloadFilePath"
@@ -47,7 +47,7 @@ function api_call_post()
 function api_call_delete()
 {
 	local -r ourFormat="$1"
-	local -r callback="$2"
+	local -r callbackToParseOutObjectUrl="$2"
 	local -r resourceKind="$3"
 	local -r resourceNameOrMimeType="$4"
 	local -r queryString="$5"
@@ -59,7 +59,7 @@ function api_call_delete()
 	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_wrapperLoggedInAbsoluteApiCall 202 DELETE "${foundHref}${queryString}"
 
 	downloads[${lineNumber}]="$curl_downloadFilePath"
@@ -68,7 +68,7 @@ function api_call_delete()
 function api_call_get()
 {
 	local -r ourFormat="$1"
-	local -r callback="$2"
+	local -r callbackToParseOutObjectUrl="$2"
 	local -r resourceKind="$3"
 	local -r resourceNameOrMimeType="$4"
 	local -r queryString="$5"
@@ -80,7 +80,7 @@ function api_call_get()
 	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "${foundHref}${queryString}"
 	
 	downloads[${lineNumber}]="$curl_downloadFilePath"

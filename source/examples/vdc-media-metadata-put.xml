@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Metadata xmlns="http://www.vmware.com/vcloud/v1.5" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" type="application/vnd.vmware.vcloud.metadata+xml">
+	<MetadataEntry type="application/vnd.vmware.vcloud.metadata.value+xml">
+		<!--<Domain visibility="PRIVATE">GENERAL</Domain>-->
+		<Key>Replaces</Key>
+		<TypedValue xsi:type="MetadataStringValue">
+			<Value>jim</Value>
+		</TypedValue>
+	</MetadataEntry>
+</Metadata>
