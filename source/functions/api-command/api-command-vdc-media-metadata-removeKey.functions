@@ -1,0 +1,31 @@
+function api_command_vdc_media_metadata_removeKey()
+{
+	if [ $# -ne 4 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <keyName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r mediaName="$3"
+	local -r keyName="$4"
+	
+	local curl_downloadFilePath
+	
+	# the Link rel=remove is an earlier sibling to the Key value and has a non-unique mime-type and no name, so we can't just find it by simple query
+	# This technique constructs the URL in violation of the API design
+	function api_command_vdc_media_metadata_removeKey_callback()
+	{
+		api_callbackGetHrefFromMimeType "$@"
+		
+		foundHref="${foundHref}"/"$(url_encodePathPiece "$keyName")"
+	}
+	
+	local curl_downloadFilePath
+	api_makeCallAndFindHrefInLinksAndDelete links api_command_vdc_media_metadata_removeKey_callback metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+		api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
+	
+	# Clear cached metadata
+	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${mediaName}"
+	unset api_downloadsCache["${mediaKey}"]
+}
+

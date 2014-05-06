@@ -158,6 +158,27 @@ function api_makeCallAndFindHrefInLinksAndPost()
 	downloads[${lineNumber}]="$curl_downloadFilePath"
 }
 
+function api_makeCallAndFindHrefInLinksAndDelete()
+{
+	local -r ourFormat="$1"
+	local -r callback="$2"
+	local -r resourceKind="$3"
+	local -r resourceNameOrMimeType="$4"
+	local -r queryString="$5"
+	shift 5
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r linksTsvFile="$TMP_FILE"
+	
+	main_format="$ourFormat" defaults_outputHeadingLine=0 "$@" >"$linksTsvFile"
+	
+	local foundHref=""
+	${callback} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	curl_wrapperLoggedInAbsoluteApiCall 202 DELETE "${foundHref}${queryString}"
+
+	downloads[${lineNumber}]="$curl_downloadFilePath"
+}
+
 function api_makeCallAndFindHrefInLinksAndGet()
 {
 	local -r ourFormat="$1"

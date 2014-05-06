@@ -1,0 +1,11 @@
+# One of several possibilities from https://stackoverflow.com/questions/296536/urlencode-from-a-bash-script
+# Encoding should actually be done on each part of the path, eg /my/url/path should be encoded as my, url and path
+function url_encodePathPiece()
+{
+	# newer versions return 0, older versions 3
+	set +e
+	local -r data="$(curl --silent --output /dev/null -w %{url_effective} --get --data-urlencode "$1" "")"
+	set -e
+	
+	echo -n "${data##/?}"
+}
