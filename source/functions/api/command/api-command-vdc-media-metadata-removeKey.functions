@@ -10,7 +10,7 @@ function api_command_vdc_media_metadata_removeKey()
 	local -r keyName="$4"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndDelete links api_callback_fromMimeTypeAndModifyWithKeyName metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+	api_call_delete links api_callback_fromMimeTypeAndModifyWithKeyName metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 		api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
 	
 	# Clear cached metadata

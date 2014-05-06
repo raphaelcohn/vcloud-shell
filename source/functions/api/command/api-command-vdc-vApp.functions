@@ -19,7 +19,7 @@ function api_command_vdc_vApp()
 			api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vApp+xml"
 		}
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_vApp vApp "$vAppName" '' \
+		api_call_get links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_vApp vApp "$vAppName" '' \
 			api_command_vdc "$orgName" "$vdcName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

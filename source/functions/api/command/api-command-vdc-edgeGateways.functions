@@ -22,7 +22,7 @@ function api_command_vdc_edgeGateways()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links api_callback_fromRel edgeGateways 'edgeGateways' '?pageSize=100&format=references' \
+		api_call_get links api_callback_fromRel edgeGateways 'edgeGateways' '?pageSize=100&format=references' \
 			api_command_vdc "$orgName" "$vdcName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

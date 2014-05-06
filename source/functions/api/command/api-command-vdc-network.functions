@@ -15,7 +15,7 @@ function api_command_vdc_network()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links-networks api_callback_fromName network "$networkName" '' \
+		api_call_get links-networks api_callback_fromName network "$networkName" '' \
 			api_command_vdc "$orgName" "$vdcName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

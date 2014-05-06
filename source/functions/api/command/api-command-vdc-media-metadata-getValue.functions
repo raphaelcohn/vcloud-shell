@@ -10,7 +10,7 @@ function api_command_vdc_media_metadata_getValue()
 	local -r keyName="$4"
 	
 	local curl_downloadFilePath
-	api_makeCallAndFindHrefInLinksAndGet links api_callback_fromMimeTypeAndModifyWithKeyName metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+	api_call_get links api_callback_fromMimeTypeAndModifyWithKeyName metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 		api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
 	
 	api_format_metadataValue "${FUNCNAME[0]:12}"
