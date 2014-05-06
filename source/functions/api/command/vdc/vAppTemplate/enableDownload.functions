@@ -1,0 +1,27 @@
+function api_command_vdc_vAppTemplate_enableDownload()
+{
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r vAppTemplateName="$3"
+	
+	local curl_downloadFilePath
+	
+	function api_callback_fromMimeTypeAndName_api_command_vdc_vAppTemplate_enableDownload()
+	{
+		api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vAppTemplate+xml"
+		foundHref="${foundHref}"/action/enableDownload
+	}
+	local curl_downloadFilePath
+	api_call_postEmpty links-resource-entities api_callback_fromMimeTypeAndName_api_command_vdc_vAppTemplate_enableDownload vAppTemplate "$vAppTemplateName" '' \
+		api_command_vdc "$orgName" "$vdcName"
+	
+	# Clear cached metadata
+	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${vAppTemplateName}"
+	unset api_downloadsCache["${mediaKey}"]
+	
+	api_format_task "${FUNCNAME[0]:12}"
+}
