@@ -13,7 +13,7 @@ function api_command_vdc_metadata()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+		api_makeCallAndFindHrefInLinksAndGet links api_callback_fromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 			api_command_vdc "$orgName" "$vdcName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

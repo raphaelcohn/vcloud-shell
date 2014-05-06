@@ -14,7 +14,7 @@ function api_command_vdc_network_allocatedAddresses()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromMimeType addresses "application/vnd.vmware.vcloud.allocatedNetworkAddress+xml" '' \
+		api_makeCallAndFindHrefInLinksAndGet links api_callback_fromMimeType addresses "application/vnd.vmware.vcloud.allocatedNetworkAddress+xml" '' \
 			api_command_vdc_network "$orgName" "$vdcName" "$networkName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

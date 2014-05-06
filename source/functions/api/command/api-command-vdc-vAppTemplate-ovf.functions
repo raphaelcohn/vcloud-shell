@@ -15,7 +15,7 @@ function api_command_vdc_vAppTemplate_ovf()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromRel vAppTemplate_ovf "ovf" '' \
+		api_makeCallAndFindHrefInLinksAndGet links api_callback_fromRel vAppTemplate_ovf "ovf" '' \
 			api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

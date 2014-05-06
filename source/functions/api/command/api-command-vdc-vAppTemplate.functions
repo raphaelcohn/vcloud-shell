@@ -16,7 +16,7 @@ function api_command_vdc_vAppTemplate()
 	else
 		function api_getHrefFromMimeTypeAndName_api_command_vdc_vAppTemplate()
 		{
-			api_callbackGetHrefFromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vAppTemplate+xml"
+			api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vAppTemplate+xml"
 		}
 		local curl_downloadFilePath
 		api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_vAppTemplate vAppTemplate "$vAppTemplateName" '' \

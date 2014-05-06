@@ -15,7 +15,7 @@ function api_command_vdc_media()
 	else
 		function api_getHrefFromMimeTypeAndName_api_command_vdc_media()
 		{
-			api_callbackGetHrefFromNameAndMimeType "$@" "application/vnd.vmware.vcloud.media+xml"
+			api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.media+xml"
 		}
 		local curl_downloadFilePath
 		api_makeCallAndFindHrefInLinksAndGet links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_media media "$mediaName" '' \

@@ -12,7 +12,7 @@ function api_command_admin()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_makeCallAndFindHrefInLinksAndGet links api_callbackGetHrefFromName org "$orgName" '' \
+		api_makeCallAndFindHrefInLinksAndGet links api_callback_fromName org "$orgName" '' \
 			api_command_admins
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi

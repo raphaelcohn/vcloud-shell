@@ -1,0 +1,96 @@
+
+# the Link rel=remove is an earlier sibling to the Key value and has a non-unique mime-type and no name, so we can't just find it by simple query
+# This technique constructs the URL in violation of the API design
+function api_callback_fromMimeTypeAndModifyWithKeyName()
+{
+	api_callback_fromMimeType "$@"
+	
+	foundHref="${foundHref}"/"$(url_encodePathPiece "$keyName")"
+}
+
+function api_callback_fromName()
+{
+	local -r linksTsvFile="$1"
+	local -r resourceKind="$2"
+	local -r resourceName="$3"
+	
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$resourceName" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$linksTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find $resourceKind $resourceName"
+		exitError 1
+	fi
+}
+
+function api_callback_fromMimeType()
+{
+	local -r linksTsvFile="$1"
+	local -r resourceKind="$2"
+	local -r resourceMimeType="$3"
+	
+	local href mimeType rel
+	while IFS=$'\t' read -r -d $'\n' href mimeType rel
+	do
+		if [ "$mimeType" = "$resourceMimeType" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$linksTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find $resourceKind mime-type $resourceMimeType"
+		exitError 1
+	fi
+}
+
+function api_callback_fromRel()
+{
+	local -r linksTsvFile="$1"
+	local -r resourceKind="$2"
+	local -r resourceRel="$3"
+	
+	local href mimeType rel
+	while IFS=$'\t' read -r -d $'\n' href mimeType rel
+	do
+		if [ "$rel" = "$resourceRel" ]; then
+			foundHref="$href"
+			break
+		fi
+	done <"$linksTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find $resourceKind rel $resourceRel"
+		exitError 1
+	fi
+}
+
+function api_callback_fromNameAndMimeType
+{
+	local -r linksTsvFile="$1"
+	local -r resourceKind="$2"
+	local -r resourceName="$3"
+	local -r resourceMimeType="$4"
+	
+	local href mimeType name
+	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	do
+		if [ "$name" = "$resourceName" ]; then
+			if [ "$mimeType" = "$resourceMimeType" ]; then
+				foundHref="$href"
+				break
+			fi
+		fi
+	done <"$linksTsvFile"
+	
+	if [ -z "$foundHref" ]; then
+		informationMessage FAIL "Could not find $resourceKind name $resourceName mime-type $resourceMimeType"
+		exitError 1
+	fi
+}
