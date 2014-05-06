@@ -43,8 +43,8 @@ function api_command_vdc_vAppTemplate_download()
 					break
 				fi
 				if [ "$file" = "$href".tmp ]; then
-					stillExists=1
-					break
+					cat "$href".tmp >>"$href"
+					rm "$href".tmp
 				fi
 			done <"$filesFilePath"
 			if [ $stillExists -eq 0 ]; then
@@ -65,11 +65,6 @@ function api_command_vdc_vAppTemplate_download()
 		while IFS=$'\t' read -r -d $'\n' size id href
 		do
 			local curl_downloadFilePath
-			
-			if [ -f "$href".tmp ]; then
-				cat "$href".tmp >>"$href"
-				rm "$href".tmp
-			fi
 			
 			if [ -f "$href" ]; then
 				currentSize=$(stat --printf='%s' "$href")
