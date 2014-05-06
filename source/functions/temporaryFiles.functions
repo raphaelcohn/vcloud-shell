@@ -18,6 +18,6 @@ function temporaryFiles_newFileToRemoveOnExit()
 
 function temporaryFiles_newFolderToRemoveOnExit()
 {
-	TMP_FILE="$(mktemp -t -d "$ourName".XXXXXXXXXXXX)"
-	filesToRemoveOnExit+=("$TMP_FILE")
+	TMP_FOLDER="$(mktemp -t "$ourName".XXXXXXXXXXXX -d)"
+	filesToRemoveOnExit+=("$TMP_FOLDER")
 }

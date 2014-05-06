@@ -10,7 +10,6 @@ function api_command_vdc_vAppTemplate_download()
 	local -r parentFolderPath="$4"
 	
 	local -r ovfFolderPath="$parentFolderPath"/"$vAppTemplateName"
-	rm -rf "$ovfFolderPath"
 	mkdir -m 0755 -p "$ovfFolderPath"
 	
 	main_format=none defaults_outputHeadingLine=0 api_command_vdc_vAppTemplate_enableDownload "$orgName" "$vdcName" "$vAppTemplateName"
@@ -23,7 +22,7 @@ function api_command_vdc_vAppTemplate_download()
 	local -r ovfFile="${downloads[${lineNumber}]}"
 	local -r withoutFinalPathPieceUrl=${api_call_lastUrl%/*}
 	
-	pushd "$parentFolderPath" 1>/dev/null 2>/dev/null
+	pushd "$ovfFolderPath" 1>/dev/null 2>/dev/null
 		
 		# remove any extant files
 		local size id href
@@ -36,11 +35,14 @@ function api_command_vdc_vAppTemplate_download()
 				rm -rf "$file"
 				continue
 			fi
-			
 			local -i stillExists=0
-			while IFS=$'\t' read -r -d '$\n' size id href
+			while IFS=$'\t' read -r -d $'\n' size id href
 			do
 				if [ "$file" = "$href" ]; then
+					stillExists=1
+					break
+				fi
+				if [ "$file" = "$href".tmp ]; then
 					stillExists=1
 					break
 				fi
@@ -57,14 +59,20 @@ function api_command_vdc_vAppTemplate_download()
 		
 		# TODO: Start download from size of any file present... (eg using Http-Range header)
 		# download disks, etc
+		
 		local size id href
-		local -i currentSize=0
-		while IFS=$'\t' read -r -d '$\n' size id href
+		local -i currentSize
+		while IFS=$'\t' read -r -d $'\n' size id href
 		do
 			local curl_downloadFilePath
 			
+			if [ -f "$href".tmp ]; then
+				cat "$href".tmp >>"$href"
+				rm "$href".tmp
+			fi
+			
 			if [ -f "$href" ]; then
-				currentSize=$(stat --printf='%s')
+				currentSize=$(stat --printf='%s' "$href")
 				if [ $currentSize -eq $size ]; then
 					continue
 				elif [ $currentSize -gt $size ]; then
@@ -76,6 +84,7 @@ function api_command_vdc_vAppTemplate_download()
 					rm "$href".tmp
 				fi
 			else
+				currentSize=0
 				curl_actualDownloadPath="$href" curl_wrapperLoggedInAbsoluteApiCall 200 GET "${withoutFinalPathPieceUrl}"/"$href"
 			fi
 			

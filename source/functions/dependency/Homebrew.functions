@@ -4,6 +4,7 @@ function dependency_Homebrew_checkFunction()
 		readonly distributionName="Homebrew"
 		return 0
 	fi
+	return 1
 }
 dependency_checkFunctions+=(dependency_Homebrew_checkFunction)
 

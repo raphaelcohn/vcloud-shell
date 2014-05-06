@@ -170,7 +170,7 @@ function curl_wrapper()
 	
 	# Output file, use - for stdout
 	if [ -n "$curl_actualDownloadPath" ]; then
-		local -r actualDownloadPath="$curl_actualDownloadPath"
+		local -r actualDownloadFilePath="$curl_actualDownloadPath"
 	else
 		temporaryFiles_newFileToRemoveOnExit
 		local -r actualDownloadFilePath="$TMP_FILE"
@@ -219,7 +219,7 @@ function curl_wrapper()
 		;;
 		
 		*)
-			informationMessage FAIL "Failed to retrieve $url (exit code was $exitCode)"
+			informationMessage FAIL "Failed to retrieve $url (exit code was $curl_lastExitCode)"
 			(
 				echo
 				echo "Standard Error was:-"
@@ -227,6 +227,11 @@ function curl_wrapper()
 				echo
 				echo "Download details were:-"
 				cat "$downloadDetailsFilePath"
+				echo
+				echo "Headers were:-"
+				cat "$headersFilePath"
+				echo
+				echo "Download file was $actualDownloadFilePath"
 				echo
 				echo "ASCII Trace was:-"
 				cat "$asciiTraceFilePath"

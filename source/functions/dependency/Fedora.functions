@@ -4,6 +4,7 @@ function dependency_Fedora_checkFunction()
 		readonly distributionName="Fedora"
 		return 0
 	fi
+	return 1
 }
 dependency_checkFunctions+=(dependency_Fedora_checkFunction)
 
