@@ -1,0 +1,88 @@
+function api_command_vdc_vAppTemplate_download()
+{
+	if [ $# -ne 4 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r vAppTemplateName="$3"
+	local -r parentFolderPath="$4"
+	
+	local -r ovfFolderPath="$parentFolderPath"/"$vAppTemplateName"
+	rm -rf "$ovfFolderPath"
+	mkdir -m 0755 -p "$ovfFolderPath"
+	
+	main_format=none defaults_outputHeadingLine=0 api_command_vdc_vAppTemplate_enableDownload "$orgName" "$vdcName" "$vAppTemplateName"
+	
+	api_call_lastUrl=""
+	temporaryFiles_newFileToRemoveOnExit
+	local -r filesFilePath="$TMP_FILE"
+	main_format="files" defaults_outputHeadingLine=0 api_command_vdc_vAppTemplate_downloadDescriptor "$orgName" "$vdcName" "$vAppTemplateName" >"$filesFilePath"
+	
+	local -r ovfFile="${downloads[${lineNumber}]}"
+	local -r withoutFinalPathPieceUrl=${api_call_lastUrl%/*}
+	
+	pushd "$parentFolderPath" 1>/dev/null 2>/dev/null
+		
+		# remove any extant files
+		local size id href
+		for file in *
+		do
+			if [ ! -e "$file "]; then
+				continue
+			fi
+			if [ ! -f "$file" ]; then
+				rm -rf "$file"
+				continue
+			fi
+			
+			local -i stillExists=0
+			while IFS=$'\t' read -r -d '$\n' size id href
+			do
+				if [ "$file" = "$href" ]; then
+					stillExists=1
+					break
+				fi
+			done <"$filesFilePath"
+			if [ $stillExists -eq 0 ]; then
+				rm -rf "$file"
+			fi
+			
+		done
+		
+		# copy in OVF
+		rm -rf "$vAppTemplateName".ovf
+		cp "$ovfFile" "$vAppTemplateName".ovf
+		
+		# TODO: Start download from size of any file present... (eg using Http-Range header)
+		# download disks, etc
+		local size id href
+		local -i currentSize=0
+		while IFS=$'\t' read -r -d '$\n' size id href
+		do
+			local curl_downloadFilePath
+			
+			if [ -f "$href" ]; then
+				currentSize=$(stat --printf='%s')
+				if [ $currentSize -eq $size ]; then
+					continue
+				elif [ $currentSize -gt $size ]; then
+					rm -rf "$href"
+					curl_actualDownloadPath="$href" curl_wrapperLoggedInAbsoluteApiCall 200 GET "${withoutFinalPathPieceUrl}"/"$href"
+				else	
+					curl_actualDownloadPath="$href".tmp curl_wrapperLoggedInAbsoluteApiCall 206 GET "${withoutFinalPathPieceUrl}"/"$href" 'Range' "bytes=${currentSize}-"
+					cat "$href".tmp >>"$href"
+					rm "$href".tmp
+				fi
+			else
+				curl_actualDownloadPath="$href" curl_wrapperLoggedInAbsoluteApiCall 200 GET "${withoutFinalPathPieceUrl}"/"$href"
+			fi
+			
+		done <"$filesFilePath"
+		
+	popd 1>/dev/null 2>/dev/null
+	
+	
+	
+}

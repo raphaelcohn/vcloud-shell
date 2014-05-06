@@ -25,3 +25,4 @@ function api_command_vdc_vAppTemplate_enableDownload()
 	
 	api_format_task "${FUNCNAME[0]:12}"
 }
+

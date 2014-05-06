@@ -1,4 +1,4 @@
-function api_command_vdc_vAppTemplate_ovf()
+function api_command_vdc_vAppTemplate_downloadDescriptorWithId()
 {
 	if [ $# -ne 3 ]; then
 		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
@@ -13,21 +13,16 @@ function api_command_vdc_vAppTemplate_ovf()
 	if [ -n "$value" ]; then
 		local curl_downloadFilePath="$value"
 	else
-		function api_callback_fromMimeTypeAndName_api_command_vdc_vAppTemplate_ovf()
-		{
-			api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vAppTemplate+xml"
-			foundHref="${foundHref}"/ovf
-		}
 		local curl_downloadFilePath
-		api_call_get links-resource-entities api_callback_fromMimeTypeAndName_api_command_vdc_vAppTemplate_ovf vAppTemplate "$vAppTemplateName" '' \
-			api_command_vdc "$orgName" "$vdcName"
+		api_call_get links api_callback_fromRel vAppTemplate_descriptor "download:identity" '' \
+			api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
 		api_downloadsCache["${key}"]="$curl_downloadFilePath"
 	fi
 	
-	api_format_vdc_vAppTemplate_ovf
+	api_format_vdc_vAppTemplate_downloadDescriptorWithId
 }
 
-function api_format_vdc_vAppTemplate_ovf()
+function api_format_vdc_vAppTemplate_downloadDescriptorWithId()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
 	case "$main_format" in

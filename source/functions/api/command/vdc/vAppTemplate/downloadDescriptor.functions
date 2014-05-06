@@ -1,0 +1,50 @@
+#<Link rel="download:default" type="text/xml" href="https://api.vcd.portal.skyscapecloud.com/transfer/1f8386e6-9f5e-4954-b217-3c1f65cf6c70/descriptor.ovf"/>
+#<Link rel="download:identity" type="text/xml" href="https://api.vcd.portal.skyscapecloud.com/transfer/1f8386e6-9f5e-4954-b217-3c1f65cf6c70/descriptor-with-id.ovf"/>
+
+function api_command_vdc_vAppTemplate_downloadDescriptor()
+{
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r vAppTemplateName="$3"
+	
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}_${vAppTemplateName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_call_getAndRecordLastUrl links api_callback_fromRel vAppTemplate_descriptor "download:default" '' \
+			api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
+		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+	fi
+	
+	api_format_vdc_vAppTemplate_downloadDescriptor
+}
+
+function api_format_vdc_vAppTemplate_downloadDescriptor()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
+	case "$main_format" in
+		
+		none)
+			:
+		;;
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		files)
+			xml_starlet_tsv_downloadFilePath "/ovf:Envelope/ovf:References/ovf:File" "@ovf:size" "@ovf:id" "@ovf:href"
+		;;
+		
+		*)
+			exitError "Please specify main_format as xml, not $main_format"
+		;;
+		
+	esac
+}

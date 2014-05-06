@@ -169,8 +169,12 @@ function curl_wrapper()
 	curlArgs+=('--url' "$url")
 	
 	# Output file, use - for stdout
-	temporaryFiles_newFileToRemoveOnExit
-	local -r actualDownloadFilePath="$TMP_FILE"
+	if [ -n "$curl_actualDownloadPath" ]; then
+		local -r actualDownloadPath="$curl_actualDownloadPath"
+	else
+		temporaryFiles_newFileToRemoveOnExit
+		local -r actualDownloadFilePath="$TMP_FILE"
+	fi
 	curlArgs+=('--output' "$actualDownloadFilePath")
 	
 	# Headers file
