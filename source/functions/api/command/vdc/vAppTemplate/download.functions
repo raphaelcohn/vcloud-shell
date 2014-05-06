@@ -29,7 +29,7 @@ function api_command_vdc_vAppTemplate_download()
 		local size id href
 		for file in *
 		do
-			if [ ! -e "$file "]; then
+			if [ ! -e "$file" ]; then
 				continue
 			fi
 			if [ ! -f "$file" ]; then
