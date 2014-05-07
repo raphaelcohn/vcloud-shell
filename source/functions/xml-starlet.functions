@@ -100,19 +100,7 @@ function xml_starlet_keyValue()
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" "$filePath"
 }
 
-readonly xml_starlet_slash='/'
-readonly xml_starlet_at='@'
 function xml_starlet_convertXPath()
 {
-	# remove @ (doesn't work)
-	fieldName="${attributeOrElement/${xml_starlet_at}/}"
-	
-	# remove ../
-	fieldName="${attributeOrElement//..${xml_starlet_slash}/}"
-	
-	# remove _:
-	fieldName="${fieldName//_:/}"
-	
-	# remove /
-	fieldName="${fieldName//${xml_starlet_slash}/_}"
+	fieldName="$(sed 's,@,,g;s,\.\./,,g;s,_:,,g;s,/,_,g' <<<"$attributeOrElement")"
 }
