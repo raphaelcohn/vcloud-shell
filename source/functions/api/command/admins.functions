@@ -31,12 +31,12 @@ function api_format_admins()
 			cat "$curl_downloadFilePath"
 		;;
 		
-		links)
-			xml_starlet_tsv_links_name '/_:VCloud/_:OrganizationReferences/_:OrganizationReference'
-		;;
-		
 		id-*)
 			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
+		;;
+		
+		links)
+			xml_starlet_tsv_links_name '/_:VCloud/_:OrganizationReferences/_:OrganizationReference'
 		;;
 		
 		*)

@@ -18,6 +18,8 @@ vCloud Curl Tools
 * support CentOS and Debian paths
 * support background downloading of OVF
 
+* FIX METADATA format (eg org-metadata)
+
 ##examples
 demonstrate more functionality - especially all the possible formats for each api call
 find a way to validate formats

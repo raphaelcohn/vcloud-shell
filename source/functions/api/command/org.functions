@@ -34,12 +34,12 @@ function api_format_org()
 			cat "$curl_downloadFilePath"
 		;;
 		
-		links)
-			xml_starlet_tsv_links_relName '/_:Org/_:Link'
-		;;
-		
 		id-*)
 			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+		;;
+		
+		links)
+			xml_starlet_tsv_links_relName '/_:Org/_:Link'
 		;;
 		
 		*)
