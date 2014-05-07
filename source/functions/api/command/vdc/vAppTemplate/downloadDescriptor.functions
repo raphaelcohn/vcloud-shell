@@ -19,10 +19,11 @@ function api_command_vdc_vAppTemplate_downloadDescriptor()
 		local curl_downloadFilePath
 		api_call_getAndRecordLastUrl links api_callback_fromRel vAppTemplate_descriptor "download:default" '' \
 			api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	api_format_vdc_vAppTemplate_downloadDescriptor
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_vdc_vAppTemplate_downloadDescriptor()

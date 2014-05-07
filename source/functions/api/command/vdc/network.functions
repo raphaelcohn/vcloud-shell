@@ -17,10 +17,11 @@ function api_command_vdc_network()
 		local curl_downloadFilePath
 		api_call_get links-networks api_callback_fromName network "$networkName" '' \
 			api_command_vdc "$orgName" "$vdcName"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	api_format_vdc_network
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_network()

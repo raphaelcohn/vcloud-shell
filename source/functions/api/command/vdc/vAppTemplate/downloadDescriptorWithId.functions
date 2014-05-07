@@ -16,10 +16,11 @@ function api_command_vdc_vAppTemplate_downloadDescriptorWithId()
 		local curl_downloadFilePath
 		api_call_get links api_callback_fromRel vAppTemplate_descriptor "download:identity" '' \
 			api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	api_format_vdc_vAppTemplate_downloadDescriptorWithId
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_vdc_vAppTemplate_downloadDescriptorWithId()

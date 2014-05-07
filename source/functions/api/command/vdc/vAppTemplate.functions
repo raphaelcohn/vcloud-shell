@@ -20,10 +20,11 @@ function api_command_vdc_vAppTemplate()
 		local curl_downloadFilePath
 		api_call_get links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_vAppTemplate vAppTemplate "$vAppTemplateName" '' \
 			api_command_vdc "$orgName" "$vdcName"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	api_format_vdc_vAppTemplate
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_vdc_vAppTemplate()

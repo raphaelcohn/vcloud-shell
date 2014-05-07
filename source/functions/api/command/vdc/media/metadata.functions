@@ -16,8 +16,9 @@ function api_command_vdc_media_metadata()
 		local curl_downloadFilePath
 		api_call_get links api_callback_fromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 			api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
+	api_call_recordDownload
 	api_format_metadata "${FUNCNAME[0]:12}"
 }

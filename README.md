@@ -15,6 +15,12 @@ vCloud Curl Tools
 * fix @ in xpath fields
 * refactor metadata API calls for media into common code
 * implement downloads_last
+* exit / exitError / informationMessage FAIL
+* capture versions and sessions in special download and captures?
+
+## unrecorded downloads
+vdc/vAppTemplate/ download and enableDownload
+vdc/media/metadata/* (incl getValue, which could be cached, but might not be appropriate)
 
 * records and queries
 	* references / records / idrecords for EdgeGateways

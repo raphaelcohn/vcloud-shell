@@ -26,7 +26,6 @@ function format()
 	if [ $# -lt 3 ]; then
 		exitError "format must specify <format> <with-header> <action>"
 	fi
-	
 	local api_format="$1"
 	local defaults_format_headings="$2"
 	local -r formatCommand="$3"
@@ -35,6 +34,9 @@ function format()
 	local curl_downloadFilePath
 	for curl_downloadFilePath in "$@"
 	do
+		if [ "$curl_downloadFilePath" = "/dev/null" ]; then
+			continue
+		fi
 		api_format_${formatCommand}
 	done
 }

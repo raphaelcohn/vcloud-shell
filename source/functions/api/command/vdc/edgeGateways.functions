@@ -24,11 +24,12 @@ function api_command_vdc_edgeGateways()
 		local curl_downloadFilePath
 		api_call_get links api_callback_fromRel edgeGateways 'edgeGateways' '?pageSize=100&format=references' \
 			api_command_vdc "$orgName" "$vdcName"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
-
-		api_format_vdc_edgeGateways
-	}
+	
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
+}
 
 function api_format_vdc_edgeGateways()
 {

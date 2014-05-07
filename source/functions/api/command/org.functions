@@ -14,10 +14,11 @@ function api_command_org()
 		local curl_downloadFilePath
 		api_call_get links api_callback_fromName org "$orgName" '' \
 			api_command_orgs
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	api_format_org
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_org()

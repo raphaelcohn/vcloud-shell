@@ -16,10 +16,11 @@ function api_command_entity()
 		
 		local curl_downloadFilePath
 		curl_wrapperLoggedInAbsoluteApiCall 200 GET "$url"
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	api_format_entity
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_entity()

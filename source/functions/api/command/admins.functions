@@ -11,12 +11,11 @@ function api_command_admins()
 	else
 		local curl_downloadFilePath
 		curl_wrapperLoggedInRelativeApiCall 200 GET /api/admin/
-		api_downloadsCache["${key}"]="$curl_downloadFilePath"
+		api_call_cacheDownload
 	fi
 	
-	downloads[${lineNumber}]="$curl_downloadFilePath"
-	
-	api_format_admins
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
 }
 
 function api_format_admins()
