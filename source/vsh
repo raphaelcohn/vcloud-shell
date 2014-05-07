@@ -104,13 +104,14 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-d] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] [script files...]
+Usage: ${ourName} [-v] [-d] [-p] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] -- [script files...]
 
 Argument-less Switches
-    Switch  Explanation            Default       Configuration*
+    Switch  Explanation            Default              Configuration*
     -h      show this help
-    -v      be more verbose        ${beVerbose}  beVerbose
-    -d      output debug messages  ${beDebug}    beDebug
+    -v      be more verbose        ${switch_beVerbose}  beVerbose
+    -d      output debug messages  ${switch_beDebug}    beDebug
+    -p      interactive prompt     ${switch_bePrompt}   bePrompt
 
 Argumented Switches
     Switch  Configuration*            Default
@@ -121,6 +122,9 @@ Argumented Switches
     --                                End of arguments, beginning of script files
 
 *See Switch Configuration below
+
+Interactive Prompt
+If invoked with -p, input is read from prompted for from stdin. It is an error to then specify script files.
 
 script files
 These are one or more files containing scripts of commands. By default (if no scripts are provided), or if a value '-' is specified, stdin is read.
@@ -240,6 +244,7 @@ function loadAnyConfiguration()
 	switch_language="en_GB.UTF-8"
 	switch_beVerbose="no"
 	switch_beDebug="no"
+	switch_bePrompt="no"
 	
 	switch_netrcFilePath=""
 	switch_curlrcFilePath=""
@@ -277,7 +282,7 @@ function parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:s:n:r: option
+	while getopts :hvdpc:s:n:r: option
 	do
 		case "$option" in
 			
@@ -291,6 +296,11 @@ function parseCommandLine()
 			
 			d)
 				switch_beDebug="yes"
+			;;
+			
+			p)
+				switch_bePrompt="yes"
+				switch_scriptFiles=()
 			;;
 			
 			c)
@@ -319,6 +329,9 @@ function parseCommandLine()
 	shift $((OPTIND - 1))
 	
 	if [ $# -ne 0 ]; then
+		if [ "$switch_bePrompt" = "yes" ]; then
+			exitError "Can not set -p and have script files"
+		fi
 		switch_scriptFiles=("$@")
 	fi
 	

@@ -9,7 +9,7 @@ Uses good ol'fashioned netrc files for managing credentials securely. Works prop
 
 vCloud Curl Tools
 
-
+* USE BASH_CMDS to replace the use of .path?
 * consider integration with logger, so we can start doing some audit recording
 * fix @ in xpath fields
 * refactor metadata API calls for media into common code
@@ -17,6 +17,7 @@ vCloud Curl Tools
 * exit / exitError / informationMessage FAIL
 * capture versions and sessions in special download and captures?
 * support CentOS and Debian paths
+* support background downloading of OVF
 
 ##examples
 demonstrate more functionality - especially all the possible formats for each api call

@@ -50,6 +50,18 @@ main_functions+=(main_validateDefaults)
 
 main_functions+=(dependency_installDependencies)
 
+function main_welcome()
+{
+	if [ "${switch_bePrompt}" = "yes" ]; then
+		cat 1>&2 <<-EOF
+			
+			Welcome to vsh, the vCloud Shell
+			Logging in, please wait...
+		EOF
+	fi
+}
+main_functions+=(main_welcome)
+
 function main_login()
 {
 	api_session_versions
@@ -57,11 +69,48 @@ function main_login()
 	api_session_sessions
 	
 	trapHandlers_addNext api_session_logout
+	
+	if [ "${switch_bePrompt}" = "yes" ]; then
+		cat 1>&2 <<-EOF
+			Logged in.
+			Please type commands at the 'vsh >' prompt
+			Commands known:-
+			    exit     exit this shell
+			    api
+			    format
+			    capture
+			    reset
+			You can also type any valid bash syntax
+		EOF
+	fi
 }
 main_functions+=(main_login)
 
 function main_executeCommands()
 {
+	if [ "${switch_bePrompt}" = "yes" ]; then
+		(
+			declare -a captures=()
+			declare -a downloads=()
+			declare -A api_downloadsCache
+			local line
+			local -i lineNumber=0
+			
+			while true
+			do
+				read -p "${ourName}> " -r line
+				
+				captures[${lineNumber}]='/dev/null'
+				downloads[${lineNumber}]='/dev/null'
+
+				eval "${line}"
+
+				lineNumber=$((lineNumber+1))
+			done
+		)
+		return 0
+	fi
+	
 	# Uses a subshell so we don't affect the core program
 	local -i stdinAlreadyUsed=0
 	local scriptFile
@@ -74,7 +123,7 @@ function main_executeCommands()
 			fi
 			scriptFile=/dev/stdin
 			stdinAlreadyUsed=1
-		elif [ ! -r "$scriptFile" ]; then	
+		elif [ ! -r "$scriptFile" ]; then
 			informationMessage WARN "script file $scriptFile is not readable or does not exist, skipping"
 			continue
 		fi
@@ -82,9 +131,7 @@ function main_executeCommands()
 		(
 			declare -a captures=()
 			declare -a downloads=()
-		
 			declare -A api_downloadsCache
-		
 			local line
 			local -i lineNumber=0
 		
