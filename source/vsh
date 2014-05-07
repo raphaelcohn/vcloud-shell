@@ -131,7 +131,6 @@ These are one or more files containing scripts of commands. By default (if no sc
 Each script is a line of commands. Commands are either ordinary bash syntax, or one of the following:-
 
     api <format> <action> [<arg> ...]      run an api command (see below)
-    capture ...                            run an api command or a bash line, and capture stdout into a file for latter use
     format <format> <with-header> <action> [files]  format files (if not specified, defaults to last api call's raw XML)
     reset                                  cleans out the cache used for GET calls
 
@@ -151,12 +150,6 @@ apis can have a <format> which outputs to stdout. Common values are below (note 
 
 * not supported by all formats. Each api call can have its standard out captured using 'capture'. Each api call has any downloaded data stored in raw (XML) in the
 array  downloads  , organised by line number of the commands (zero-based).
-
-capture stores a path to a file containing stdout. These can be retrieved from the array  captures  , by specifying a line number, eg:-
-
-    head -n 1 "${captures[2]}"  will output to stdout the first line of capture from stdout.
-
-If no line was captured, then /dev/null is output.
 
 api calls currently defined
 

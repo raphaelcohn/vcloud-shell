@@ -1,13 +1,3 @@
-function capture()
-{
-	temporaryFiles_newFileToRemoveOnExit
-	local -r captureFile="$TMP_FILE"
-	
-	"$@" >"$captureFile"
-	
-	captures[${lineNumber}]="$captureFile"
-}
-
 function api()
 {
 	if [ $# -lt 2 ]; then

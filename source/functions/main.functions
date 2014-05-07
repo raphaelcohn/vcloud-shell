@@ -6,6 +6,17 @@ function main_registerTrapHandlers()
 }
 main_functions+=(main_registerTrapHandlers)
 
+function main_makeAllFunctionsReadonly()
+{
+	local unwanted1 unwanted2 functionName
+	while IFS=' ' read -r -d $'\n' unwanted1 unwanted2 functionName
+	do
+		readonly -f $functionName
+	done < <(declare -F)
+	readonly main_functions
+}
+main_functions+=(main_makeAllFunctionsReadonly)
+
 function main_loadDefaults()
 {
 	local defaultsFile="$switch_configPath"/defaults
@@ -90,7 +101,6 @@ function main_executeCommands()
 {
 	if [ "${switch_bePrompt}" = "yes" ]; then
 		(
-			declare -a captures=()
 			declare -a downloads=()
 			declare -A api_downloadsCache
 			local line
@@ -100,7 +110,6 @@ function main_executeCommands()
 			do
 				read -p "${ourName}> " -r line
 				
-				captures[${lineNumber}]='/dev/null'
 				downloads[${lineNumber}]='/dev/null'
 
 				eval "${line}"
@@ -129,7 +138,6 @@ function main_executeCommands()
 		fi
 		
 		(
-			declare -a captures=()
 			declare -a downloads=()
 			declare -A api_downloadsCache
 			local line
@@ -141,7 +149,6 @@ function main_executeCommands()
 				printf '\n'
 			} | while IFS= read -r line
 			do
-				captures[${lineNumber}]='/dev/null'
 				downloads[${lineNumber}]='/dev/null'
 			
 				eval "${line}"

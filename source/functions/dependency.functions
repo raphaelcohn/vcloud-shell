@@ -41,8 +41,9 @@ function dependency_setUpAliases()
 		return 0
 	fi
 	
-	temporaryFiles_newFolderToRemoveOnExit
-	local -r pathExtension="$TMP_FOLDER"
+	# changing PATH clears the hash table - remember!
+	# enable hashing
+	set -h
 	
 	declare -A unaliasedBinaries
 	declare -A installPackages
@@ -52,7 +53,7 @@ function dependency_setUpAliases()
 	while IFS=' ' read -r -d $'\n' packageName binaryName absolutePath
 	do
 		if [ -x "$absolutePath" ]; then
-			ln -s "$absolutePath" "$pathExtension"/"$binaryName"
+			hash -p "$absolutePath" "$binaryName"
 		else
 			if [ "$packageName" = "zzz-built-in" ]; then
 				informationMessage FAIL "Essential binary $binaryName not in expected path $absolutePath and no installation is possible"
@@ -68,15 +69,10 @@ function dependency_setUpAliases()
 		for binaryName in "${!unaliasedBinaries[@]}"
 		do
 			absolutePath="${unaliasedBinaries["${binaryName}"]}"
-			ln -s "$absolutePath" "$pathExtension"/"$binaryName"
+			hash -p "$absolutePath" "$binaryName"
 		done
 	fi
 	
-	if [ -z "$PATH" ]; then
-		export PATH="$pathExtension"
-	else
-		export PATH="$pathExtension":"$PATH"
-	fi
 }
 dependency_functions+=(dependency_setUpAliases)
 
