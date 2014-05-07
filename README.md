@@ -11,7 +11,6 @@ vCloud Curl Tools
 
 
 * consider integration with logger, so we can start doing some audit recording
-* fix format commands
 * fix @ in xpath fields
 * refactor metadata API calls for media into common code
 * implement downloads_last
