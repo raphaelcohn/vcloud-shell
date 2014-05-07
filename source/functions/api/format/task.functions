@@ -12,7 +12,8 @@ function api_format_task()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Task' '@status' '@startTime' '@serviceNamespace' '@operationName' '@operation' '@expiryTime' '@cancelRequested' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Task' \
+				'@status' '@startTime' '@serviceNamespace' '@operationName' '@operation' '@expiryTime' '@cancelRequested' '@name' '@id' '@type' '@href' \
 				'_:Owner/@type' '_:Owner/@name' '_:Owner/@href' \
 				'_:User/@type' '_:User/@name' '_:User/@href' \
 				'_:Organization/@type' '_:Organization/@name' '_:Organization/@href' \
@@ -20,7 +21,7 @@ function api_format_task()
 		;;
 		
 		links)
-			xml_starlet_tsv_links_relOnly '/_:Task/_:Link'
+			xml_starlet_tsv_links_rel '/_:Task/_:Link'
 		;;
 		
 		*)

@@ -19,6 +19,7 @@ vCloud Curl Tools
 * support background downloading of OVF
 
 * FIX METADATA format (eg org-metadata)
+* FIX task formatting - seems broken for enableDownload?
 
 ##examples
 demonstrate more functionality - especially all the possible formats for each api call
