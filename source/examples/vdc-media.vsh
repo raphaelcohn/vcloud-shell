@@ -1,4 +1,11 @@
 #!/usr/bin/env vsh
-api xml vdc_media 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'Ubuntu 13.04 Desktop'
-api id-tsv vdc_media 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'Ubuntu 13.04 Desktop'
-api links vdc_media 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'Ubuntu 13.04 Desktop'
+ORGANISATION=98-184-1-151d73
+VDC='Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
+MEDIA='Ubuntu 13.04 Desktop'
+api xml vdc_media "$ORGANISATION" "$VDC" "$MEDIA"
+
+defaults_format_headings=with-heading format id-tsv vdc_media "${downloads[4]}"
+format id-tsv vdc_media "${downloads[4]}"
+format id-bash vdc_media "${downloads[4]}"
+
+format links vdc_media "${downloads[4]}"
