@@ -27,9 +27,8 @@ function format()
 		exitError "format must specify <format> <with-header> <action>"
 	fi
 	local api_format="$1"
-	local defaults_format_headings="$2"
-	local -r formatCommand="$3"
-	shift 3
+	local -r formatCommand="$2"
+	shift 2
 	
 	local curl_downloadFilePath
 	for curl_downloadFilePath in "$@"
