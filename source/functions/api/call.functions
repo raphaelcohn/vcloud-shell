@@ -121,10 +121,21 @@ function api_call_getAndRecordLastUrl()
 
 function api_call_recordDownload()
 {
-	downloads[${lineNumber}]="$curl_downloadFilePath"
+	downloads[${downloadNumber}]="$curl_downloadFilePath"
 }
 
 function api_call_cacheDownload()
 {
 	api_downloadsCache["${key}"]="$curl_downloadFilePath"
+}
+
+function api_call_cache_key()
+{
+	echo -n "$1"
+	local arg
+	for arg in "${@:2}"
+	do
+		echo -n "_"
+		echo -n "$arg"
+	done
 }

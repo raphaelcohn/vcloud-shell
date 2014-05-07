@@ -1,3 +1,5 @@
+api_commands=()
+
 function api()
 {
 	if [ $# -lt 2 ]; then
@@ -8,7 +10,11 @@ function api()
 	shift 2
 	
 	api_command_${apiCommand} "$@"
+	
+	download="${downloads[$downloadNumber]}"
+	downloadNumber=$((downloadNumber+1))
 }
+api_commands+=(api)
 
 api_format=xml
 function format()
@@ -29,6 +35,7 @@ function format()
 		api_format_${formatCommand}
 	done
 }
+api_commands+=(format)
 
 function reset()
 {
@@ -38,3 +45,11 @@ function reset()
 		unset api_downloadsCache["${key}"]
 	done
 }
+api_commands+=(reset)
+
+function cached()
+{
+	# pass function name, arguments
+	echo -n "${api_downloadsCache["$(api_call_cache_key "$@")"]}"
+}
+api_commands+=(cached)

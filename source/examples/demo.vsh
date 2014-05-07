@@ -5,19 +5,11 @@ api links orgs
 echo
 echo
 
-# could we include another script? specify an env variable? source it?
-# may be set VSH_HREF VSH_TYPE VSH_REL VSH_NAME on each loop iteration
-# how do we deal with nested loops? (re-use of variables)
-# with matches?
-loop "${downloads[3]}"
-match 
-
-# we can track depth... but if we source the file, then we can just use regular bash loops. However, we can't use local variables - or can we?
-startloop
-
-endloop
-
-
+sleep 1
+echo "Cached content"
+cat "$(cached orgs)"
+echo
+echo
 
 sleep 1
 echo "Our Organisation"
@@ -34,7 +26,7 @@ echo
 
 sleep 1
 echo "Usefully, as links - note we capture the output for reuse"
-format links-vdcs admin "${downloads[16]}"
+format links-vdcs admin "$download"
 echo
 echo
 

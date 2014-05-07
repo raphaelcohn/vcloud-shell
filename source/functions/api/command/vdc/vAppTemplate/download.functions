@@ -19,7 +19,7 @@ function api_command_vdc_vAppTemplate_download()
 	local -r filesFilePath="$TMP_FILE"
 	api_format="files" defaults_format_headings=no-heading api_command_vdc_vAppTemplate_downloadDescriptor "$orgName" "$vdcName" "$vAppTemplateName" >"$filesFilePath"
 	
-	local -r ovfFile="${downloads[${lineNumber}]}"
+	local -r ovfFile="${downloads[${downloadNumber}]}"
 	local -r withoutFinalPathPieceUrl=${api_call_lastUrl%/*}
 	
 	pushd "$ovfFolderPath" 1>/dev/null 2>/dev/null

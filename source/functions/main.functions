@@ -85,12 +85,7 @@ function main_login()
 		cat 1>&2 <<-EOF
 			Logged in.
 			Please type commands at the 'vsh >' prompt
-			Commands known:-
-			    exit     exit this shell
-			    api
-			    format
-			    capture
-			    reset
+			Commands known are  ${api_commands[@]}
 			You can also type any valid bash syntax
 		EOF
 	fi
@@ -104,17 +99,13 @@ function main_executeCommands()
 			declare -a downloads=()
 			declare -A api_downloadsCache
 			local line
-			local -i lineNumber=0
+			local -i downloadNumber=0
 			
 			while true
 			do
 				read -p "${ourName}> " -r line
 				
-				downloads[${lineNumber}]='/dev/null'
-
 				eval "${line}"
-
-				lineNumber=$((lineNumber+1))
 			done
 		)
 		return 0
@@ -141,7 +132,7 @@ function main_executeCommands()
 			declare -a downloads=()
 			declare -A api_downloadsCache
 			local line
-			local -i lineNumber=0
+			local -i downloadNumber=0
 		
 			# Final printf is to force read to read the final line if input does not end with a \n
 			{
@@ -149,12 +140,7 @@ function main_executeCommands()
 				printf '\n'
 			} | while IFS= read -r line
 			do
-				downloads[${lineNumber}]='/dev/null'
-			
 				eval "${line}"
-			
-				lineNumber=$((lineNumber+1))
-			
 			done
 		)
 	done
