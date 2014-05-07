@@ -16,7 +16,7 @@ function curl_wrapperLoggedInAbsoluteApiCall()
 	done
 	
 	curl_wrapperSetAcceptHeader
-	curl_requestHeaders['x-vcloud-authorization']="${api_token}"
+	curl_requestHeaders['x-vcloud-authorization']="${api_session_token}"
 	
 	curl_wrapper "$verb" "$absolutePath"
 	

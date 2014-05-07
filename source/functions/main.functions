@@ -52,11 +52,11 @@ main_functions+=(dependency_installDependencies)
 
 function main_login()
 {
-	api_versions
+	api_session_versions
 	
-	api_sessions
+	api_session_sessions
 	
-	trapHandlers_addNext api_logout
+	trapHandlers_addNext api_session_logout
 }
 main_functions+=(main_login)
 

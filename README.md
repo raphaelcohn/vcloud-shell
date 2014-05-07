@@ -16,6 +16,7 @@ vCloud Curl Tools
 * implement downloads_last
 * exit / exitError / informationMessage FAIL
 * capture versions and sessions in special download and captures?
+* support CentOS and Debian paths
 
 ##examples
 demonstrate more functionality - especially all the possible formats for each api call

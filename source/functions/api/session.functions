@@ -1,0 +1,134 @@
+api_session_loggedOut=0
+function api_session_logout()
+{
+	if [ $api_session_loggedOut -eq 1 ]; then
+		return 0
+	fi
+	api_session_loggedOut=1
+	
+	# don't logout if curl was the cause of the error (eg because a retry timed out)
+	if [ $curl_lastExitCode -ne 0 ]; then
+		return 0
+	fi
+	
+	local curl_downloadFilePath
+	api_format=none defaults_format_headings=no-heading curl_wrapperLoggedInAbsoluteApiCall 204 DELETE "$api_session_logoutAbsoluteUrl"
+}
+
+api_session_token=""
+api_session_logoutAbsoluteUrl=""
+function api_session_sessions()
+{
+	declare -A curl_requestHeaders=()
+	declare -A curl_responseHeaders=()
+	local -i curl_httpResponseCode
+	local curl_downloadFilePath
+	
+	curl_wrapperSetAcceptHeader
+	local -r url="${api_map['/api/sessions']}"
+	curl_post="" curl_wrapper POST "$url"
+	
+	curl_validateResponseCode 200 "Could not connect to $url"
+	
+	if [ $curl_httpResponseCode -ne 200 ]; then
+		informationMessage FAIL "Could not log in to $switch_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
+		exit 1
+	fi
+	
+	api_session_token="${curl_responseHeaders['x-vcloud-authorization']}"
+	
+	#down	application/vnd.vmware.vcloud.orgList+xml	https://api.vcd.portal.skyscapecloud.com/api/org/	
+	#remove		https://api.vcd.portal.skyscapecloud.com/api/session/	
+	#down	application/vnd.vmware.admin.vcloud+xml	https://api.vcd.portal.skyscapecloud.com/api/admin/	
+	#down	application/vnd.vmware.vcloud.org+xml	https://api.vcd.portal.skyscapecloud.com/api/org/3a2900f9-f15c-49d6-8771-bdd8bbebe456	98-184-1-151d73
+	#down	application/vnd.vmware.vcloud.query.queryList+xml	https://api.vcd.portal.skyscapecloud.com/api/query	
+	#entityResolver	application/vnd.vmware.vcloud.entity+xml	https://api.vcd.portal.skyscapecloud.com/api/entity/	
+	#down:extensibility	application/vnd.vmware.vcloud.apiextensibility+xml	https://api.vcd.portal.skyscapecloud.com/api/extensibility
+	local relation
+	local href
+	local mimeType
+	local name
+	local apiKey
+	# bash seems to be compressing empty fields
+	while IFS=$'\t' read -r -d $'\n' relation href mimeType name
+	do
+		# Probably the 'remove' link
+		if [ -z "$mimeType" ]; then
+			apiKey=/api/session/
+		else
+			case "$mimeType" in
+			
+				application/vnd.vmware.vcloud.orgList+xml)
+					apiKey=/api/org/
+				;;
+				
+				application/vnd.vmware.admin.vcloud+xml)
+					apiKey=/api/admin/
+				;;
+				
+				# name
+				application/vnd.vmware.vcloud.org+xml)
+					#"$name"
+					continue
+					#apiKey=/api/org/3a2900f9-f15c-49d6-8771-bdd8bbebe456
+				;;
+				
+				application/vnd.vmware.vcloud.query.queryList+xml)
+					apiKey=/api/query
+				;;
+				
+				application/vnd.vmware.vcloud.entity+xml)
+					apiKey=/api/entity/
+				;;
+				
+				application/vnd.vmware.vcloud.apiextensibility+xml)
+					apiKey=/api/extensibility
+				;;
+				
+				*)
+					continue
+				;;
+				
+			esac
+		fi
+		
+		api_map["$apiKey"]="$href"
+		
+	# _: means the default namespace (not needed if there's no xmlns definition)
+	done < <(defaults_format_headings=no-heading xml_starlet_tsv_downloadFilePath '/_:Session/_:Link' '@rel' '@href' '@type' '@name')
+	
+	api_session_logoutAbsoluteUrl="${api_map['/api/session/']}"
+}
+
+function api_session_versions()
+{
+	local -r escapedRelativePathIncludingAnyLeadingAndTrailingSlashes='/api/versions'
+	api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]="${switch_baseUrl}${escapedRelativePathIncludingAnyLeadingAndTrailingSlashes}"
+	# found from /api/admin/<uuid>, not in the map from /api/sessions
+	api_map['/api/supportedSystemsInfo/']="${switch_baseUrl}/api/supportedSystemsInfo/"
+	
+	declare -A curl_requestHeaders=()
+	declare -A curl_responseHeaders=()
+	local -i curl_httpResponseCode
+	local curl_downloadFilePath
+	
+	local -r url="${api_map["$escapedRelativePathIncludingAnyLeadingAndTrailingSlashes"]}"
+	curl_wrapper GET "$url"
+	
+	curl_validateResponseCode 200 "Could not connect to $url"
+	
+	# _: means the default namespace (not needed if there's no xmlns definition)
+	temporaryFiles_newFileToRemoveOnExit
+	local -r tsvFilePath="$TMP_FILE"
+	defaults_format_headings=no-heading xml_starlet_tsv_downloadFilePath '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	
+	if ! grep --quiet "^${defaults_api_version}"$'\t' "$tsvFilePath"; then
+		informationMessage FAIL "API version (defaults_api_version) $defaults_api_version is not supported"
+		exit 1
+	fi
+	
+	local version
+	local sessionsUrl
+	IFS=$'\t' read -r -d $'\n' version sessionsUrl <<<"$(grep "^${defaults_api_version}"$'\t' "$tsvFilePath")"
+	api_map['/api/sessions']="$sessionsUrl"
+}
