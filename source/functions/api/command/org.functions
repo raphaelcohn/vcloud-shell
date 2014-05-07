@@ -23,7 +23,7 @@ function api_command_org()
 function api_format_org()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -38,11 +38,11 @@ function api_format_org()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Org' '@id' '_:FullName' '_:Description'
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, links, or id, not $main_format"
+			exitError "Please specify api_format as either xml, links, or id, not $api_format"
 		;;
 		
 	esac

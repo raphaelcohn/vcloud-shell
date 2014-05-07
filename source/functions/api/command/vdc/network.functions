@@ -26,7 +26,7 @@ function api_command_vdc_network()
 function api_format_network()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -37,7 +37,7 @@ function api_format_network()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:OrgVdcNetwork' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:OrgVdcNetwork' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:IsShared' \
 				'_:Configuration/_:FenceMode' '_:Configuration/_:RetainNetInfoAcrossDeployments'
 		;;
@@ -53,7 +53,7 @@ function api_format_network()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, links or settings, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
 		;;
 		
 	esac

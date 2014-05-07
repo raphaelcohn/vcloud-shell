@@ -22,7 +22,7 @@ function api_command_admins()
 function api_format_admins()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -37,11 +37,11 @@ function api_format_admins()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, links, id-bash or id-tsv, not $main_format"
+			exitError "Please specify api_format as either xml, links, id-bash or id-tsv, not $api_format"
 		;;
 		
 	esac

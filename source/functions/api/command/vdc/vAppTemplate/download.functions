@@ -12,12 +12,12 @@ function api_command_vdc_vAppTemplate_download()
 	local -r ovfFolderPath="$parentFolderPath"/"$vAppTemplateName"
 	mkdir -m 0755 -p "$ovfFolderPath"
 	
-	main_format=none defaults_outputHeadingLine=0 api_command_vdc_vAppTemplate_enableDownload "$orgName" "$vdcName" "$vAppTemplateName"
+	api_format=none defaults_format_headings=no-heading api_command_vdc_vAppTemplate_enableDownload "$orgName" "$vdcName" "$vAppTemplateName"
 	
 	api_call_lastUrl=""
 	temporaryFiles_newFileToRemoveOnExit
 	local -r filesFilePath="$TMP_FILE"
-	main_format="files" defaults_outputHeadingLine=0 api_command_vdc_vAppTemplate_downloadDescriptor "$orgName" "$vdcName" "$vAppTemplateName" >"$filesFilePath"
+	api_format="files" defaults_format_headings=no-heading api_command_vdc_vAppTemplate_downloadDescriptor "$orgName" "$vdcName" "$vAppTemplateName" >"$filesFilePath"
 	
 	local -r ovfFile="${downloads[${lineNumber}]}"
 	local -r withoutFinalPathPieceUrl=${api_call_lastUrl%/*}

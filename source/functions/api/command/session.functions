@@ -22,7 +22,7 @@ function api_command_session()
 function api_format_session()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -37,11 +37,11 @@ function api_format_session()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, links or id, not $main_format"
+			exitError "Please specify api_format as either xml, links or id, not $api_format"
 		;;
 		
 	esac

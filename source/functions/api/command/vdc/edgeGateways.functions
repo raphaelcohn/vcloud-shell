@@ -33,7 +33,7 @@ function api_command_vdc_edgeGateways()
 function api_format_vdc_edgeGateways()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -44,7 +44,7 @@ function api_format_vdc_edgeGateways()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:QueryResultRecords' '@type' '@href' '@name' '@total' '@pageSize' '@page'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:QueryResultRecords' '@type' '@href' '@name' '@total' '@pageSize' '@page'
 		;;
 		
 		links)
@@ -52,7 +52,7 @@ function api_format_vdc_edgeGateways()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, or links, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, or links, not $api_format"
 		;;
 		
 	esac

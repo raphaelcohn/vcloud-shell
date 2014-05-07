@@ -1,7 +1,7 @@
 function api_format_task()
 {
 	local -r prefix="$1"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -12,7 +12,7 @@ function api_format_task()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Task' '@status' '@startTime' '@serviceNamespace' '@operationName' '@operation' '@expiryTime' '@cancelRequested' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Task' '@status' '@startTime' '@serviceNamespace' '@operationName' '@operation' '@expiryTime' '@cancelRequested' '@name' '@id' '@type' '@href' \
 				'_:Owner/@type' '_:Owner/@name' '_:Owner/@href' \
 				'_:User/@type' '_:User/@name' '_:User/@href' \
 				'_:Organization/@type' '_:Organization/@name' '_:Organization/@href' \
@@ -24,7 +24,7 @@ function api_format_task()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv or links, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv or links, not $api_format"
 		;;
 		
 	esac

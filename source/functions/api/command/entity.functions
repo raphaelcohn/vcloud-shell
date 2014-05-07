@@ -25,7 +25,7 @@ function api_command_entity()
 function api_format_entity()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -36,7 +36,7 @@ function api_format_entity()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Entity' '@type' '@href' '@id' '@name'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Entity' '@type' '@href' '@id' '@name'
 		;;
 		
 		links)
@@ -44,7 +44,7 @@ function api_format_entity()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, links, id-bash or id-tsv, not $main_format"
+			exitError "Please specify api_format as either xml, links, id-bash or id-tsv, not $api_format"
 		;;
 		
 	esac

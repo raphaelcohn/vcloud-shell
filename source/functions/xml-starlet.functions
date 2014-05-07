@@ -37,21 +37,21 @@ function xml_starlet_tsv()
 		xml_starlet_convertXPath
 		
 		if [ $afterFirst -eq 1 ]; then
-			if [ $defaults_outputHeadingLine -eq 1 ]; then
+			if [ "$defaults_format_headings" = "with-heading" ]; then
 				echo -n $'\t'
 			fi
 			outputArguments+=('--output' $'\t')
 		else
 			afterFirst=1
 		fi
-		if [ $defaults_outputHeadingLine -eq 1 ]; then
+		if [ "$defaults_format_headings" = "with-heading" ]; then
 			echo -n "$fieldName"
 		fi
 		
 		outputArguments+=('--value-of' "$attributeOrElement")
 	done
 	
-	if [ $defaults_outputHeadingLine -eq 1 ]; then
+	if [ "$defaults_format_headings" = "with-heading" ]; then
 		printf '\n'
 	fi
 	
@@ -90,7 +90,7 @@ function xml_starlet_keyValue()
 				outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
 			done
 			
-			if [ $defaults_outputHeadingLine -eq 1 ]; then
+			if [ "$defaults_format_headings" = "with-heading" ]; then
 				echo "Key${tab}Value"
 			fi
 		;;

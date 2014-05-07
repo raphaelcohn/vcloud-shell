@@ -1,7 +1,7 @@
 function api_format_metadata()
 {
 	local -r prefix="$1"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -12,7 +12,7 @@ function api_format_metadata()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Metadata' '@href' '@type'
 		;;
 		
 		links)
@@ -24,7 +24,7 @@ function api_format_metadata()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, or settings, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, or settings, not $api_format"
 		;;
 		
 	esac
@@ -33,7 +33,7 @@ function api_format_metadata()
 function api_format_metadataValue()
 {
 	local -r prefix="$1"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -44,7 +44,7 @@ function api_format_metadataValue()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:MetadataValue' '@href'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:MetadataValue' '@href'
 		;;
 		
 		links)
@@ -57,7 +57,7 @@ function api_format_metadataValue()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, or settings, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, or settings, not $api_format"
 		;;
 		
 	esac

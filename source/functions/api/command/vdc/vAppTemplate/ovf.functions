@@ -30,7 +30,7 @@ function api_command_vdc_vAppTemplate_ovf()
 function api_format_vdc_vAppTemplate_ovf()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -41,7 +41,7 @@ function api_format_vdc_vAppTemplate_ovf()
 		;;
 		
 		*)
-			exitError "Please specify main_format as xml, not $main_format"
+			exitError "Please specify api_format as xml, not $api_format"
 		;;
 		
 	esac

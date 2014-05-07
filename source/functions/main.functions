@@ -41,11 +41,11 @@ function main_validateDefault()
 
 function main_validateDefaults()
 {
-	main_validateDefault switch_baseUrl
 	main_validateDefault defaults_api_version
 	main_validateDefault defaults_curl_userAgent
 	main_validateDefault defaults_curl_maxRedirs
 	main_validateDefault defaults_curl_retries
+	main_validateDefault defaults_format_headings
 }
 main_functions+=(main_validateDefaults)
 
@@ -61,7 +61,6 @@ function main_login()
 }
 main_functions+=(main_login)
 
-main_format=xml
 function main_executeCommands()
 {
 	# Uses a subshell so we don't affect the core program
@@ -85,7 +84,11 @@ function main_executeCommands()
 			lineNumber=$((lineNumber+1))
 		fi
 		
-		cat "$switch_commandFile" | while IFS= read -r line
+		# Final printf is to force read to read the final line if input does not end with a \n
+		{
+			cat "$switch_commandFile"
+			printf '\n'
+		} | while IFS= read -r line
 		do
 			captures[${lineNumber}]='/dev/null'
 			downloads[${lineNumber}]='/dev/null'

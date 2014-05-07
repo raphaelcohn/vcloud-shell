@@ -30,7 +30,7 @@ function api_command_vdc_vApp_ovf()
 function api_format_vdc_vApp_ovf()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:

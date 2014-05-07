@@ -29,7 +29,7 @@ function api_command_vdc_media()
 function api_format_vdc_media()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -40,7 +40,7 @@ function api_format_vdc_media()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Media' '@imageType' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Media' '@imageType' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' \
 				'_:VdcStorageProfile/@type' '_:VdcStorageProfile/@href' '_:VdcStorageProfile/@name' \
 				'_:Owner/_:User/@type' '_:Owner/_:User/@href' '_:Owner/_:User/@name'

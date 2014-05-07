@@ -25,7 +25,7 @@ function api_command_vdc_network_allocatedAddresses()
 function api_format_vdc_network_allocatedAddresses()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -36,7 +36,7 @@ function api_format_vdc_network_allocatedAddresses()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:AllocatedIpAddresses' '@type' '@href'
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:AllocatedIpAddresses' '@type' '@href'
 		;;
 		
 		links)
@@ -48,7 +48,7 @@ function api_format_vdc_network_allocatedAddresses()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, links or settings, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
 		;;
 		
 	esac

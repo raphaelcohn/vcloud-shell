@@ -30,7 +30,7 @@ function api_command_vdc_vAppTemplate()
 function api_format_vdc_vAppTemplate()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -42,11 +42,11 @@ function api_format_vdc_vAppTemplate()
 		
 		links)
 			xml_starlet_tsv_links_rel '/_:VAppTemplate/_:Link'
-			defaults_outputHeadingLine=0 xml_starlet_tsv_links_rel '/_:VAppTemplate/_:LeaseSettingsSection/_:Link'
+			defaults_format_headings=no-heading xml_starlet_tsv_links_rel '/_:VAppTemplate/_:LeaseSettingsSection/_:Link'
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $api_format"
 		;;
 		
 	esac

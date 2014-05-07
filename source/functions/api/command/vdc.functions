@@ -25,7 +25,7 @@ function api_command_vdc()
 function api_format_vdc()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
-	case "$main_format" in
+	case "$api_format" in
 		
 		none)
 			:
@@ -36,7 +36,7 @@ function api_format_vdc()
 		;;
 		
 		id-*)
-			xml_starlet_keyValue ${main_format:3} "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Vdc' '@status' '@name' '@id' '@type' '@href' \
 				'_:Description' '_:AllocationModel' \
 				'_:ComputeCapacity/_:Cpu/_:Units' '_:ComputeCapacity/_:Cpu/_:Allocated' '_:ComputeCapacity/_:Cpu/_:Limit' '_:ComputeCapacity/_:Cpu/_:Reserved' '_:ComputeCapacity/_:Cpu/_:Used' '_:ComputeCapacity/_:Cpu/_:Overhead' \
 				'_:ComputeCapacity/_:Memory/_:Units' '_:ComputeCapacity/_:Memory/_:Allocated' '_:ComputeCapacity/_:Memory/_:Limit' '_:ComputeCapacity/_:Memory/_:Reserved' '_:ComputeCapacity/_:Memory/_:Used' '_:ComputeCapacity/_:Memory/_:Overhead' \
@@ -67,7 +67,7 @@ function api_format_vdc()
 		;;
 		
 		*)
-			exitError "Please specify main_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $main_format"
+			exitError "Please specify api_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $api_format"
 		;;
 		
 	esac
