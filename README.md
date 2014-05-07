@@ -17,6 +17,11 @@ vCloud Curl Tools
 * exit / exitError / informationMessage FAIL
 * capture versions and sessions in special download and captures?
 
+##examples
+demonstrate more functionality - especially all the possible formats for each api call
+find a way to validate formats
+refactor formats
+
 ## unrecorded downloads
 vdc/vAppTemplate/ download and enableDownload
 vdc/media/metadata/* (incl getValue, which could be cached, but might not be appropriate)
