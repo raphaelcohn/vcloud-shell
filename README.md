@@ -20,6 +20,7 @@ vCloud Curl Tools
 
 * FIX METADATA format (eg org-metadata)
 * FIX task formatting - seems broken for enableDownload?
+* HELPER function to iterate over links
 
 ##examples
 demonstrate more functionality - especially all the possible formats for each api call
