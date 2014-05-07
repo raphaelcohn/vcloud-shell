@@ -8,8 +8,6 @@ function capture()
 	captures[${lineNumber}]="$captureFile"
 }
 
-# eg  ./vsh api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'
-# echo "api xml vdc_vApp 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'man_dc'" | ./vsh
 function api()
 {
 	if [ $# -lt 2 ]; then
