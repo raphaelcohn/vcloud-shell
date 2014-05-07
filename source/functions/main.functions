@@ -131,17 +131,9 @@ function main_executeCommands()
 		(
 			declare -a downloads=()
 			declare -A api_downloadsCache
-			local line
 			local -i downloadNumber=0
-		
-			# Final printf is to force read to read the final line if input does not end with a \n
-			{
-				cat "$scriptFile"
-				printf '\n'
-			} | while IFS= read -r line
-			do
-				eval "${line}"
-			done
+			
+			source "$scriptFile"
 		)
 	done
 }
