@@ -8,7 +8,6 @@ main_functions+=(main_registerTrapHandlers)
 
 function main_loadDefaults()
 {
-	# /etc/"$ourName"
 	local defaultsFile="$switch_configPath"/defaults
 	if [ -r "$defaultsFile" ]; then
 		source "$defaultsFile"
@@ -64,41 +63,47 @@ main_functions+=(main_login)
 function main_executeCommands()
 {
 	# Uses a subshell so we don't affect the core program
-	(
-		declare -a captures=()
-		declare -a downloads=()
-		
-		declare -A api_downloadsCache
-		
-		local line
-		local -i lineNumber=0
-		
-		# Execute command line first if present
-		if [ ${#commandLineArgs[@]} -ne 0 ]; then
-			
-			captures[${lineNumber}]='/dev/null'
-			downloads[${lineNumber}]='/dev/null'
-			
-			"${commandLineArgs[@]}"
-			
-			lineNumber=$((lineNumber+1))
+	local -i stdinAlreadyUsed=0
+	local scriptFile
+	for scriptFile in "${switch_scriptFiles[@]}"
+	do
+		if [ "$scriptFile" = '-' ]; then
+			if [ $stdinAlreadyUsed -eq 1 ]; then
+				informationMessage WARN "stdin used more than once, skipping"
+				continue
+			fi
+			scriptFile=/dev/stdin
+			stdinAlreadyUsed=1
+		elif [ ! -r "$scriptFile" ]; then	
+			informationMessage WARN "script file $scriptFile is not readable or does not exist, skipping"
+			continue
 		fi
 		
-		# Final printf is to force read to read the final line if input does not end with a \n
-		{
-			cat "$switch_commandFile"
-			printf '\n'
-		} | while IFS= read -r line
-		do
-			captures[${lineNumber}]='/dev/null'
-			downloads[${lineNumber}]='/dev/null'
+		(
+			declare -a captures=()
+			declare -a downloads=()
+		
+			declare -A api_downloadsCache
+		
+			local line
+			local -i lineNumber=0
+		
+			# Final printf is to force read to read the final line if input does not end with a \n
+			{
+				cat "$scriptFile"
+				printf '\n'
+			} | while IFS= read -r line
+			do
+				captures[${lineNumber}]='/dev/null'
+				downloads[${lineNumber}]='/dev/null'
 			
-			eval "${line}"
+				eval "${line}"
 			
-			lineNumber=$((lineNumber+1))
+				lineNumber=$((lineNumber+1))
 			
-		done
-	)
+			done
+		)
+	done
 }
 main_functions+=(main_executeCommands)
 

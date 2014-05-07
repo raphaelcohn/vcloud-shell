@@ -60,7 +60,6 @@ function setDebugging()
 function setSaneEnvironmentDefaults()
 {
 	set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi
-	shopt -s -q expand_aliases
 	
 	unset BASH_ENV
 	unset BASH_XTRACEFD
@@ -105,7 +104,7 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-d] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] [-f switch_commandFile] -- [commands]
+Usage: ${ourName} [-v] [-d] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] [script files...]
 
 Argument-less Switches
     Switch  Explanation            Default       Configuration*
@@ -119,14 +118,13 @@ Argumented Switches
     -n      switch_netrcFilePath      ${switch_netrcFilePath} (not used if not present)
     -r      switch_curlrcFilePath     ${switch_curlrcFilePath} (not used if not present)
     -u      switch_baseUrl            ${switch_baseUrl}
-    -f      switch_commandFile        ${switch_commandFile} (- is stdin)
-    --                                End of arguments, beginning of commands
+    --                                End of arguments, beginning of script files
 
-*See below
+*See Switch Configuration below
 
-commands
-This is a line of commands. It may also be specified as many lines (line feed separated), specified by switch_commandFile. Use  -  for stdin.
-Commands are either ordinary bash syntax, or one of the following
+script files
+These are one or more files containing scripts of commands. By default (if no scripts are provided), or if a value '-' is specified, stdin is read.
+Each script is a line of commands. Commands are either ordinary bash syntax, or one of the following:-
 
     api <format> <action> [<arg> ...]      run an api command (see below)
     capture ...                            run an api command or a bash line, and capture stdout into a file for latter use
@@ -162,10 +160,12 @@ api calls currently defined
     org <name>  Org details for <name>, eg 98-184-1-151d73
     ... [TODO: Generate this list, and the supported formats]
 
-Configuration
+Switch Configuration
 Command line switches (switch_) can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
-By default, the following locations are searched and files sourced as configuration in order before the command line is processed:-
+These files are read BEFORE the command line is processed, allowing per-invocation override. By default, the following locations are searched and
+files sourced as configuration in order:-
 
+    ${original_switch_configPath}/switch-configuration
     ~/.${ourName}
     <VSH_CONFIGURATION>  (an environment variable)
 
@@ -218,10 +218,10 @@ The values that can be configured are:-
     
     Value                       Built-in Value
     defaults_api_version        ${defaults_api_version}
-    defaults_format_headings    ${defaults_format_headings} (no-heading or with-heading)
     defaults_curl_userAgent     ${defaults_curl_userAgent}
     defaults_curl_maxRedirs     ${defaults_curl_maxRedirs}
     defaults_curl_retries       ${defaults_curl_retries}
+    defaults_format_headings    ${defaults_format_headings} (no-heading or with-heading)
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
@@ -231,9 +231,12 @@ to automatically install any missing dependencies. The PATH variable is reset to
 	exit $1
 }
 
-commandLineArgs=()
+switch_scriptFiles=()
 function loadAnyConfiguration()
 {
+	original_switch_configPath="$crudeOurPath"/config
+	
+	# Switch embedded defaults
 	switch_language="en_GB.UTF-8"
 	switch_beVerbose="no"
 	switch_beDebug="no"
@@ -241,25 +244,29 @@ function loadAnyConfiguration()
 	switch_netrcFilePath=""
 	switch_curlrcFilePath=""
 	switch_baseUrl="https://api.vcd.portal.skyscapecloud.com"
-	switch_commandFile="-"
-	
+	switch_scriptFiles=('-')
 #start VSH_CONFIG_PATH
 	etcPath="/etc"
-	switch_configPath="$crudeOurPath"/config
+	switch_configPath="$original_switch_configPath"
 #end VSH_CONFIG_PATH
 #start VSH_DEFAULTS
 	# Insert all our defaults as shipped, too
 #end VSH_DEFAULTS
 	
-	local -r userConfiguration=~/."$ourName"
-	if [ -r "$userConfiguration" ]; then
-		source "$userConfiguration"
+	local -r etcSwitchConfiguration="${original_switch_configPath}"/switch-configuration
+	if [ -f "$etcSwitchConfiguration" ]; then
+		source "$etcSwitchConfiguration"
 	fi
 	
-	local -r environmentVariableConfiguration="$VSH_CONFIGURATION"
-	if [ -n "$environmentVariableConfiguration" ]; then
-		if [ -r "$environmentVariableConfiguration" ]; then
-			source "$VSH_CONFIGURATION"
+	local -r userSwitchConfiguration=~/."$ourName"
+	if [ -r "$userSwitchConfiguration" ]; then
+		source "$userSwitchConfiguration"
+	fi
+	
+	local -r environmentVariableSwitchConfiguration="$VSH_CONFIGURATION"
+	if [ -n "$environmentVariableSwitchConfiguration" ]; then
+		if [ -r "$environmentVariableSwitchConfiguration" ]; then
+			source "$environmentVariableSwitchConfiguration"
 		fi
 	fi
 }
@@ -270,7 +277,7 @@ function parseCommandLine()
 	local OPTIND=1
 	local OPTARG
 	local option
-	while getopts :hvdc:s:n:r:f: option
+	while getopts :hvdc:s:n:r: option
 	do
 		case "$option" in
 			
@@ -302,10 +309,6 @@ function parseCommandLine()
 				switch_curlrcFilePath="$OPTARG"
 			;;
 			
-			f)
-				switch_commandFile="$OPTARG"
-			;;
-			
 			'?')
 				exitError "Invalid option -${OPTARG}"
 			;;
@@ -315,7 +318,9 @@ function parseCommandLine()
 	
 	shift $((OPTIND - 1))
 	
-	commandLineArgs=("$@")
+	if [ $# -ne 0 ]; then
+		switch_scriptFiles=("$@")
+	fi
 	
 	function makeCommandLinePathsAbsolute()
 	{
@@ -341,18 +346,6 @@ function validateCommandLineArguments()
 	if [ -n "$switch_curlrcFilePath" ]; then
 		if [ ! -f "$switch_curlrcFilePath" ]; then
 			exitError "-r switch_curlrcFilePath $switch_curlrcFilePath does not exist or is not a file"
-		fi
-	fi
-	
-	if [ -z "$switch_commandFile" ]; then
-		switch_commandFile='-'
-	fi
-	
-	if [ "$switch_commandFile" = '-' ]; then
-		switch_commandFile=/dev/stdin
-	else
-		if [ ! -r "$switch_commandFile" ]; then
-			exitError "Please specify a readable (or extant) switch_commandFile, not $switch_commandFile"
 		fi
 	fi
 }
