@@ -11,7 +11,6 @@ vCloud Curl Tools
 
 * USE BASH_CMDS to replace the use of .path?
 * consider integration with logger, so we can start doing some audit recording
-* fix @ in xpath fields
 * refactor metadata API calls for media into common code
 * implement downloads_last
 * exit / exitError / informationMessage FAIL
