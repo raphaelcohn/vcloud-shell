@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-readonly tab=$'\t'
 function informationMessage()
 {
 	local messageKind="$1"
@@ -13,13 +12,13 @@ function informationMessage()
 		;;
 		
 		DEBUG)
-			if [ "$switch_beDebug" = "yes" ]; then
+			if [ "$vsh_beDebug" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
 		
 		*)
-			if [ "$switch_beVerbose" = "yes" ]; then
+			if [ "$vsh_beVerbose" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
@@ -30,7 +29,7 @@ function informationMessage()
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
 # Such a critical piece is code executed before and during command line arg parsing (eg exitError)
-function purebash_dirname()
+function vsh_dirname()
 {
 	local -r converted="${1%/*}"
 	if [ "$converted" = "$1" ]; then
@@ -40,12 +39,12 @@ function purebash_dirname()
 	fi
 }
 
-function purebash_basename()
+function vsh_basename()
 {
 	echo "${1##*/}"
 }
 
-function setDebugging()
+function build_setDebugging()
 {
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
@@ -57,7 +56,7 @@ function setDebugging()
 	fi
 }
 
-function setSaneEnvironmentDefaults()
+function build_setSaneEnvironmentDefaults()
 {
 	set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi
 	
@@ -86,15 +85,15 @@ function setSaneEnvironmentDefaults()
 	umask 022
 }
 
-function findOurNameAndPath()
+function build_findOurNameAndPath()
 {
-	readonly ourName="$(purebash_basename "$0")"
-	pushd "$(purebash_dirname "$0")" >/dev/null
+	readonly ourName="$(vsh_basename "$0")"
+	pushd "$(vsh_dirname "$0")" >/dev/null
 		readonly crudeOurPath="$(pwd)"
 	popd >/dev/null
 }
 
-function setPaths()
+function build_setPaths()
 {
 	pushd "$crudeOurPath" 1>/dev/null 2>/dev/null
 		
@@ -107,20 +106,20 @@ function setPaths()
 	readonly outputPath="$rootPath"/output
 }
 
-function sourceFunctions()
+function build_sourceFunctions()
 {
 	source "$functionsPath"/temporaryFiles.functions
 	source "$functionsPath"/trapHandlers.functions
 	source "$functionsPath"/language.functions
 }
 
-function setInstallPaths()
+function build_setInstallPaths()
 {
 	readonly etcPath="/etc"
 	readonly binPath="/usr/bin"
 }
 
-function copyToOutputFolder()
+function build_copyToOutputFolder()
 {
 	rm -rf "$outputPath"
 	mkdir -m 0755 -p "$outputPath"
@@ -135,32 +134,32 @@ function copyToOutputFolder()
 	cp "$sourcePath"/vsh "$vcloudCurlFile"
 	chmod 0755 "$vcloudCurlFile"
 	
-	readonly switch_configPath="$etcFolder"/vsh
-	mkdir -m 0755 -p "$switch_configPath"
+	readonly vsh_configPath="$etcFolder"/vsh
+	mkdir -m 0755 -p "$vsh_configPath"
 	
-	rsync -a --exclude=.gitignore "$sourcePath"/config/ "$switch_configPath"/
+	rsync -a --exclude=.gitignore "$sourcePath"/config/ "$vsh_configPath"/
 }
 
-function patchConfigPaths()
+function build_patchConfigPaths()
 {
 	sed -e "s;etcPath=.*$;etcPath='${etcPath}';g" "$vcloudCurlFile" >"$vcloudCurlFile".new
 	rm "$vcloudCurlFile"
 	mv "$vcloudCurlFile".new "$vcloudCurlFile"
 	
-	sed -e 's;switch_configPath=.*$;switch_configPath="$etcPath"/"$ourName";g' "$vcloudCurlFile" >"$vcloudCurlFile".new
+	sed -e 's;vsh_configPath=.*$;vsh_configPath="$etcPath"/"$ourName";g' "$vcloudCurlFile" >"$vcloudCurlFile".new
 	rm "$vcloudCurlFile"
 	mv "$vcloudCurlFile".new "$vcloudCurlFile"
 }
 
-function concatenateDefaults()
+function build_concatenateDefaults()
 {
 	temporaryFiles_newFileToRemoveOnExit
 	readonly temporaryConcatenatedDefaults="$TMP_FILE"
 	
-	cat "$switch_configPath"/defaults "$switch_configPath"/defaults.d/*.defaults >"$temporaryConcatenatedDefaults"
+	cat "$vsh_configPath"/defaults "$vsh_configPath"/defaults.d/*.defaults >"$temporaryConcatenatedDefaults"
 }
 
-function generateEdScriptForDefaults()
+function build_generateEdScriptForDefaults()
 {
 	temporaryFiles_newFileToRemoveOnExit
 	readonly temporaryDefaultsPatchFile="$TMP_FILE"
@@ -178,18 +177,18 @@ function generateEdScriptForDefaults()
 	) >"$temporaryDefaultsPatchFile"
 }
 
-function patchDefaults()
+function build_patchDefaults()
 {
 	patch --ed "$vcloudCurlFile" "$temporaryDefaultsPatchFile"
 }
 
-function concatenateFunctionsAll()
+function build_concatenateFunctionsAll()
 {
 	temporaryFiles_newFileToRemoveOnExit
 	readonly temporaryConcatenatedFunctions="$TMP_FILE"
 	(
 		cat <<-EOF
-			function sourceFunctions()
+			function vsh_sourceFunctions()
 			{
 			    :
 			}
@@ -198,7 +197,7 @@ function concatenateFunctionsAll()
 	concatenateFunctionsRecursively "$functionsPath"
 }
 
-function concatenateFunctionsRecursively()
+function build_concatenateFunctionsRecursively()
 {
 	(
 		pushd "$1" 1>/dev/null 2>/dev/null
@@ -224,7 +223,7 @@ function concatenateFunctionsRecursively()
 	) >>"$temporaryConcatenatedFunctions"
 }
 
-function generateEdScriptForFunctions()
+function build_generateEdScriptForFunctions()
 {
 	temporaryFiles_newFileToRemoveOnExit
 	readonly temporaryFunctionsPatchFile="$TMP_FILE"
@@ -242,33 +241,33 @@ function generateEdScriptForFunctions()
 	) >"$temporaryFunctionsPatchFile"
 }
 
-function patchFunctions()
+function build_patchFunctions()
 {
 	patch --ed "$vcloudCurlFile" "$temporaryFunctionsPatchFile"
 }
 
-function main()
+function build_main()
 {
-	setDebugging
-	setSaneEnvironmentDefaults
-	findOurNameAndPath
+	vsh_setDebugging
+	vsh_setSaneEnvironmentDefaults
+	vsh_findOurNameAndPath
 	setPaths
-	sourceFunctions
+	vsh_sourceFunctions
 	
 	trapHandlers_addNext temporaryFiles_removeAll
 	
-	setInstallPaths
-	copyToOutputFolder
+	build_setInstallPaths
+	build_copyToOutputFolder
 	
-	patchConfigPaths
+	build_patchConfigPaths
 	
-	concatenateDefaults
-	generateEdScriptForDefaults
-	patchDefaults
+	build_concatenateDefaults
+	build_generateEdScriptForDefaults
+	build_patchDefaults
 	
-	concatenateFunctionsAll
-	generateEdScriptForFunctions
-	patchFunctions
+	build_concatenateFunctionsAll
+	build_generateEdScriptForFunctions
+	build_patchFunctions
 }
 
-main "$@"
+build_main "$@"

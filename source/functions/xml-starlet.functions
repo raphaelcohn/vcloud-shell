@@ -40,7 +40,7 @@ function xml_starlet_tsv()
 			if [ "$defaults_format_headings" = "with-heading" ]; then
 				echo -n $'\t'
 			fi
-			outputArguments+=('--output' $'\t')
+			outputArguments+=('--output' "$defaults_format_separator")
 		else
 			afterFirst=1
 		fi
@@ -48,7 +48,10 @@ function xml_starlet_tsv()
 			echo -n "$fieldName"
 		fi
 		
+		# This design handles missing values
 		outputArguments+=('--value-of' "$attributeOrElement")
+		
+		# concat(/Foo/Baz, substring('not-found', 1 div not(/Foo/Baz)))
 	done
 	
 	if [ "$defaults_format_headings" = "with-heading" ]; then
@@ -58,7 +61,7 @@ function xml_starlet_tsv()
 	xml sel --text --template --match "$xpathMatch" "${outputArguments[@]}" --nl "$filePath"
 }
 
-readonly quote="'"
+readonly xml_starlet_quote="'"
 function xml_starlet_keyValue()
 {
 	local -r variant="$1"
@@ -77,7 +80,7 @@ function xml_starlet_keyValue()
 			do
 				xml_starlet_convertXPath
 				
-				outputArguments+=('--output' "${prefix}_${fieldName}=${quote}" '--value-of' "$attributeOrElement" --output "${quote}" '--nl')
+				outputArguments+=('--output' "${prefix}_${fieldName}=${xml_starlet_quote}" '--value-of' "$attributeOrElement" --output "${xml_starlet_quote}" '--nl')
 			done
 		;;
 		
@@ -87,11 +90,11 @@ function xml_starlet_keyValue()
 			do
 				xml_starlet_convertXPath
 				
-				outputArguments+=('--output' "${prefix}_${fieldName}${tab}" '--value-of' "$attributeOrElement" '--nl')
+				outputArguments+=('--output' "${prefix}_${fieldName}${defaults_format_separator}" '--value-of' "$attributeOrElement" '--nl')
 			done
 			
 			if [ "$defaults_format_headings" = "with-heading" ]; then
-				echo "Key${tab}Value"
+				echo "Key${defaults_format_separator}Value"
 			fi
 		;;
 		

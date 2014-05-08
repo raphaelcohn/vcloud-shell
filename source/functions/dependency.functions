@@ -36,7 +36,7 @@ dependency_functions+=(dependency_determineDistributionName)
 
 function dependency_setUpAliases()
 {
-	local -r pathsFile="$switch_configPath"/paths.d/"$distributionName".path
+	local -r pathsFile="$vsh_configPath"/paths.d/"$distributionName".path
 	if [ ! -f "$pathsFile" ]; then
 		return 0
 	fi
@@ -50,7 +50,7 @@ function dependency_setUpAliases()
 	local packageName
 	local binaryName
 	local absolutePath
-	while IFS=' ' read -r -d $'\n' packageName binaryName absolutePath
+	while IFS=' ' read -r packageName binaryName absolutePath
 	do
 		if [ -x "$absolutePath" ]; then
 			hash -p "$absolutePath" "$binaryName"

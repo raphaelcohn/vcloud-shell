@@ -40,7 +40,7 @@ function curl_validateResponseCode()
 	
 	if [ $curl_httpResponseCode -ne $expectedResponseCode ]; then
 		informationMessage FAIL "$errorMessage (HTTP Response Code was $curl_httpResponseCode)"
-		xml_starlet_keyValue tsv "Error" "$curl_downloadFilePath" '/_:Error' '@majorErrorCode' '@minorErrorCode' '@message' 1>&2
+		defaults_format_headings=with-heading defaults_format_separator=$'\t' xml_starlet_keyValue tsv "Error" "$curl_downloadFilePath" '/_:Error' '@majorErrorCode' '@minorErrorCode' '@message' 1>&2
 		exit 1
 	fi
 }
@@ -86,24 +86,24 @@ function curl_wrapper()
 	# Technically, .netrc only exists in $HOME, but we want to give a little more flexibility
 	# netrc files have lines likes machine host.domain.com login myself password secret (machine X, username Y, password X)
 	
-	if [ -z "$switch_netrcFilePath" ]; then
+	if [ -z "$vsh_netrcFilePath" ]; then
 		curl_wrapperConfigArg --netrc-file "$CURL_HOME" .netrc
 		curl_wrapperConfigArg --netrc-file "$HOME" .netrc
 		curl_wrapperConfigArg --netrc-file "$etcPath" netrc
-		curl_wrapperConfigArg --netrc-file "$switch_configPath" netrc
+		curl_wrapperConfigArg --netrc-file "$vsh_configPath" netrc
 		curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
 	else
-		curlArgs+=('--netrc-file' "$switch_netrcFilePath")
+		curlArgs+=('--netrc-file' "$vsh_netrcFilePath")
 	fi
 	
 	# Overridding of configuration occurs after setting are options; machine-wide always wins
-	if [ -z "$switch_curlrcFilePath" ]; then
+	if [ -z "$vsh_curlrcFilePath" ]; then
 		curl_wrapperConfigArg --config "$CURL_HOME" .curlrc
 		curl_wrapperConfigArg --config "$HOME" .curlrc
 		curl_wrapperConfigArg --config "$etcPath" curlrc
-		curl_wrapperConfigArg --config "$switch_configPath" curlrc
+		curl_wrapperConfigArg --config "$vsh_configPath" curlrc
 		local configFile
-		for configFile in "$switch_configPath"/curlrc.d/*.curlrc
+		for configFile in "$vsh_configPath"/curlrc.d/*.curlrc
 		do
 			if [ -f "$configFile" ]; then
 				curlArgs+=('--config' "$configFile")
@@ -111,7 +111,7 @@ function curl_wrapper()
 		done
 		curl_wrapperConfigArg --config "$HOME" "$ourName".curlrc
 	else
-		curlArgs+=('--config' "$switch_curlrcFilePath")
+		curlArgs+=('--config' "$vsh_curlrcFilePath")
 	fi
 	
 	# Override any setting of URL, TLS, etc after configuration loaded
@@ -194,7 +194,7 @@ function curl_wrapper()
 	curl_lastExitCode=$?
 	set -e
 	
-	if [ "$switch_beDebug" = "yes" ]; then
+	if [ "$vsh_beDebug" = "yes" ]; then
 		cat "$asciiTraceFilePath" 1>&2
 	fi
 	
@@ -205,7 +205,7 @@ function curl_wrapper()
 			curl_downloadFilePath="$actualDownloadFilePath"
 			
 			local headerName headerValue
-			while IFS=$'\t' read -r -d $'\n' headerName headerValue
+			while IFS=": " read -r headerName headerValue
 			do
 				# terminated by two trailing lines
 				if [ -z "$headerName" ]; then
@@ -213,7 +213,7 @@ function curl_wrapper()
 				fi
 				# ,, converts to lower case (makes headers consistent to work with)
 				curl_responseHeaders["${headerName,,}"]="$headerValue"
-			done < <(tail -n +2 "$headersFilePath" | tr -d '\r' | awk -F': ' -v OFS=$'\t' '{print $1,$2}')
+			done < <(tail -n +2 "$headersFilePath" | tr -d '\r')
 			
 			return 0
 		;;

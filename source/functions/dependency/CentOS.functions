@@ -10,7 +10,7 @@ dependency_checkFunctions+=(dependency_CentOS_checkFunction)
 
 function dependency_CentOS_packageManager()
 {
-	if [ "$switch_beVerbose" = no ]; then
+	if [ "$vsh_beVerbose" = no ]; then
 		local -r yumVerbosity=" --quiet"
 	else
 		local -r yumVerbosity=""

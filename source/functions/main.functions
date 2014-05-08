@@ -9,7 +9,7 @@ main_functions+=(main_registerTrapHandlers)
 function main_makeAllFunctionsReadonly()
 {
 	local unwanted1 unwanted2 functionName
-	while IFS=' ' read -r -d $'\n' unwanted1 unwanted2 functionName
+	while IFS=' ' read -r unwanted1 unwanted2 functionName
 	do
 		readonly -f $functionName
 	done < <(declare -F)
@@ -17,14 +17,20 @@ function main_makeAllFunctionsReadonly()
 }
 main_functions+=(main_makeAllFunctionsReadonly)
 
+function main_makeGlobalVariablesReadonly()
+{
+	readonly -a main_functions
+}
+main_functions+=(main_makeGlobalVariablesReadonly)
+
 function main_loadDefaults()
 {
-	local defaultsFile="$switch_configPath"/defaults
+	local defaultsFile="$vsh_configPath"/defaults
 	if [ -r "$defaultsFile" ]; then
 		source "$defaultsFile"
 	fi
 	
-	local -r defaultsFolder="$switch_configPath"/defaults.d
+	local -r defaultsFolder="$vsh_configPath"/defaults.d
 	if [ -d "$defaultsFolder" ]; then
 		pushd "$defaultsFolder" 1>/dev/null 2>/dev/null
 			
@@ -56,14 +62,22 @@ function main_validateDefaults()
 	main_validateDefault defaults_curl_maxRedirs
 	main_validateDefault defaults_curl_retries
 	main_validateDefault defaults_format_headings
+	main_validateDefault defaults_format_separator
 }
 main_functions+=(main_validateDefaults)
+
+function main_makeDefaultsReadonly()
+{
+	# defaults_format_headings, defaults_format_separator can not be readonly
+	readonly defaults_api_version defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries
+}
+main_functions+=(main_makeDefaultsReadonly)
 
 main_functions+=(dependency_installDependencies)
 
 function main_welcome()
 {
-	if [ "${switch_bePrompt}" = "yes" ]; then
+	if [ "${vsh_bePrompt}" = "yes" ]; then
 		cat 1>&2 <<-EOF
 			
 			Welcome to vsh, the vCloud Shell
@@ -81,7 +95,7 @@ function main_login()
 	
 	trapHandlers_addNext api_session_logout
 	
-	if [ "${switch_bePrompt}" = "yes" ]; then
+	if [ "${vsh_bePrompt}" = "yes" ]; then
 		cat 1>&2 <<-EOF
 			Logged in.
 			Please type commands at the 'vsh >' prompt
@@ -94,7 +108,7 @@ main_functions+=(main_login)
 
 function main_executeCommands()
 {
-	if [ "${switch_bePrompt}" = "yes" ]; then
+	if [ "${vsh_bePrompt}" = "yes" ]; then
 		(
 			declare -a downloads=()
 			declare -A api_downloadsCache
@@ -103,7 +117,7 @@ function main_executeCommands()
 			
 			while true
 			do
-				read -p "${ourName}> " -r line
+				read -e -p "${ourName}> " -r line
 				
 				eval "${line}"
 			done
@@ -114,7 +128,7 @@ function main_executeCommands()
 	# Uses a subshell so we don't affect the core program
 	local -i stdinAlreadyUsed=0
 	local scriptFile
-	for scriptFile in "${switch_scriptFiles[@]}"
+	for scriptFile in "${vsh_scriptFiles[@]}"
 	do
 		if [ "$scriptFile" = '-' ]; then
 			if [ $stdinAlreadyUsed -eq 1 ]; then

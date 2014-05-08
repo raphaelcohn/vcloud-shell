@@ -17,7 +17,7 @@ function api_command_vdc_vAppTemplate_download()
 	api_call_lastUrl=""
 	temporaryFiles_newFileToRemoveOnExit
 	local -r filesFilePath="$TMP_FILE"
-	api_format="files" defaults_format_headings=no-heading api_command_vdc_vAppTemplate_downloadDescriptor "$orgName" "$vdcName" "$vAppTemplateName" >"$filesFilePath"
+	api_format="files" defaults_format_headings=no-heading defaults_format_separator=$'\x01' api_command_vdc_vAppTemplate_downloadDescriptor "$orgName" "$vdcName" "$vAppTemplateName" >"$filesFilePath"
 	
 	local -r ovfFile="${downloads[${downloadNumber}]}"
 	local -r withoutFinalPathPieceUrl=${api_call_lastUrl%/*}
@@ -36,7 +36,7 @@ function api_command_vdc_vAppTemplate_download()
 				continue
 			fi
 			local -i stillExists=0
-			while IFS=$'\t' read -r -d $'\n' size id href
+			while IFS=$'\x01' read -r size id href
 			do
 				if [ "$file" = "$href" ]; then
 					stillExists=1
@@ -62,7 +62,7 @@ function api_command_vdc_vAppTemplate_download()
 		
 		local size id href
 		local -i currentSize
-		while IFS=$'\t' read -r -d $'\n' size id href
+		while IFS=$'\x01' read -r size id href
 		do
 			local curl_downloadFilePath
 			

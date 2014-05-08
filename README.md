@@ -9,21 +9,28 @@ Uses good ol'fashioned netrc files for managing credentials securely. Works prop
 
 vCloud Curl Tools
 
-* USE BASH_CMDS to replace the use of .path?
 * consider integration with logger, so we can start doing some audit recording
 * refactor metadata API calls for media into common code
-* implement downloads_last
 * exit / exitError / informationMessage FAIL
 * capture versions and sessions in special download and captures?
 * support CentOS and Debian paths
 * support background downloading of OVF
+* build
+  * replace list of validate checks for defaults
+  * generate help for commands in shell
+  * generate help block
+  * man page
+* XML
+  * deal with missing values with a default?
+* Defensive
+  * make more variables readonly (perhaps register a function that makes variables readonly in main?)
 
-* FIX METADATA format (eg org-metadata)
+* FIX METADATA format (eg org-metadata) (prefixes)
 * FIX task formatting - seems broken for enableDownload?
 * HELPER function to iterate over links
+  * needs to normalise href, type, name, rel but not skip empty columns
 
 ##examples
-demonstrate more functionality - especially all the possible formats for each api call
 find a way to validate formats
 refactor formats
 

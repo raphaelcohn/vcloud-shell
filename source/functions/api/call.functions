@@ -12,7 +12,7 @@ function api_call_put()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	api_format="$ourFormat" defaults_format_headings=no-heading "$@" >"$linksTsvFile"
+	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
@@ -31,7 +31,7 @@ function api_call_postEmpty()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	api_format="$ourFormat" defaults_format_headings=no-heading "$@" >"$linksTsvFile"
+	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
@@ -52,7 +52,7 @@ function api_call_post()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	api_format="$ourFormat" defaults_format_headings=no-heading "$@" >"$linksTsvFile"
+	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
@@ -71,7 +71,7 @@ function api_call_delete()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	api_format="$ourFormat" defaults_format_headings=no-heading "$@" >"$linksTsvFile"
+	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
@@ -90,7 +90,7 @@ function api_call_get()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	api_format="$ourFormat" defaults_format_headings=no-heading "$@" >"$linksTsvFile"
+	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
@@ -110,7 +110,7 @@ function api_call_getAndRecordLastUrl()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
-	api_format="$ourFormat" defaults_format_headings=no-heading "$@" >"$linksTsvFile"
+	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
@@ -131,11 +131,7 @@ function api_call_cacheDownload()
 
 function api_call_cache_key()
 {
-	echo -n "$1"
-	local arg
-	for arg in "${@:2}"
-	do
-		echo -n "_"
-		echo -n "$arg"
-	done
+	local xxx
+	IFS=_ xxx="$*"
+	echo -n "$xxx"
 }

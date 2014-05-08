@@ -15,13 +15,14 @@ function api_callback_fromName()
 	local -r resourceName="$3"
 	
 	local href mimeType name
-	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	while IFS=$'\x01' read -r href mimeType name
 	do
 		if [ "$name" = "$resourceName" ]; then
 			foundHref="$href"
 			break
 		fi
 	done <"$linksTsvFile"
+	set +x
 	
 	if [ -z "$foundHref" ]; then
 		informationMessage FAIL "Could not find $resourceKind $resourceName"
@@ -36,7 +37,7 @@ function api_callback_fromMimeType()
 	local -r resourceMimeType="$3"
 	
 	local href mimeType rel
-	while IFS=$'\t' read -r -d $'\n' href mimeType rel
+	while IFS=$'\x01' read -r href mimeType rel
 	do
 		if [ "$mimeType" = "$resourceMimeType" ]; then
 			foundHref="$href"
@@ -57,7 +58,7 @@ function api_callback_fromRel()
 	local -r resourceRel="$3"
 	
 	local href mimeType rel
-	while IFS=$'\t' read -r -d $'\n' href mimeType rel
+	while IFS=$'\x01' read -r href mimeType rel
 	do
 		if [ "$rel" = "$resourceRel" ]; then
 			foundHref="$href"
@@ -79,7 +80,7 @@ function api_callback_fromNameAndMimeType
 	local -r resourceMimeType="$4"
 	
 	local href mimeType name
-	while IFS=$'\t' read -r -d $'\n' href mimeType name
+	while IFS=$'\x01' read -r href mimeType name
 	do
 		if [ "$name" = "$resourceName" ]; then
 			if [ "$mimeType" = "$resourceMimeType" ]; then

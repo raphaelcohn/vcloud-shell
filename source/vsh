@@ -1,6 +1,5 @@
 #!/usr/bin/env bash
 
-readonly tab=$'\t'
 function informationMessage()
 {
 	local messageKind="$1"
@@ -13,13 +12,13 @@ function informationMessage()
 		;;
 		
 		DEBUG)
-			if [ "$switch_beDebug" = "yes" ]; then
+			if [ "$vsh_beDebug" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
 		
 		*)
-			if [ "$switch_beVerbose" = "yes" ]; then
+			if [ "$vsh_beVerbose" = "yes" ]; then
 				echo "$ourName: $messageKind: $message" 1>&2
 			fi
 		;;
@@ -30,7 +29,7 @@ function informationMessage()
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
 # Such a critical piece is code executed before and during command line arg parsing (eg exitError)
-function purebash_dirname()
+function vsh_dirname()
 {
 	local -r converted="${1%/*}"
 	if [ "$converted" = "$1" ]; then
@@ -40,12 +39,12 @@ function purebash_dirname()
 	fi
 }
 
-function purebash_basename()
+function vsh_basename()
 {
 	echo "${1##*/}"
 }
 
-function setDebugging()
+function vsh_setDebugging()
 {
 	# is set -x on?
 	if [[ "$-" == *x* ]]; then
@@ -57,7 +56,7 @@ function setDebugging()
 	fi
 }
 
-function setSaneEnvironmentDefaults()
+function vsh_setSaneEnvironmentDefaults()
 {
 	set +o allexport -o braceexpand +o emacs -o errexit +o errtrace +o functrace +o hashall +o histexpand +o history +o ignoreeof -o interactive-comments +o keyword +o monitor +o noclobber +o noexec +o noglob +o nolog +o notify +o nounset +o onecmd +o physical +o pipefail +o posix +o verbose +o vi
 	
@@ -86,10 +85,10 @@ function setSaneEnvironmentDefaults()
 	umask 022
 }
 
-function findOurNameAndPath()
+function vsh_findOurNameAndPath()
 {
-	readonly ourName="$(purebash_basename "$0")"
-	pushd "$(purebash_dirname "$0")" >/dev/null
+	readonly ourName="$(vsh_basename "$0")"
+	pushd "$(vsh_dirname "$0")" >/dev/null
 		readonly crudeOurPath="$(pwd)"
 	popd >/dev/null
 }
@@ -104,21 +103,21 @@ function exitError()
 function exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
-Usage: ${ourName} [-v] [-d] [-p] [-c switch_configPath] [-n switch_netrcFilePath ] [-r switch_curlrcFilePath] -- [script files...]
+Usage: ${ourName} [-v] [-d] [-p] [-c vsh_configPath] [-n vsh_netrcFilePath ] [-r vsh_curlrcFilePath] -- [script files...]
 
 Argument-less Switches
     Switch  Explanation            Default              Configuration*
     -h      show this help
-    -v      be more verbose        ${switch_beVerbose}  beVerbose
-    -d      output debug messages  ${switch_beDebug}    beDebug
-    -p      interactive prompt     ${switch_bePrompt}   bePrompt
+    -v      be more verbose        ${vsh_beVerbose}  beVerbose
+    -d      output debug messages  ${vsh_beDebug}    beDebug
+    -p      interactive prompt     ${vsh_bePrompt}   bePrompt
 
 Argumented Switches
     Switch  Configuration*            Default
-    -c      switch_configPath         ${switch_configPath}
-    -n      switch_netrcFilePath      ${switch_netrcFilePath} (not used if not present)
-    -r      switch_curlrcFilePath     ${switch_curlrcFilePath} (not used if not present)
-    -u      switch_baseUrl            ${switch_baseUrl}
+    -c      vsh_configPath         ${vsh_configPath}
+    -n      vsh_netrcFilePath      ${vsh_netrcFilePath} (not used if not present)
+    -r      vsh_curlrcFilePath     ${vsh_curlrcFilePath} (not used if not present)
+    -u      vsh_baseUrl            ${vsh_baseUrl}
     --                                End of arguments, beginning of script files
 
 *See Switch Configuration below
@@ -158,11 +157,11 @@ api calls currently defined
     ... [TODO: Generate this list, and the supported formats]
 
 Switch Configuration
-Command line switches (switch_) can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
+Command line switches (vsh_) can be specified using a key=value file (with quoting if value contains spaces or characters special to the shell).
 These files are read BEFORE the command line is processed, allowing per-invocation override. By default, the following locations are searched and
 files sourced as configuration in order:-
 
-    ${original_switch_configPath}/switch-configuration
+    ${vsh_configPathOriginal}/switch-configuration
     ~/.${ourName}
     <VSH_CONFIGURATION>  (an environment variable)
 
@@ -171,13 +170,13 @@ Format controls output. The list of valid api_formats varies by command, but xml
 
 netrc Files
 netrc files and are used to specify user name and password credentials. netrc files are searched for automatically
-unless  -n switch_netrcFilePath  is specified.
+unless  -n vsh_netrcFilePath  is specified.
 The locations searched in order are:-
 
     <CURL_HOME>/.netrc
     <HOME>/.netrc
     ${etcPath}/netrc
-    <switch_configPath>/netrc
+    <vsh_configPath>/netrc
     <HOME>/$ourName.netrc
 
 If more than one file is found, then the last one found is the one used.
@@ -190,15 +189,15 @@ documentation, this is the value 'vcloud.example.com'.
 
 curlc Files
 curlrc files are used to specify additional options for curl. A typical use case is to configure proxy servers. curlc files are searched
-for automatically unless  -r switch_curlrcFilePath is specified.  By default, the locations searched in order are:-
+for automatically unless  -r vsh_curlrcFilePath is specified.  By default, the locations searched in order are:-
 
     <CURL_HOME>/.curlrc
     <HOME>/.curlrc
     ${etcPath}/curlrc
-    <switch_configPath>/curlrc
-    <switch_configPath>/curlrc.d/*.curlrc
+    <vsh_configPath>/curlrc
+    <vsh_configPath>/curlrc.d/*.curlrc
     <HOME>/$ourName.curlrc
-    <switch_curlrcFilePath>
+    <vsh_curlrcFilePath>
 
 If more than one file is found, then all are used, with any conflicting settings resolved with 'last one wins'.
 
@@ -208,50 +207,57 @@ Defaults
 Defaults are used to control common use cases. Defaults for values are sourced as key=value pairs from the following locations:-
     
     Location                                   Currently
-    <switch_configPath>/defaults               ${switch_configPath}.d/defaults
-    <switch_configPath>/defaults.d/*.defaults  ${switch_configPath}.d/defaults.d/*.defaults
+    <vsh_configPath>/defaults               ${vsh_configPath}.d/defaults
+    <vsh_configPath>/defaults.d/*.defaults  ${vsh_configPath}.d/defaults.d/*.defaults
 
 The values that can be configured are:-
     
-    Value                       Built-in Value
-    defaults_api_version        ${defaults_api_version}
-    defaults_curl_userAgent     ${defaults_curl_userAgent}
-    defaults_curl_maxRedirs     ${defaults_curl_maxRedirs}
-    defaults_curl_retries       ${defaults_curl_retries}
-    defaults_format_headings    ${defaults_format_headings} (no-heading or with-heading)
+    Value                      Built-in Value
+    defaults_api_version       ${defaults_api_version}
+    defaults_curl_userAgent    ${defaults_curl_userAgent}
+    defaults_curl_maxRedirs    ${defaults_curl_maxRedirs}
+    defaults_curl_retries      ${defaults_curl_retries}
+    defaults_format_headings   ${defaults_format_headings} (no-heading or with-heading)
+    defaults_format_separator  ${defaults_format_separator} (tab)
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
 to automatically install any missing dependencies. The PATH variable is reset to empty if they are used. Paths are used if a file
-<switch_configPath>/paths.d/<distributionName> exists for the detected <distributionName>.
+<vsh_configPath>/paths.d/<distributionName> exists for the detected <distributionName>.
 " 1>&2
 	exit $1
 }
 
-switch_scriptFiles=()
-function loadAnyConfiguration()
+vsh_scriptFiles=()
+function vsh_loadAnyConfiguration()
 {
-	original_switch_configPath="$crudeOurPath"/config
+	readonly vsh_configPathOriginal="$crudeOurPath"/config
 	
 	# Switch embedded defaults
-	switch_language="en_GB.UTF-8"
-	switch_beVerbose="no"
-	switch_beDebug="no"
-	switch_bePrompt="no"
+	vsh_language="en_GB.UTF-8"
+	vsh_beVerbose="no"
+	vsh_beDebug="no"
+	vsh_bePrompt="no"
 	
-	switch_netrcFilePath=""
-	switch_curlrcFilePath=""
-	switch_baseUrl="https://api.vcd.portal.skyscapecloud.com"
-	switch_scriptFiles=('-')
+	vsh_netrcFilePath=""
+	vsh_curlrcFilePath=""
+	vsh_baseUrl="https://api.vcd.portal.skyscapecloud.com"
+	vsh_scriptFiles=('-')
 #start VSH_CONFIG_PATH
 	etcPath="/etc"
-	switch_configPath="$original_switch_configPath"
+	vsh_configPath="$vsh_configPathOriginal"
 #end VSH_CONFIG_PATH
 #start VSH_DEFAULTS
 	# Insert all our defaults as shipped, too
 #end VSH_DEFAULTS
 	
-	local -r etcSwitchConfiguration="${original_switch_configPath}"/switch-configuration
+	function vsh_makeVariablesReadonly()
+	{
+		readonly vsh_language vsh_beVerbose vsh_beDebug vsh_bePrompt vsh_netrcFilePath vsh_curlrcFilePath vsh_baseUrl etcPath vsh_configPath
+		readonly -a vsh_scriptFiles
+	}
+	
+	local -r etcSwitchConfiguration="${vsh_configPathOriginal}"/switch-configuration
 	if [ -f "$etcSwitchConfiguration" ]; then
 		source "$etcSwitchConfiguration"
 	fi
@@ -269,7 +275,7 @@ function loadAnyConfiguration()
 	fi
 }
 
-function parseCommandLine()
+function vsh_parseCommandLine()
 {
 	local OPTERR=1
 	local OPTIND=1
@@ -284,32 +290,32 @@ function parseCommandLine()
 			;;
 			
 			v)
-				switch_beVerbose="yes"
+				vsh_beVerbose="yes"
 			;;
 			
 			d)
-				switch_beDebug="yes"
+				vsh_beDebug="yes"
 			;;
 			
 			p)
-				switch_bePrompt="yes"
-				switch_scriptFiles=()
+				vsh_bePrompt="yes"
+				vsh_scriptFiles=()
 			;;
 			
 			c)
-				switch_configPath="$OPTARG"
+				vsh_configPath="$OPTARG"
 			;;
 			
 			u)
-				switch_baseUrl="$OPTARG"
+				vsh_baseUrl="$OPTARG"
 			;;
 			
 			n)
-				switch_netrcFilePath="$OPTARG"
+				vsh_netrcFilePath="$OPTARG"
 			;;
 			
 			r)
-				switch_curlrcFilePath="$OPTARG"
+				vsh_curlrcFilePath="$OPTARG"
 			;;
 			
 			'?')
@@ -322,47 +328,43 @@ function parseCommandLine()
 	shift $((OPTIND - 1))
 	
 	if [ $# -ne 0 ]; then
-		if [ "$switch_bePrompt" = "yes" ]; then
+		if [ "$vsh_bePrompt" = "yes" ]; then
 			exitError "Can not set -p and have script files"
 		fi
-		switch_scriptFiles=("$@")
+		vsh_scriptFiles=("$@")
 	fi
-	
-	function makeCommandLinePathsAbsolute()
-	{
-		pushd "$switch_configPath" 1>/dev/null
-			switch_configPath="$(pwd)"
-		popd 1>/dev/null
-	}
-	makeCommandLinePathsAbsolute
 }
 
-function validateCommandLineArguments()
+function vsh_validateCommandLineArguments()
 {
-	if [ ! -d "$switch_configPath" ]; then
-		exitError "Config path $switch_configPath does not exist or is not a directory"
+	if [ ! -d "$vsh_configPath" ]; then
+		exitError "Config path $vsh_configPath does not exist or is not a directory"
+		pushd "$vsh_configPath" 1>/dev/null
+			vsh_configPath="$(pwd)"
+		popd 1>/dev/null
 	fi
 	
-	if [ -n "$switch_netrcFilePath" ]; then
-		if [ ! -f "$switch_netrcFilePath" ]; then
-			exitError "-n switch_netrcFilePath $switch_netrcFilePath does not exist or is not a file"
+	if [ -n "$vsh_netrcFilePath" ]; then
+		if [ ! -f "$vsh_netrcFilePath" ]; then
+			exitError "-n vsh_netrcFilePath $vsh_netrcFilePath does not exist or is not a file"
 		fi
 	fi
 	
-	if [ -n "$switch_curlrcFilePath" ]; then
-		if [ ! -f "$switch_curlrcFilePath" ]; then
-			exitError "-r switch_curlrcFilePath $switch_curlrcFilePath does not exist or is not a file"
+	if [ -n "$vsh_curlrcFilePath" ]; then
+		if [ ! -f "$vsh_curlrcFilePath" ]; then
+			exitError "-r vsh_curlrcFilePath $vsh_curlrcFilePath does not exist or is not a file"
 		fi
 	fi
 }
+
 
 #start VSH_SOURCE_FUNCTIONS
-function sourceFunctions()
+function vsh_sourceFunctions()
 {
-	sourceFunctionsRecursively "$crudeOurPath"/functions
+	vsh_sourceFunctionsRecursively "$crudeOurPath"/functions
 }
 
-function sourceFunctionsRecursively()
+function vsh_sourceFunctionsRecursively()
 {
 	local -r pathToFunctions="$1"
 	pushd "$pathToFunctions" 1>/dev/null 2>/dev/null
@@ -379,7 +381,7 @@ function sourceFunctionsRecursively()
 		for functionFolder in *
 		do
 			if [ -d "$functionFolder" ]; then
-				sourceFunctionsRecursively "$functionFolder"
+				vsh_sourceFunctionsRecursively "$functionFolder"
 			fi
 		done
 		
@@ -387,19 +389,19 @@ function sourceFunctionsRecursively()
 }
 #end VSH_SOURCE_FUNCTIONS
 
-function main()
+function vsh_main()
 {
-	setDebugging
-	setSaneEnvironmentDefaults
-	findOurNameAndPath
-	loadAnyConfiguration
-	parseCommandLine "$@"
-	validateCommandLineArguments
-	
-	sourceFunctions
+	vsh_setDebugging
+	vsh_setSaneEnvironmentDefaults
+	vsh_findOurNameAndPath
+	vsh_loadAnyConfiguration
+	vsh_parseCommandLine "$@"
+	vsh_validateCommandLineArguments
+	vsh_makeVariablesReadonly
+	vsh_sourceFunctions
 	
 	declare -A api_map
 	main_executeMainFunctions
 }
 
-main "$@"
+vsh_main "$@"

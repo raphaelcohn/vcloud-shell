@@ -9,12 +9,12 @@ function language_setDefaults()
 	unset LC_TIME
 	unset LC_ALL
 	
-	export LANG="$switch_language"
-	export LC_COLLATE="$switch_language"
-	export LC_CTYPE="$switch_language"
-	export LC_MESSAGES="$switch_language"
-	export LC_MONETARY="$switch_language"
-	export LC_NUMERIC="$switch_language"
-	export LC_TIME="$switch_language"
+	export LANG="$vsh_language"
+	export LC_COLLATE="$vsh_language"
+	export LC_CTYPE="$vsh_language"
+	export LC_MESSAGES="$vsh_language"
+	export LC_MONETARY="$vsh_language"
+	export LC_NUMERIC="$vsh_language"
+	export LC_TIME="$vsh_language"
 	export LC_ALL=""
 }
