@@ -1,12 +1,16 @@
 function api_command_vdc_vAppTemplate_upload()
 {
-	if [ $# -ne 3 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+	if [ $# -ne 4 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
 	fi
 	
 	local -r orgName="$1"
 	local -r vdcName="$2"
 	local -r vAppTemplateName="$3"
+	local -r parentFolderPath="$4"
+	
+	local -r ovfFolderPath="$parentFolderPath"/"$vAppTemplateName"
+	mkdir -m 0755 -p "$ovfFolderPath"
 	
 	local curl_downloadFilePath
 	
@@ -39,8 +43,7 @@ function api_command_vdc_vAppTemplate_upload()
 			if [ "$minorErrorCode" != "DUPLICATE_NAME" ]; then
 				curl_validateResponseCode "Unexpected HTTP 400 response for ${FUNCNAME[0]:12}"
 			fi
-			api_format=none api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
-			curl_downloadFilePath="${downloads[$downloadNumber]}"
+			api_command_vdc_vAppTemplate_upload_getVAppTemplate
 		;;
 		
 		*)
@@ -49,26 +52,78 @@ function api_command_vdc_vAppTemplate_upload()
 		
 	esac
 	
+	pushd "$ovfFolderPath" 1>/dev/null 2>/dev/null
+		
+		local -i loopAgain
+		uploadFiles
+		while [ $loopAgain -ne 0 ]
+		do
+			api_command_vdc_vAppTemplate_upload_getVAppTemplate
+			uploadFiles
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+
+function api_command_vdc_vAppTemplate_upload_getVAppTemplate()
+{
+	api_format=none api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
+	curl_downloadFilePath="${downloads[$downloadNumber]}"
+}
+
+function api_command_vdc_vAppTemplate_upload_uploadFiles()
+{
+	temporaryFiles_newFileToRemoveOnExit
+	local -r filesToUploadPath="$TMP_FILE"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath '/_:VAppTemplate/_:Files/_:File/_:Link' '@rel' '@href' '../@size' '../@bytesTransferred' '../@name' >"$filesToUploadPath"
 	
-	cat "$curl_downloadFilePath"
+	loopAgain=0
+	local -i ourFileSizeLocally
+	local contentType
+	local rel href size bytesTransferred name
+	while IFS=$'\x01' rel href size bytesTransferred name
+	do
+		if [ "$rel" != "upload:default" ]; then
+			continue
+		fi
+		
+		if [ ! -f "$name" ]; then
+			informationMessage FAIL "Missing required file to upload $name"
+			exit 1
+		fi
+		
+		ourFileSizeLocally=$(stat --printf='%s' "$name")
+		if [ $size -ne $ourFileSizeLocally ]; then
+			informationMessage FAIL "Mismatched sizes for $name (size)"
+			exit 1
+		fi
+		
+		if [ $bytesTransferred -gt $ourFileSizeLocally ]; then
+			informationMessage FAIL "Mismatched sizes for $name (bytesTransferred)"
+			exit 1
+		fi
+		
+		if [ "$size" = "$bytesTransferred" ]; then
+			continue
+		fi
+		
+		if [ "$name" = "descriptor.ovf" ]; then
+			contentType="text/xml"
+		else
+			contentType="application/octet-stream"
+		fi
+		
+		if [ "$size" = "-1" ]; then
+			curl_put="$name" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"
+		else
+			if [ $bytesTransferred -eq 0 ]; then
+				curl_put="$name" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"
+			else
+				curl_put="$name" curl_put_continueAt=$bytesTransferred curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"
+			fi
+		fi
+		loopAgain=1
+		
+	done <"$filesToUploadPath"
 	
-	xml_starlet_tsv_downloadFilePath '/_:VAppTemplate/_:Files/_:File/_:Link' '@rel' '@href' '../@size' '../@bytesTransferred' '../@name'
-	
-	return 0
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	# Clear cached metadata
-	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${vAppTemplateName}"
-	unset api_downloadsCache["${mediaKey}"]
-	
-	api_format_task "${FUNCNAME[0]:12}"
 }

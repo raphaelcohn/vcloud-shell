@@ -157,6 +157,9 @@ function curl_wrapper()
 		
 		PUT)
 			curlArgs+=('--upload-file' "$curl_put")
+			if [ -n "$curl_put_continueAt" ]; then
+				curlArgs+=('--continue-at' "$curl_put_continueAt")
+			fi
 		;;
 		
 		DELETE)

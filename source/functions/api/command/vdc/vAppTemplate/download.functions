@@ -54,8 +54,8 @@ function api_command_vdc_vAppTemplate_download()
 		done
 		
 		# copy in OVF
-		rm -rf "$vAppTemplateName".ovf
-		cp "$ovfFile" "$vAppTemplateName".ovf
+		rm -rf descriptor.ovf
+		cp "$ovfFile" descriptor.ovf
 		
 		# TODO: Start download from size of any file present... (eg using Http-Range header)
 		# download disks, etc

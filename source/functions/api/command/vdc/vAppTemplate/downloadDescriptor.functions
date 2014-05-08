@@ -1,6 +1,3 @@
-#<Link rel="download:default" type="text/xml" href="https://api.vcd.portal.skyscapecloud.com/transfer/1f8386e6-9f5e-4954-b217-3c1f65cf6c70/descriptor.ovf"/>
-#<Link rel="download:identity" type="text/xml" href="https://api.vcd.portal.skyscapecloud.com/transfer/1f8386e6-9f5e-4954-b217-3c1f65cf6c70/descriptor-with-id.ovf"/>
-
 function api_command_vdc_vAppTemplate_downloadDescriptor()
 {
 	if [ $# -ne 3 ]; then
