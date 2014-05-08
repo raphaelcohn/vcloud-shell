@@ -55,11 +55,11 @@ function api_command_vdc_vAppTemplate_upload()
 	pushd "$ovfFolderPath" 1>/dev/null 2>/dev/null
 		
 		local -i loopAgain
-		uploadFiles
+		api_command_vdc_vAppTemplate_upload_uploadFiles
 		while [ $loopAgain -ne 0 ]
 		do
 			api_command_vdc_vAppTemplate_upload_getVAppTemplate
-			uploadFiles
+			api_command_vdc_vAppTemplate_upload_uploadFiles
 		done
 		
 	popd 1>/dev/null 2>/dev/null
