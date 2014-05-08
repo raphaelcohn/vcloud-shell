@@ -1,13 +1,11 @@
-function curl_wrapperLoggedInAbsoluteApiCall()
+function curl_wrapperLoggedInAbsoluteApiCall_withoutResponseValidation()
 {
-	local -ir curl_expectedHttpResponseCode=$1
-	local -r verb="$2"
-	local -r absolutePath="$3"
-	shift 3
+	local -r verb="$1"
+	local -r absolutePath="$2"
+	shift 2
 	
 	declare -A curl_requestHeaders=()
 	declare -A curl_responseHeaders=()
-	local -i curl_httpResponseCode
 	
 	while [ $# -ne 0 ]
 	do
@@ -19,6 +17,13 @@ function curl_wrapperLoggedInAbsoluteApiCall()
 	curl_requestHeaders['x-vcloud-authorization']="${api_session_token}"
 	
 	curl_wrapper "$verb" "$absolutePath"
+}
+
+function curl_wrapperLoggedInAbsoluteApiCall()
+{
+	local -i curl_httpResponseCode
+	local -ir curl_expectedHttpResponseCode=$1
+	curl_wrapperLoggedInAbsoluteApiCall_withoutResponseValidation "${@:2}"
 	
 	curl_validateResponseCode $curl_expectedHttpResponseCode "Could not connect to $absolutePath"
 }

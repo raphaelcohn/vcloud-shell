@@ -1,0 +1,74 @@
+function api_command_vdc_vAppTemplate_upload()
+{
+	if [ $# -ne 3 ]; then
+		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r vAppTemplateName="$3"
+	
+	local curl_downloadFilePath
+	
+	local uploadUrl
+	function api_callback_fromName_api_command_vdc_vAppTemplateUpload()
+	{
+		api_callback_fromName "$@"
+		uploadUrl="${foundHref}"/action/uploadVAppTemplate
+	}
+	local curl_downloadFilePath
+	api_call_get links-vdcs api_callback_fromName_api_command_vdc_vAppTemplateUpload api_callback_test_fromName vdc "$vdcName" '' \
+		api_command_admin "$orgName"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r postFile="$TMP_FILE"
+	printf '%s' "<?xml version='1.0' encoding='UTF-8'?><UploadVAppTemplateParams name='${vAppTemplateName}' xmlns='http://www.vmware.com/vcloud/v1.5' xmlns:ovf='http://schemas.dmtf.org/ovf/envelope/1'><Description>${vAppTemplateName}</Description></UploadVAppTemplateParams>" >"$postFile"
+	
+	# We get a 400 if already created!
+	local -i curl_httpResponseCode
+	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall_withoutResponseValidation POST "$uploadUrl" "Content-Type" "application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml"
+	
+	case $curl_httpResponseCode in
+		
+		201)
+			:
+		;;
+		
+		400)
+			local -r minorErrorCode="$(defaults_format_headings=no-heading defaults_format_separator='' xml_starlet_tsv "$curl_downloadFilePath" '/_:Error' '@minorErrorCode')"
+			if [ "$minorErrorCode" != "DUPLICATE_NAME" ]; then
+				curl_validateResponseCode "Unexpected HTTP 400 response for ${FUNCNAME[0]:12}"
+			fi
+			api_format=none api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
+			curl_downloadFilePath="${downloads[$downloadNumber]}"
+		;;
+		
+		*)
+			curl_validateResponseCode "Unexpected HTTP response code $curl_httpResponseCode for ${FUNCNAME[0]:12}"
+		;;
+		
+	esac
+	
+	
+	cat "$curl_downloadFilePath"
+	
+	xml_starlet_tsv_downloadFilePath '/_:VAppTemplate/_:Files/_:File/_:Link' '@rel' '@href' '../@size' '../@bytesTransferred' '../@name'
+	
+	return 0
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	# Clear cached metadata
+	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${vAppTemplateName}"
+	unset api_downloadsCache["${mediaKey}"]
+	
+	api_format_task "${FUNCNAME[0]:12}"
+}
