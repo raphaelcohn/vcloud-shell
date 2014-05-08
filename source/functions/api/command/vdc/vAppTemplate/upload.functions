@@ -81,7 +81,7 @@ function api_command_vdc_vAppTemplate_upload_uploadFiles()
 	local -i ourFileSizeLocally
 	local contentType
 	local rel href size bytesTransferred name
-	while IFS=$'\x01' rel href size bytesTransferred name
+	while IFS=$'\x01' read -r rel href size bytesTransferred name
 	do
 		if [ "$rel" != "upload:default" ]; then
 			continue
