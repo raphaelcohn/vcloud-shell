@@ -10,6 +10,7 @@ function api_command_vdc_vAppTemplateUpload()
 	
 	local curl_downloadFilePath
 	
+	local foundHref
 	function api_callback_fromName_api_command_vdc_vAppTemplateUpload()
 	{
 		api_callback_fromName "$@"
@@ -19,10 +20,27 @@ function api_command_vdc_vAppTemplateUpload()
 	api_call_get links-vdcs api_callback_fromName api_callback_test_fromName vdc "$vdcName" '' \
 		api_command_admin "$orgName"
 	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r postFile="$TMP_FILE"
 	
-	START HERE
-	api_call_postEmpty links-resource-entities api_callback_fromName_api_command_vdc_vAppTemplateUpload api_callback_tes vAppTemplate "$vAppTemplateName" '' \
-		api_command_vdc "$orgName" "$vdcName"
+	printf '%s' "<?xml version='1.0' encoding='UTF-8'?><UploadVAppTemplateParams name='${vAppTemplateName}' xmlns='http://www.vmware.com/vcloud/v1.5' xmlns:ovf='http://schemas.dmtf.org/ovf/envelope/1'><Description>${vAppTemplateName}</Description></UploadVAppTemplateParams>" >"$postFile"
+	
+	# ? do we get a 202 if done twice ?
+	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall 201 POST "${foundHref}" "Content-Type" "application/vnd.vmware.vcloud.uploadVAppTemplateParams+xml"
+	
+	cat "$curl_downloadFilePath"
+	
+	return 0
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
 	
 	# Clear cached metadata
 	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${vAppTemplateName}"
@@ -30,4 +48,3 @@ function api_command_vdc_vAppTemplateUpload()
 	
 	api_format_task "${FUNCNAME[0]:12}"
 }
-
