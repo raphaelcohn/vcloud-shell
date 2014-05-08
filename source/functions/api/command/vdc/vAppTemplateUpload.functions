@@ -16,12 +16,12 @@ function api_command_vdc_vAppTemplateUpload()
 		foundHref="${foundHref}"/action/uploadVAppTemplate
 	}
 	local curl_downloadFilePath
-	api_call_get links-vdcs api_callback_fromName vdc "$vdcName" '' \
+	api_call_get links-vdcs api_callback_fromName api_callback_test_fromName vdc "$vdcName" '' \
 		api_command_admin "$orgName"
 	
 	
 	START HERE
-	api_call_postEmpty links-resource-entities api_callback_fromMimeTypeAndName_api_command_vdc_vAppTemplate_enableDownload vAppTemplate "$vAppTemplateName" '' \
+	api_call_postEmpty links-resource-entities api_callback_fromName_api_command_vdc_vAppTemplateUpload api_callback_tes vAppTemplate "$vAppTemplateName" '' \
 		api_command_vdc "$orgName" "$vdcName"
 	
 	# Clear cached metadata

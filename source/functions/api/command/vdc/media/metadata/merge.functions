@@ -10,7 +10,7 @@ function api_command_vdc_media_metadata_merge()
 	local -r metadataXmlFileName="$4"
 	
 	local curl_downloadFilePath
-	api_call_post links api_callback_fromRel rel "add" '' "application/vnd.vmware.vcloud.metadata+xml" "$metadataXmlFileName" \
+	api_call_post links api_callback_fromRel api_callback_test_fromRel rel "add" '' "application/vnd.vmware.vcloud.metadata+xml" "$metadataXmlFileName" \
 		api_command_vdc_media_metadata "$orgName" "$vdcName" "$mediaName"
 	
 	# Clear cached metadata

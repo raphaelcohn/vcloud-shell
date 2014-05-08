@@ -11,7 +11,7 @@ function api_command_vdc_media_metadata_editValue()
 	local -r valueFile="$5"
 	
 	local curl_downloadFilePath
-	api_call_put links api_callback_fromMimeTypeAndModifyWithKeyName metadata "application/vnd.vmware.vcloud.metadata+xml" '' "application/vnd.vmware.vcloud.metadata.value+xml" "$valueFile" \
+	api_call_put links api_callback_fromMimeTypeAndModifyWithKeyName api_callback_test_fromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' "application/vnd.vmware.vcloud.metadata.value+xml" "$valueFile" \
 		api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
 	
 	# Clear cached metadata

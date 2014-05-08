@@ -14,7 +14,7 @@ function api_command_vdc()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_call_get links-vdcs api_callback_fromName vdc "$vdcName" '' \
+		api_call_get links-vdcs api_callback_fromName api_callback_test_fromName vdc "$vdcName" '' \
 			api_command_admin "$orgName"
 		api_call_cacheDownload
 	fi

@@ -2,12 +2,13 @@ function api_call_put()
 {
 	local -r ourFormat="$1"
 	local -r callbackToParseOutObjectUrl="$2"
-	local -r resourceKind="$3"
-	local -r resourceNameOrMimeType="$4"
-	local -r queryString="$5"
-	local -r contentType="$6"
-	local -r putFile="$7"
-	shift 7
+	local -r testCallback="$3"
+	local -r resourceKind="$4"
+	local -r resourceNameOrMimeType="$5"
+	local -r queryString="$6"
+	local -r contentType="$7"
+	local -r putFile="$8"
+	shift 8
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
@@ -15,7 +16,7 @@ function api_call_put()
 	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_put="${putFile}" curl_wrapperLoggedInAbsoluteApiCall 202 PUT "${foundHref}${queryString}" "Content-Type" "${contentType}"
 }
 
@@ -23,10 +24,11 @@ function api_call_postEmpty()
 {
 	local -r ourFormat="$1"
 	local -r callbackToParseOutObjectUrl="$2"
-	local -r resourceKind="$3"
-	local -r resourceNameOrMimeType="$4"
-	local -r queryString="$5"
-	shift 5
+	local -r testCallback="$3"
+	local -r resourceKind="$4"
+	local -r resourceNameOrMimeType="$5"
+	local -r queryString="$6"
+	shift 6
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
@@ -34,7 +36,7 @@ function api_call_postEmpty()
 	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_post="" curl_wrapperLoggedInAbsoluteApiCall 202 POST "${foundHref}${queryString}"
 }
 
@@ -42,12 +44,13 @@ function api_call_post()
 {
 	local -r ourFormat="$1"
 	local -r callbackToParseOutObjectUrl="$2"
-	local -r resourceKind="$3"
-	local -r resourceNameOrMimeType="$4"
-	local -r queryString="$5"
-	local -r contentType="$6"
-	local -r postFile="$7"
-	shift 7
+	local -r testCallback="$3"
+	local -r resourceKind="$4"
+	local -r resourceNameOrMimeType="$5"
+	local -r queryString="$6"
+	local -r contentType="$7"
+	local -r postFile="$8"
+	shift 8
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
@@ -55,7 +58,7 @@ function api_call_post()
 	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall 202 POST "${foundHref}${queryString}" "Content-Type" "${contentType}"
 }
 
@@ -63,10 +66,11 @@ function api_call_delete()
 {
 	local -r ourFormat="$1"
 	local -r callbackToParseOutObjectUrl="$2"
-	local -r resourceKind="$3"
-	local -r resourceNameOrMimeType="$4"
-	local -r queryString="$5"
-	shift 5
+	local -r testCallback="$3"
+	local -r resourceKind="$4"
+	local -r resourceNameOrMimeType="$5"
+	local -r queryString="$6"
+	shift 6
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
@@ -74,7 +78,7 @@ function api_call_delete()
 	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_wrapperLoggedInAbsoluteApiCall 202 DELETE "${foundHref}${queryString}"
 }
 
@@ -82,10 +86,11 @@ function api_call_get()
 {
 	local -r ourFormat="$1"
 	local -r callbackToParseOutObjectUrl="$2"
-	local -r resourceKind="$3"
-	local -r resourceNameOrMimeType="$4"
-	local -r queryString="$5"
-	shift 5
+	local -r testCallback="$3"
+	local -r resourceKind="$4"
+	local -r resourceNameOrMimeType="$5"
+	local -r queryString="$6"
+	shift 6
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
@@ -93,7 +98,7 @@ function api_call_get()
 	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "${foundHref}${queryString}"
 }
 
@@ -102,10 +107,11 @@ function api_call_getAndRecordLastUrl()
 {
 	local -r ourFormat="$1"
 	local -r callbackToParseOutObjectUrl="$2"
-	local -r resourceKind="$3"
-	local -r resourceNameOrMimeType="$4"
-	local -r queryString="$5"
-	shift 5
+	local -r testCallback="$3"
+	local -r resourceKind="$4"
+	local -r resourceNameOrMimeType="$5"
+	local -r queryString="$6"
+	shift 6
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
@@ -113,7 +119,7 @@ function api_call_getAndRecordLastUrl()
 	api_format="$ourFormat" defaults_format_headings=no-heading defaults_format_separator=$'\x01' "$@" >"$linksTsvFile"
 	
 	local foundHref=""
-	${callbackToParseOutObjectUrl} "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
+	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
 	curl_wrapperLoggedInAbsoluteApiCall 200 GET "${foundHref}${queryString}"
 	
 	api_call_lastUrl="$foundHref"
@@ -131,7 +137,7 @@ function api_call_cacheDownload()
 
 function api_call_cache_key()
 {
-	local xxx
-	IFS=_ xxx="$*"
-	echo -n "$xxx"
+	local key
+	IFS=_ key="$*"
+	echo -n "$key"
 }

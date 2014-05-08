@@ -14,7 +14,7 @@ function api_command_vdc_vAppTemplate_downloadDescriptorWithId()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_call_get links api_callback_fromRel vAppTemplate_descriptor "download:identity" '' \
+		api_call_get links api_callback_fromRel api_callback_test_fromRel vAppTemplate_descriptor "download:identity" '' \
 			api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
 		api_call_cacheDownload
 	fi

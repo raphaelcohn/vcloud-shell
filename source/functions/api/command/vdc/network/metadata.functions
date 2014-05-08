@@ -14,7 +14,7 @@ function api_command_vdc_network_metadata()
 		local curl_downloadFilePath="$value"
 	else
 		local curl_downloadFilePath
-		api_call_get links api_callback_fromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
+		api_call_get links api_callback_fromMimeType api_callback_test_fromMimeType metadata "application/vnd.vmware.vcloud.metadata+xml" '' \
 			api_command_vdc_network "$orgName" "$vdcName" "$networkName"
 		api_call_cacheDownload
 	fi

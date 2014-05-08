@@ -18,7 +18,7 @@ function api_command_vdc_vAppTemplate()
 			api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vAppTemplate+xml"
 		}
 		local curl_downloadFilePath
-		api_call_get links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_vAppTemplate vAppTemplate "$vAppTemplateName" '' \
+		api_call_get links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_vAppTemplate api_callback_test_fromNameAndMimeType vAppTemplate "$vAppTemplateName" '' \
 			api_command_vdc "$orgName" "$vdcName"
 		api_call_cacheDownload
 	fi
