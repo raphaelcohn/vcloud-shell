@@ -1,4 +1,4 @@
-function api_command_vdc_vAppTemplateUpload()
+function api_command_vdc_vAppTemplate_upload()
 {
 	if [ $# -ne 3 ]; then
 		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
