@@ -32,7 +32,6 @@ function api_session_sessions()
 	
 	if [ $curl_httpResponseCode -ne 200 ]; then
 		informationMessage FAIL "Could not log in to $vsh_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
-		exit 1
 	fi
 	
 	function api_session_populateApiMap()
@@ -111,7 +110,6 @@ function api_session_versions()
 	
 	if [ -z "$sessionsUrl" ]; then
 		informationMessage FAIL "API version (defaults_api_version) $defaults_api_version is not supported"
-		exit 1
 	fi
 	
 	api_map['/api/sessions']="$sessionsUrl"

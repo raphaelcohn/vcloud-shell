@@ -2,7 +2,7 @@
 function api_command_vdc_network()
 {
 	if [ $# -ne 3 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
 	fi
 	
 	local -r orgName="$1"
@@ -54,7 +54,7 @@ function api_format_network()
 		;;
 		
 		*)
-			exitError "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
+			informationMessage FAIL "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
 		;;
 		
 	esac

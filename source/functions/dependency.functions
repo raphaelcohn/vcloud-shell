@@ -5,7 +5,7 @@ dependency_checkFunctions=()
 function dependency_ensureWeAreRunningBash4()
 {
 	if [ ${BASH_VERSINFO[0]} != "4" ]; then
-		exitError "$ourName: You are not running bash 4."
+		informationMessage FAIL "$ourName: You are not running bash 4."
 	fi
 }
 dependency_functions+=(dependency_ensureWeAreRunningBash4)
@@ -29,7 +29,6 @@ function dependency_determineDistributionName()
 	fi
 	
 	informationMessage FAIL "Could not determine distribution"
-	exit 1
 }
 dependency_functions+=(dependency_determineDistributionName)
 

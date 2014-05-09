@@ -1,7 +1,7 @@
 function api_command_vdc_vAppTemplate()
 {
 	if [ $# -ne 3 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
 	fi
 	
 	local -r orgName="$1"
@@ -46,7 +46,7 @@ function api_format_vdc_vAppTemplate()
 		;;
 		
 		*)
-			exitError "Please specify api_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $api_format"
+			informationMessage FAIL "Please specify api_format as either xml, id-bash, id-tsv, links, links-resource-entities, links-networks, links-storage-profiles or capabilities, not $api_format"
 		;;
 		
 	esac

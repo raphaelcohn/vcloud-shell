@@ -1,7 +1,7 @@
 function api_command_vdc_vAppTemplate_upload()
 {
 	if [ $# -ne 4 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
 	fi
 	
 	local -r orgName="$1"
@@ -35,7 +35,8 @@ function api_command_vdc_vAppTemplate_upload()
 	case $curl_httpResponseCode in
 		
 		201)
-			:
+			#€ hideous
+			sleep 30
 		;;
 		
 		400)
@@ -73,6 +74,9 @@ function api_command_vdc_vAppTemplate_upload_getVAppTemplate()
 
 function api_command_vdc_vAppTemplate_upload_uploadFiles()
 {
+	set -x
+	cat "$curl_downloadFilePath" 1>&2
+	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r filesToUploadPath="$TMP_FILE"
 	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath '/_:VAppTemplate/_:Files/_:File/_:Link' '@rel' '@href' '../@size' '../@bytesTransferred' '../@name' >"$filesToUploadPath"
@@ -89,16 +93,15 @@ function api_command_vdc_vAppTemplate_upload_uploadFiles()
 		
 		if [ ! -f "$name" ]; then
 			informationMessage FAIL "Missing required file to upload $name"
-			exit 1
 		fi
 		
 		ourFileSizeLocally=$(stat --printf='%s' "$name")
 		
 		if [ $bytesTransferred -gt $ourFileSizeLocally ]; then
 			informationMessage FAIL "Mismatched sizes for $name (bytesTransferred)"
-			exit 1
 		fi
 		
+		# This is possible after descriptor.ovf is uploaded BUT before it has been 'processed' by the task...
 		if [ "$size" = "$bytesTransferred" ]; then
 			continue
 		fi
@@ -109,12 +112,12 @@ function api_command_vdc_vAppTemplate_upload_uploadFiles()
 			contentType="application/octet-stream"
 		fi
 		
+		# add content-length header?
 		if [ "$size" = "-1" ]; then
 			curl_put="$name" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"
 		else
 			if [ $size -ne $ourFileSizeLocally ]; then
 				informationMessage FAIL "Mismatched sizes for $name (size) $size $ourFileSizeLocally"
-				exit 1
 			fi
 			if [ $bytesTransferred -eq 0 ]; then
 				curl_put="$name" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"
@@ -126,4 +129,5 @@ function api_command_vdc_vAppTemplate_upload_uploadFiles()
 		
 	done <"$filesToUploadPath"
 	
+	set +x
 }

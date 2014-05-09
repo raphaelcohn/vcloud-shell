@@ -9,6 +9,15 @@ function informationMessage()
 		
 		WARN|FAIL)
 			echo "$ourName: $messageKind: $message" 1>&2
+			if [ "$messageKind" = "FAIL" ]; then
+				exit 1
+			fi
+		;;
+		
+		INFO)
+			if [ "$vsh_beVerbose" = "yes" ]; then
+				echo "$ourName: $messageKind: $message" 1>&2
+			fi
 		;;
 		
 		DEBUG)
@@ -18,9 +27,8 @@ function informationMessage()
 		;;
 		
 		*)
-			if [ "$vsh_beVerbose" = "yes" ]; then
-				echo "$ourName: $messageKind: $message" 1>&2
-			fi
+			echo "$ourName: $messageKind: $message" 1>&2
+			exit 3
 		;;
 	
 	esac
@@ -28,7 +36,7 @@ function informationMessage()
 
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
-# Such a critical piece is code executed before and during command line arg parsing (eg exitError)
+# Such a critical piece is code executed before and during command line arg parsing
 function vsh_dirname()
 {
 	local -r converted="${1%/*}"
@@ -93,14 +101,7 @@ function vsh_findOurNameAndPath()
 	popd >/dev/null
 }
 
-function exitError()
-{
-	local -r error="$1"
-	echo "$ourName: $error" 1>&2
-	exit 1
-}
-
-function exitHelp()
+function vsh_exitHelp()
 {
 	echo -n -E "Usage: ${ourName} -h
 Usage: ${ourName} [-v] [-d] [-p] [-c vsh_configPath] [-n vsh_netrcFilePath ] [-r vsh_curlrcFilePath] -- [script files...]
@@ -225,7 +226,7 @@ A path is used to define the location of essential programs used during initial 
 to automatically install any missing dependencies. The PATH variable is reset to empty if they are used. Paths are used if a file
 <vsh_configPath>/paths.d/<distributionName> exists for the detected <distributionName>.
 " 1>&2
-	exit $1
+	exit 2
 }
 
 vsh_scriptFiles=()
@@ -286,7 +287,7 @@ function vsh_parseCommandLine()
 		case "$option" in
 			
 			h)
-				exitHelp 2
+				vsh_exitHelp
 			;;
 			
 			v)
@@ -319,7 +320,7 @@ function vsh_parseCommandLine()
 			;;
 			
 			'?')
-				exitError "Invalid option -${OPTARG}"
+				informationMessage FAIL "Invalid option -${OPTARG}"
 			;;
 			
 		esac
@@ -329,7 +330,7 @@ function vsh_parseCommandLine()
 	
 	if [ $# -ne 0 ]; then
 		if [ "$vsh_bePrompt" = "yes" ]; then
-			exitError "Can not set -p and have script files"
+			informationMessage FAIL "Can not set -p and have script files"
 		fi
 		vsh_scriptFiles=("$@")
 	fi
@@ -338,7 +339,7 @@ function vsh_parseCommandLine()
 function vsh_validateCommandLineArguments()
 {
 	if [ ! -d "$vsh_configPath" ]; then
-		exitError "Config path $vsh_configPath does not exist or is not a directory"
+		informationMessage FAIL "Config path $vsh_configPath does not exist or is not a directory"
 		pushd "$vsh_configPath" 1>/dev/null
 			vsh_configPath="$(pwd)"
 		popd 1>/dev/null
@@ -346,13 +347,13 @@ function vsh_validateCommandLineArguments()
 	
 	if [ -n "$vsh_netrcFilePath" ]; then
 		if [ ! -f "$vsh_netrcFilePath" ]; then
-			exitError "-n vsh_netrcFilePath $vsh_netrcFilePath does not exist or is not a file"
+			informationMessage FAIL "-n vsh_netrcFilePath $vsh_netrcFilePath does not exist or is not a file"
 		fi
 	fi
 	
 	if [ -n "$vsh_curlrcFilePath" ]; then
 		if [ ! -f "$vsh_curlrcFilePath" ]; then
-			exitError "-r vsh_curlrcFilePath $vsh_curlrcFilePath does not exist or is not a file"
+			informationMessage FAIL "-r vsh_curlrcFilePath $vsh_curlrcFilePath does not exist or is not a file"
 		fi
 	fi
 }

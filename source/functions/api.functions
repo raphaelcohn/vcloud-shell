@@ -3,7 +3,7 @@ api_commands=()
 function api()
 {
 	if [ $# -lt 2 ]; then
-		exitError "api must specify <format> <action>"
+		informationMessage FAIL "api $api_format must specify <format> <action>"
 	fi
 	local api_format="$1"
 	local -r apiCommand="$2"
@@ -20,7 +20,7 @@ api_format=xml
 function format()
 {
 	if [ $# -lt 3 ]; then
-		exitError "format must specify <format> <with-header> <action>"
+		informationMessage FAIL "format must specify <format> <with-header> <action>"
 	fi
 	local api_format="$1"
 	local -r formatCommand="$2"

@@ -28,7 +28,7 @@ function informationMessage()
 
 # The purpose of these functions is to provide internal implementations of logic we can't be 100%
 # sure of exists in the environment or is implemented as we would like for critical pieces of code.
-# Such a critical piece is code executed before and during command line arg parsing (eg exitError)
+# Such a critical piece is code executed before and during command line arg parsing
 function vsh_dirname()
 {
 	local -r converted="${1%/*}"

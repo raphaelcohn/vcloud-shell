@@ -12,7 +12,6 @@ vCloud Curl Tools
 * consider integration with logger, so we can start doing some audit recording
 * Refactor
 	* metadata API calls
-	* exit / exitError / informationMessage FAIL
 	* caching (key generation is cacheable)
 	* loop over href / mimeType / rel / name normalisation
     * make more variables readonly (perhaps register a function that makes variables readonly in main?)

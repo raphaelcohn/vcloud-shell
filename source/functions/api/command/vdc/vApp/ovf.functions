@@ -1,7 +1,7 @@
 function api_command_vdc_vApp_ovf()
 {
 	if [ $# -ne 3 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppName>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppName>"
 	fi
 	
 	local -r orgName="$1"

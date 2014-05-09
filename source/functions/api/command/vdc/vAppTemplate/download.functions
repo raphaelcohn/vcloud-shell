@@ -1,7 +1,7 @@
 function api_command_vdc_vAppTemplate_download()
 {
 	if [ $# -ne 4 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
 	fi
 	
 	local -r orgName="$1"

@@ -1,7 +1,7 @@
 function api_command_org()
 {
 	if [ $# -ne 1 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <orgName>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName>"
 	fi
 	
 	local -r orgName="$1"
@@ -43,7 +43,7 @@ function api_format_org()
 		;;
 		
 		*)
-			exitError "Please specify api_format as either xml, links, or id, not $api_format"
+			informationMessage FAIL "Please specify api_format as either xml, links, or id, not $api_format"
 		;;
 		
 	esac

@@ -1,7 +1,7 @@
 function api_command_entity()
 {
 	if [ $# -ne 1 ]; then
-		exitError "api ${FUNCNAME[0]:12} requires <urnId>"
+		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <urnId>"
 	fi
 	
 	local -r urnId="$1"
@@ -45,7 +45,7 @@ function api_format_entity()
 		;;
 		
 		*)
-			exitError "Please specify api_format as either xml, links, id-bash or id-tsv, not $api_format"
+			informationMessage FAIL "Please specify api_format as either xml, links, id-bash or id-tsv, not $api_format"
 		;;
 		
 	esac
