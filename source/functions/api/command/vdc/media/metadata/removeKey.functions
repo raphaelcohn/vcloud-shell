@@ -1,5 +1,6 @@
 function api_command_vdc_media_metadata_removeKey()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 4 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <keyName>"
 	fi
@@ -17,4 +18,3 @@ function api_command_vdc_media_metadata_removeKey()
 	local -r mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${mediaName}"
 	unset api_downloadsCache["${mediaKey}"]
 }
-

@@ -1,5 +1,6 @@
 function api_command_entity()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 1 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <urnId>"
 	fi

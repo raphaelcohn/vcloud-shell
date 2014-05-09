@@ -1,5 +1,6 @@
 function api_command_vdc_media()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 3 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName>"
 	fi
@@ -13,12 +14,8 @@ function api_command_vdc_media()
 	if [ -n "$value" ]; then
 		local curl_downloadFilePath="$value"
 	else
-		function api_getHrefFromMimeTypeAndName_api_command_vdc_media()
-		{
-			api_callback_fromNameAndMimeType api_callback_test_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.media+xml"
-		}
 		local curl_downloadFilePath
-		api_call_get links-resource-entities api_getHrefFromMimeTypeAndName_api_command_vdc_media media "$mediaName" '' \
+		api_call_get links-resource-entities api_callback_fromNameAndMimeTypeIsMedia api_callback_test_fromNameAndMimeType media "$mediaName" '' \
 			api_command_vdc "$orgName" "$vdcName"
 		api_call_cacheDownload
 	fi

@@ -1,5 +1,6 @@
 function api_command_vdc_vAppTemplate()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 3 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
 	fi

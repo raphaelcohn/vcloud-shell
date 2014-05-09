@@ -44,9 +44,14 @@ function curl_validateResponseCode()
 	local -r errorMessage="$2"
 	
 	if [ $curl_httpResponseCode -ne $expectedResponseCode ]; then
+		curl_parseError
 		vsh_message FAIL "$errorMessage (HTTP Response Code was $curl_httpResponseCode)"
-		defaults_format_headings=with-heading defaults_format_separator=$'\t' xml_starlet_keyValue tsv "Error" "$curl_downloadFilePath" '/_:Error' '@majorErrorCode' '@minorErrorCode' '@message' 1>&2
 	fi
+}
+
+function curl_parseError()
+{
+	defaults_format_headings=with-heading defaults_format_separator=$'\t' xml_starlet_keyValue tsv "Error" "$curl_downloadFilePath" '/_:Error' '@majorErrorCode' '@minorErrorCode' '@message' 1>&2
 }
 
 function curl_wrapperSetAcceptHeader()

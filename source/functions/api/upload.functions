@@ -1,0 +1,200 @@
+# relies on an associative array (api_upload_fileNameMap) having been created to cope with mapping vCloud's busted file names to our file names
+function api_upload_createTemplateAndUploadFiles()
+{
+	local -r parentFolderPath="$1"
+	local -r uploadUrl="$2"
+	local -r getUploadTemplateCallback="$3"
+	local -r rootXmlElement="$4"
+	local -r templateMimeType="$5"
+	local -r xmlArguments="$6"
+	
+	api_upload_createUploadTemplate "$uploadUrl" "$getUploadTemplateCallback" "$rootXmlElement" "$templateMimeType" "$xmlArguments"
+	
+	pushd "$parentFolderPath" 1>/dev/null 2>/dev/null
+		
+		local -i filesComplete=0
+		while [ $filesComplete -ne 1 ]
+		do
+			api_upload_pollUploadTask "$getUploadTemplateCallback" "$rootXmlElement" 0
+			api_upload_uploadFiles "$getUploadTemplateCallback" "$rootXmlElement"
+		done
+		
+		# Final check to make sure we're complete
+		while [ $taskComplete -ne 1 ]
+		do
+			api_upload_pollUploadTask "$getUploadTemplateCallback" "$rootXmlElement" 1
+		done
+		
+	popd 1>/dev/null 2>/dev/null
+}
+
+function api_upload_sleep()
+{
+	vsh_message INFO "Polling after 2 seconds"
+	sleep 2
+}
+
+function api_upload_createUploadTemplate()
+{
+	local -r uploadUrl="$1"
+	local -r getUploadTemplateCallback="$2"
+	local -r rootXmlElement="$3"
+	local -r templateMimeType="$4"
+	local -r xmlArguments="$5"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r postFile="$TMP_FILE"
+	printf '%s' "$xmlArguments" >"$postFile"
+	
+	local -i curl_httpResponseCode
+	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall_withoutResponseValidation POST "$uploadUrl" "Content-Type" "$templateMimeType"
+	
+	# We get a 400 if already created!
+	case $curl_httpResponseCode in
+		
+		201)
+			:
+		;;
+		
+		400)
+			local -r minorErrorCode="$(defaults_format_headings=no-heading defaults_format_separator='' xml_starlet_tsv "$curl_downloadFilePath" '/_:Error' '@minorErrorCode')"
+			if [ "$minorErrorCode" != "DUPLICATE_NAME" ]; then
+				curl_parseError
+				vsh_message FAIL "$minorErrorCode (HTTP Response Code was $curl_httpResponseCode)"
+			fi
+			api_upload_getUploadTemplate
+		;;
+		
+		*)
+			curl_validateResponseCode $curl_httpResponseCode "Unexpected HTTP response code $curl_httpResponseCode"
+		;;
+		
+	esac
+}
+
+function api_upload_getUploadTemplate()
+{
+	${getUploadTemplateCallback}
+	curl_downloadFilePath="${downloads[$downloadNumber]}"
+}
+
+function api_upload_pollUploadTask()
+{
+	local -r getUploadTemplateCallback="$1"
+	local -r rootXmlElement="$2"
+	local -ir pauseIfRunning=$3
+	
+	# upload status codes: -1 => 15
+	#  -1  - after an error during upload
+	#  0 - after initial upload
+	# task status codes: running  error
+	# progress codes 1, 100 (failure)
+	local taskStatus
+	while true
+	do
+		taskStatus="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/@status')"
+		if [ -z "$taskStatus" ]; then
+			taskComplete=1
+			break
+		fi
+		case "$taskStatus" in
+			
+			running)
+				if [ $pauseIfRunning -eq 1 ]; then
+					api_upload_sleep
+					api_upload_getUploadTemplate
+				else
+					taskComplete=1
+					break
+				fi
+			;;
+			
+			error)
+				local -r minorErrorCode="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/_:Error/@minorErrorCode')"
+				local -r details="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/_:Details')"
+				vsh_message FAIL "Upload error ($minorErrorCode:$details)"
+			;;
+			
+			*)
+				cat "$curl_downloadFilePath" 1>&2
+				vsh_message FAIL "Unexpected task status code $taskStatus for upload"
+			;;
+			
+		esac
+	done
+}
+
+function api_upload_uploadFiles()
+{
+	local -r getUploadTemplateCallback="$1"
+	local -r rootXmlElement="$2"
+	set -x
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r filesFilePath="$TMP_FILE"
+	cat "$curl_downloadFilePath"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Files/_:File/_:Link/@rel' '_:Files/_:File/_:Link/@href' '_:Files/_:File/_:Link/../@size' '_:Files/_:File/_:Link/../@bytesTransferred' '_:Files/_:File/_:Link/../@name' >"$filesFilePath"
+	
+	local -i filesOutstanding=0
+	local -i ourFileSizeLocally
+	local contentType
+	local actualName
+	local rel href size bytesTransferred name
+	while IFS=$'\x01' read -r rel href size bytesTransferred name
+	do
+		if [ "$rel" != "upload:default" ]; then
+			continue
+		fi
+		
+		actualName="${api_upload_fileNameMap["$name"]}"
+		
+		if [ ! -f "$actualName" ]; then
+			vsh_message FAIL "Missing required file $actualName to upload $name"
+		fi
+		
+		ourFileSizeLocally=$(stat --dereference --printf='%s' "$actualName")
+		
+		if [ $bytesTransferred -gt $ourFileSizeLocally ]; then
+			vsh_message FAIL "Mismatched sizes for $name (bytesTransferred)"
+		fi
+		
+		# This is possible after descriptor.ovf is uploaded BUT before it has been 'processed' by the task...
+		
+		if [ "$size" = "$bytesTransferred" ]; then
+			continue
+		else
+			filesOutstanding=$((filesOutstanding+1))
+		fi
+		
+		if [ "$name" = "descriptor.ovf" ]; then
+			contentType="text/xml"
+		else
+			contentType="application/octet-stream"
+		fi
+		
+		if [ "$size" = "-1" ]; then
+			curl_put="$actualName" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType" "Content-Length" $ourFileSizeLocally
+		else
+			if [ $size -ne $ourFileSizeLocally ]; then
+				vsh_message FAIL "Mismatched sizes for $name (size) $size $ourFileSizeLocally"
+			fi
+			if [ $bytesTransferred -eq 0 ]; then
+				curl_put="$actualName" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType" "Content-Length" $ourFileSizeLocally
+			else
+				curl_put="$actualName" curl_put_continueAt=$bytesTransferred curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType" "Content-Length" $((size-bytesTransferred))
+			fi
+		fi
+		
+		# we could decrement filesOutstanding, but we can't really be sure, especially with the way descriptor.ovf upload then changes the required files!
+		
+		# should we break after file is completely uploaded, so we can retrieve the template again and check the task status?
+		# break
+		
+	done <"$filesFilePath"
+	
+	if [ $filesOutstanding -eq 0 ]; then
+		filesComplete=1
+	else
+		filesComplete=0
+	fi
+}

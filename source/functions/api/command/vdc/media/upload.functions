@@ -1,0 +1,50 @@
+function api_command_vdc_media_upload()
+{
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
+	if [ $# -ne 3 ]; then
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaFilePath>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r mediaFilePath="$3"
+	
+	if [ ! -f "$mediaFilePath" ]; then
+		vsh_message FAIL "Media $mediaFilePath does not exist or is not a file"
+	fi
+	if [ ! -r "$mediaFilePath" ]; then
+		vsh_message FAIL "Media $mediaFilePath does not exist or is not readable"
+	fi
+	if [ ! -s "$mediaFilePath" ]; then
+		vsh_message FAIL "Media $mediaFilePath does not exist or is empty"
+	fi
+	
+	local -r parentFolderPath="$(vsh_dirname "$mediaFilePath")"
+	local -r fileName="$(vsh_basename "$mediaFilePath")"
+	local -ir ourFileSizeLocally=$(stat --dereference --printf='%s' "$mediaFilePath")
+	local -r imageType="${fileName##*.}"
+	local -r description="${fileName%%.*}"
+	local -r mediaName="$fileName"
+	local -r xmlArguments="<?xml version='1.0' encoding='UTF-8'?><Media xmlns='http://www.vmware.com/vcloud/v1.5' name='${mediaName}' size='${ourFileSizeLocally}' imageType='${imageType}'><Description>${description}</Description></Media>"
+	
+	local curl_downloadFilePath
+	local uploadUrl
+	function api_callback_fromName_api_command_vdc_media_upload()
+	{
+		api_callback_fromName "$@"
+		uploadUrl="${foundHref}"/media
+	}
+	local curl_downloadFilePath
+	
+	api_call_get links-vdcs api_callback_fromName_api_command_vdc_media_upload api_callback_test_fromName vdc "$vdcName" '' \
+		api_command_admin "$orgName"
+	
+	function api_command_vdc_media_upload_get()
+	{
+		api_format=none api_command_vdc_media "$orgName" "$vdcName" "$mediaName"
+	}
+	
+	declare -A api_upload_fileNameMap
+	api_upload_fileNameMap['file']="$fileName"
+	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_media_upload_get "Media" "application/vnd.vmware.vcloud.media+xml" "$xmlArguments"
+}

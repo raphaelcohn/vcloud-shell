@@ -39,6 +39,11 @@ function api_callback_test_fromNameAndMimeType()
 
 
 
+function api_callback_fromNameAndMimeTypeIsMedia()
+{
+	api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.media+xml"
+}
+
 # the Link rel=remove is an earlier sibling to the Key value and has a non-unique mime-type and no name, so we can't just find it by simple query
 # This technique constructs the URL in violation of the API design
 function api_callback_fromMimeTypeAndModifyWithKeyName()

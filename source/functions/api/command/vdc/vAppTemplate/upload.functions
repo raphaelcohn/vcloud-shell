@@ -1,5 +1,6 @@
 function api_command_vdc_vAppTemplate_upload()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 4 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
 	fi
@@ -68,13 +69,14 @@ function api_command_vdc_vAppTemplate_upload()
 
 function api_command_vdc_vAppTemplate_upload_getVAppTemplate()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	api_format=none api_command_vdc_vAppTemplate "$orgName" "$vdcName" "$vAppTemplateName"
 	curl_downloadFilePath="${downloads[$downloadNumber]}"
 }
 
 function api_command_vdc_vAppTemplate_upload_uploadFiles()
 {
-	set -x
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	cat "$curl_downloadFilePath" 1>&2
 	
 	temporaryFiles_newFileToRemoveOnExit

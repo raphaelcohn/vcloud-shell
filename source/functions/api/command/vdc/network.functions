@@ -1,6 +1,7 @@
 #eg ./vsh -f xml vdc_network 98-184-1-151d73 'Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)' 'DB'
 function api_command_vdc_network()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 3 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
 	fi

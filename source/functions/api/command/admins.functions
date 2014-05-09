@@ -1,5 +1,6 @@
 function api_command_admins()
 {
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 0 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} takes no <args>"
 	fi
