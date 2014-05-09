@@ -6,9 +6,9 @@ function api_upload_createTemplateAndUploadFiles()
 	local -r getUploadTemplateCallback="$3"
 	local -r rootXmlElement="$4"
 	local -r templateMimeType="$5"
-	local -r xmlArguments="$6"
+	local -r xmlFilePath="$6"
 	
-	api_upload_createUploadTemplate "$uploadUrl" "$getUploadTemplateCallback" "$rootXmlElement" "$templateMimeType" "$xmlArguments"
+	api_upload_createUploadTemplate "$uploadUrl" "$getUploadTemplateCallback" "$rootXmlElement" "$templateMimeType" "$xmlFilePath"
 	
 	pushd "$parentFolderPath" 1>/dev/null 2>/dev/null
 		
@@ -40,14 +40,10 @@ function api_upload_createUploadTemplate()
 	local -r getUploadTemplateCallback="$2"
 	local -r rootXmlElement="$3"
 	local -r templateMimeType="$4"
-	local -r xmlArguments="$5"
-	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r postFile="$TMP_FILE"
-	printf '%s' "$xmlArguments" >"$postFile"
+	local -r xmlFilePath="$5"
 	
 	local -i curl_httpResponseCode
-	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall_withoutResponseValidation POST "$uploadUrl" "Content-Type" "$templateMimeType"
+	curl_post="@${xmlFilePath}" curl_wrapperLoggedInAbsoluteApiCall_withoutResponseValidation POST "$uploadUrl" "Content-Type" "$templateMimeType"
 	
 	# We get a 400 if already created!
 	case $curl_httpResponseCode in

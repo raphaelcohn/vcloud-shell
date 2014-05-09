@@ -1,0 +1,113 @@
+function api_command_vdc_vApp_upload()
+{
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
+	if [ $# -ne 4 ]; then
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppName> <parentFolderPath>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r vAppName="$3"
+	local -r parentFolderPath="$4"
+	
+	local -r ovfFolderPath="$parentFolderPath"/"$vAppName"
+	mkdir -m 0755 -p "$ovfFolderPath"
+	
+	local -r ovfDescriptorFileName=descriptor.ovf
+	local -r ovfDescriptorFilePath="$ovfFolderPath"/"$ovfDescriptorFileName"
+	
+	if [ ! -f "$ovfDescriptorFilePath" ]; then
+		vsh_message FAIL "OVF descriptor $ovfDescriptorFilePath does not exist or is not a file"
+	fi
+	if [ ! -r "$ovfDescriptorFilePath" ]; then
+		vsh_message FAIL "OVF descriptor $ovfDescriptorFilePath does not exist or is not readable"
+	fi
+	if [ ! -s "$ovfDescriptorFilePath" ]; then
+		vsh_message FAIL "OVF descriptor $ovfDescriptorFilePath does not exist or is empty"
+	fi
+	
+	local -r networkName="vAppNetwork"
+	local -r parentNetworkHref="https://api.vcd.portal.skyscapecloud.com/api/network/7dbd25ab-1eaf-4d7f-9aee-06603a7bea81" # Org DMZ network, find these on the vdc object (networks section)
+	local -r fenceMode="bridged"
+	
+	# Network presumeably defined in the OVF
+	local -r sourceNetworkName="Network 1"
+	
+	# Needs to match a VM name in the OVF!
+	local -r vmName="VM-1"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r xmlFilePath="$TMP_FILE"
+	cat >"$xmlFilePath" <<-EOF
+		<?xml version='1.0' encoding='UTF-8'?>
+		<InstantiateOvfParams xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns="http://www.vmware.com/vcloud/v1.5" name="${vAppName}">
+			<Description>${vAppName}</Description>
+			<InstantiationParams>
+				<NetworkConfigSection>
+					<ovf:Info>Configuration parameters for logical networks</ovf:Info>
+					<NetworkConfig networkName="${networkName}">
+						<Configuration>
+							<ParentNetwork href="${parentNetworkHref}"/>
+							<FenceMode>${fenceMode}</FenceMode>
+						</Configuration>
+					</NetworkConfig>
+				</NetworkConfigSection>
+			</InstantiationParams>
+			<AllEULAsAccepted>true</AllEULAsAccepted>
+			<NetworkMapping>
+				<Source>${sourceNetworkName}</Source>
+				<Target>${networkName}</Target>
+			</NetworkMapping>
+			<InstantiateVmParams id="${vmName}">
+				<Name>${vmName}</Name>
+				<NetworkConnectionSection>
+					<ovf:Info/>
+					<PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+					<NetworkConnection network="${sourceNetworkName}">
+						<NetworkConnectionIndex>0</NetworkConnectionIndex>
+						<IsConnected>true</IsConnected>
+						<IpAddressAllocationMode>POOL</IpAddressAllocationMode>
+					</NetworkConnection>
+				</NetworkConnectionSection>
+				<ComputerName>${vAppName}</ComputerName>
+			</InstantiateVmParams>
+		</InstantiateOvfParams>
+	EOF
+	
+	
+	local curl_downloadFilePath
+	local uploadUrl
+	function api_callback_fromName_api_command_vdc_vApp_upload()
+	{
+		api_callback_fromName "$@"
+		uploadUrl="${foundHref}"/action/instantiateOvf
+	}
+	local curl_downloadFilePath
+	
+	api_call_get links-vdcs api_callback_fromName_api_command_vdc_vApp_upload api_callback_test_fromName vdc "$vdcName" '' \
+		api_command_admin "$orgName"
+	
+	function api_command_vdc_vApp_upload_get()
+	{
+		api_format=none api_command_vdc_media "$orgName" "$vdcName" "$vAppName"
+	}
+	
+	declare -A api_upload_fileNameMap
+	pushd "$ovfFolderPath" 1>/dev/null 2>/dev/null
+	
+		local file
+		for file in *
+		do
+			if [ -f "$file" ]; then
+				if [ "$file" = "$ovfDescriptorFileName" ]; then
+					api_upload_fileNameMap['descriptor.ovf']="$file"
+				else
+					api_upload_fileNameMap["$file"]="$file"
+				fi
+			fi
+		done
+	
+	popd 1>/dev/null 2>/dev/null
+	
+	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_vApp_upload_get "VApp" "application/vnd.vmware.vcloud.instantiateOvfParams+xml" "$xmlFilePath"
+}

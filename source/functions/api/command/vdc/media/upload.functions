@@ -25,7 +25,15 @@ function api_command_vdc_media_upload()
 	local -r imageType="${fileName##*.}"
 	local -r description="${fileName%%.*}"
 	local -r mediaName="$fileName"
-	local -r xmlArguments="<?xml version='1.0' encoding='UTF-8'?><Media xmlns='http://www.vmware.com/vcloud/v1.5' name='${mediaName}' size='${ourFileSizeLocally}' imageType='${imageType}'><Description>${description}</Description></Media>"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r xmlFilePath="$TMP_FILE"
+	cat >"$xmlFilePath" <<-EOF
+		<?xml version='1.0' encoding='UTF-8'?>
+		<Media xmlns='http://www.vmware.com/vcloud/v1.5' name='${mediaName}' size='${ourFileSizeLocally}' imageType='${imageType}'>
+			<Description>${description}</Description>
+		</Media>
+	EOF
 	
 	local curl_downloadFilePath
 	local uploadUrl
@@ -46,5 +54,5 @@ function api_command_vdc_media_upload()
 	
 	declare -A api_upload_fileNameMap
 	api_upload_fileNameMap['file']="$fileName"
-	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_media_upload_get "Media" "application/vnd.vmware.vcloud.media+xml" "$xmlArguments"
+	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_media_upload_get "Media" "application/vnd.vmware.vcloud.media+xml" "$xmlFilePath"
 }
