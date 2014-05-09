@@ -1,3 +1,6 @@
+# curl 7.21.9 added this
+defaults_curl_supportsNetrcFileOption=yes
+
 # These can be trivially overwritten in ~/.curlrc, /etc/curlrc, etc
 defaults_curl_userAgent="$ourName"
 defaults_curl_maxRedirs=5

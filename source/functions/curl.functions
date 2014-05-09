@@ -95,14 +95,18 @@ function curl_wrapper()
 	# Technically, .netrc only exists in $HOME, but we want to give a little more flexibility
 	# netrc files have lines likes machine host.domain.com login myself password secret (machine X, username Y, password X)
 	
-	if [ -z "$vsh_netrcFilePath" ]; then
-		curl_wrapperConfigArg --netrc-file "$CURL_HOME" .netrc
-		curl_wrapperConfigArg --netrc-file "$HOME" .netrc
-		curl_wrapperConfigArg --netrc-file "$etcPath" netrc
-		curl_wrapperConfigArg --netrc-file "$vsh_configPath" netrc
-		curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
-	else
-		curlArgs+=('--netrc-file' "$vsh_netrcFilePath")
+	if [ "$defaults_curl_supportsNetrcFileOption" = yes ]; then
+		if [ -z "$vsh_netrcFilePath" ]; then
+			curl_wrapperConfigArg --netrc-file "$CURL_HOME" .netrc
+			curl_wrapperConfigArg --netrc-file "$HOME" .netrc
+			curl_wrapperConfigArg --netrc-file "$etcPath" netrc
+			curl_wrapperConfigArg --netrc-file "$vsh_configPath" netrc
+			curl_wrapperConfigArg --netrc-file "$HOME" "$ourName".netrc
+		else
+			curlArgs+=('--netrc-file' "$vsh_netrcFilePath")
+		fi
+	elif [ -f ~/.netrc ]; then
+		curlArgs+=('--netrc')
 	fi
 	
 	# Overridding of configuration occurs after setting are options; machine-wide always wins

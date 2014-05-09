@@ -26,6 +26,7 @@ vCloud Curl Tools
 
 * FIX METADATA format (eg org-metadata) (prefixes)
 * FIX task formatting - seems broken for enableDownload?
+* FIX curl to check 7.21.5 added --netrc-file
 
 ##examples
 find a way to validate formats
