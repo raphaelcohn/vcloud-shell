@@ -1,7 +1,7 @@
 function api_command_vdc_media_metadata_editValue()
 {
 	if [ $# -ne 5 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <keyName> <valueFile>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <keyName> <valueFile>"
 	fi
 	
 	local -r orgName="$1"

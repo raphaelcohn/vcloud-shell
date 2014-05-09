@@ -1,7 +1,7 @@
 function api_command_org_metadata()
 {
 	if [ $# -ne 1 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName>"
 	fi
 	
 	local -r orgName="$1"

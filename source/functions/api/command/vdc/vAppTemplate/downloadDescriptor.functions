@@ -1,7 +1,7 @@
 function api_command_vdc_vAppTemplate_downloadDescriptor()
 {
 	if [ $# -ne 3 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
 	fi
 	
 	local -r orgName="$1"
@@ -41,7 +41,7 @@ function api_format_vdc_vAppTemplate_downloadDescriptor()
 		;;
 		
 		*)
-			informationMessage FAIL "Please specify api_format as xml, not $api_format"
+			vsh_message FAIL "Please specify api_format as xml, not $api_format"
 		;;
 		
 	esac

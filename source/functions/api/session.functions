@@ -31,7 +31,7 @@ function api_session_sessions()
 	curl_validateResponseCode 200 "Could not connect to $url"
 	
 	if [ $curl_httpResponseCode -ne 200 ]; then
-		informationMessage FAIL "Could not log in to $vsh_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
+		vsh_message FAIL "Could not log in to $vsh_baseUrl (HTTP Response Code was $curl_httpResponseCode)"
 	fi
 	
 	function api_session_populateApiMap()
@@ -109,7 +109,7 @@ function api_session_versions()
 	local -r sessionsUrl="$(awk -F $'\x01' '$1 ~ /'${defaults_api_version}'/ {print $2}' "$tsvFilePath")"
 	
 	if [ -z "$sessionsUrl" ]; then
-		informationMessage FAIL "API version (defaults_api_version) $defaults_api_version is not supported"
+		vsh_message FAIL "API version (defaults_api_version) $defaults_api_version is not supported"
 	fi
 	
 	api_map['/api/sessions']="$sessionsUrl"

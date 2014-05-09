@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function informationMessage()
+function vsh_message()
 {
 	local messageKind="$1"
 	local message="$2"
@@ -320,7 +320,7 @@ function vsh_parseCommandLine()
 			;;
 			
 			'?')
-				informationMessage FAIL "Invalid option -${OPTARG}"
+				vsh_message FAIL "Invalid option -${OPTARG}"
 			;;
 			
 		esac
@@ -330,7 +330,7 @@ function vsh_parseCommandLine()
 	
 	if [ $# -ne 0 ]; then
 		if [ "$vsh_bePrompt" = "yes" ]; then
-			informationMessage FAIL "Can not set -p and have script files"
+			vsh_message FAIL "Can not set -p and have script files"
 		fi
 		vsh_scriptFiles=("$@")
 	fi
@@ -339,7 +339,7 @@ function vsh_parseCommandLine()
 function vsh_validateCommandLineArguments()
 {
 	if [ ! -d "$vsh_configPath" ]; then
-		informationMessage FAIL "Config path $vsh_configPath does not exist or is not a directory"
+		vsh_message FAIL "Config path $vsh_configPath does not exist or is not a directory"
 		pushd "$vsh_configPath" 1>/dev/null
 			vsh_configPath="$(pwd)"
 		popd 1>/dev/null
@@ -347,13 +347,13 @@ function vsh_validateCommandLineArguments()
 	
 	if [ -n "$vsh_netrcFilePath" ]; then
 		if [ ! -f "$vsh_netrcFilePath" ]; then
-			informationMessage FAIL "-n vsh_netrcFilePath $vsh_netrcFilePath does not exist or is not a file"
+			vsh_message FAIL "-n vsh_netrcFilePath $vsh_netrcFilePath does not exist or is not a file"
 		fi
 	fi
 	
 	if [ -n "$vsh_curlrcFilePath" ]; then
 		if [ ! -f "$vsh_curlrcFilePath" ]; then
-			informationMessage FAIL "-r vsh_curlrcFilePath $vsh_curlrcFilePath does not exist or is not a file"
+			vsh_message FAIL "-r vsh_curlrcFilePath $vsh_curlrcFilePath does not exist or is not a file"
 		fi
 	fi
 }

@@ -51,7 +51,7 @@ function main_validateDefault()
 	local -r variableName="$1"
 	
 	if [ -z "${!variableName}" ]; then
-		informationMessage FAIL "Default $variableName has no value"
+		vsh_message FAIL "Default $variableName has no value"
 	fi
 }
 
@@ -132,13 +132,13 @@ function main_executeCommands()
 	do
 		if [ "$scriptFile" = '-' ]; then
 			if [ $stdinAlreadyUsed -eq 1 ]; then
-				informationMessage WARN "stdin used more than once, skipping"
+				vsh_message WARN "stdin used more than once, skipping"
 				continue
 			fi
 			scriptFile=/dev/stdin
 			stdinAlreadyUsed=1
 		elif [ ! -r "$scriptFile" ]; then
-			informationMessage WARN "script file $scriptFile is not readable or does not exist, skipping"
+			vsh_message WARN "script file $scriptFile is not readable or does not exist, skipping"
 			continue
 		fi
 		
@@ -158,7 +158,7 @@ function main_executeMainFunctions()
 	local main_function
 	for main_function in "${main_functions[@]}"
 	do
-		informationMessage INFO "${main_function}"
+		vsh_message INFO "${main_function}"
 		$main_function
 	done
 }

@@ -1,7 +1,7 @@
 function api_metadata()
 {
 	if [ $# -ne 3 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName>"
 	fi
 	
 	local -r orgName="$1"

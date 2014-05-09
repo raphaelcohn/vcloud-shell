@@ -1,7 +1,7 @@
 function api_command_vdc_network_allocatedAddresses()
 {
 	if [ $# -ne 3 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName>"
 	fi
 	
 	local -r orgName="$1"
@@ -49,7 +49,7 @@ function api_format_vdc_network_allocatedAddresses()
 		;;
 		
 		*)
-			informationMessage FAIL "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
+			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
 		;;
 		
 	esac

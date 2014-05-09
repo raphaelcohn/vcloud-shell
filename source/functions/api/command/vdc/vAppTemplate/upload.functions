@@ -1,7 +1,7 @@
 function api_command_vdc_vAppTemplate_upload()
 {
 	if [ $# -ne 4 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName> <parentFolderPath>"
 	fi
 	
 	local -r orgName="$1"
@@ -92,13 +92,13 @@ function api_command_vdc_vAppTemplate_upload_uploadFiles()
 		fi
 		
 		if [ ! -f "$name" ]; then
-			informationMessage FAIL "Missing required file to upload $name"
+			vsh_message FAIL "Missing required file to upload $name"
 		fi
 		
 		ourFileSizeLocally=$(stat --printf='%s' "$name")
 		
 		if [ $bytesTransferred -gt $ourFileSizeLocally ]; then
-			informationMessage FAIL "Mismatched sizes for $name (bytesTransferred)"
+			vsh_message FAIL "Mismatched sizes for $name (bytesTransferred)"
 		fi
 		
 		# This is possible after descriptor.ovf is uploaded BUT before it has been 'processed' by the task...
@@ -117,7 +117,7 @@ function api_command_vdc_vAppTemplate_upload_uploadFiles()
 			curl_put="$name" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"
 		else
 			if [ $size -ne $ourFileSizeLocally ]; then
-				informationMessage FAIL "Mismatched sizes for $name (size) $size $ourFileSizeLocally"
+				vsh_message FAIL "Mismatched sizes for $name (size) $size $ourFileSizeLocally"
 			fi
 			if [ $bytesTransferred -eq 0 ]; then
 				curl_put="$name" curl_actualDownloadPath="/dev/null" curl_wrapperLoggedInAbsoluteApiCall 200 PUT "$href" "Content-Type" "$contentType"

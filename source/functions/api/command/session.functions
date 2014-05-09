@@ -1,7 +1,7 @@
 function api_command_session()
 {
 	if [ $# -ne 0 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} takes no <args>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} takes no <args>"
 	fi
 	
 	local -r key="${FUNCNAME[0]:12}"
@@ -40,7 +40,7 @@ function api_format_session()
 		;;
 		
 		*)
-			informationMessage FAIL "Please specify api_format as either xml, links or id, not $api_format"
+			vsh_message FAIL "Please specify api_format as either xml, links or id, not $api_format"
 		;;
 		
 	esac

@@ -1,7 +1,7 @@
 function api_command_vdc_media_metadata_getValue()
 {
 	if [ $# -ne 4 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <keyName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName> <keyName>"
 	fi
 	
 	local -r orgName="$1"

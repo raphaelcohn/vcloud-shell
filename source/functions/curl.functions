@@ -44,7 +44,7 @@ function curl_validateResponseCode()
 	local -r errorMessage="$2"
 	
 	if [ $curl_httpResponseCode -ne $expectedResponseCode ]; then
-		informationMessage FAIL "$errorMessage (HTTP Response Code was $curl_httpResponseCode)"
+		vsh_message FAIL "$errorMessage (HTTP Response Code was $curl_httpResponseCode)"
 		defaults_format_headings=with-heading defaults_format_separator=$'\t' xml_starlet_keyValue tsv "Error" "$curl_downloadFilePath" '/_:Error' '@majorErrorCode' '@minorErrorCode' '@message' 1>&2
 	fi
 }
@@ -166,7 +166,7 @@ function curl_wrapper()
 		;;
 		
 		*)
-			informationMessage FAIL "Verb $verb is not supported"
+			vsh_message FAIL "Verb $verb is not supported"
 		;;
 		
 	esac
@@ -241,7 +241,7 @@ function curl_wrapper()
 				echo "ASCII Trace was:-"
 				cat "$asciiTraceFilePath"
 			) 1>&2
-			informationMessage FAIL "Failed to retrieve $url (exit code was $curl_lastExitCode)"
+			vsh_message FAIL "Failed to retrieve $url (exit code was $curl_lastExitCode)"
 		;;
 		
 	esac

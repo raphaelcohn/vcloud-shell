@@ -2,12 +2,12 @@ function trapHandlers_runAll()
 {
 	# Done to make sure we're not got a cwd that prevents us unmounting
 	cd /
-	informationMessage INFO "trapHandlers_runAll"
+	vsh_message INFO "trapHandlers_runAll"
 	exiting=yes
 	local trapHandler
 	for trapHandler in "${trapHandlers[@]}"
 	do
-		informationMessage INFO "$trapHandler"
+		vsh_message INFO "$trapHandler"
 		$trapHandler
 	done
 }

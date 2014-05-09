@@ -1,7 +1,7 @@
 function api_command_vdc_vAppTemplate_enableDownload()
 {
 	if [ $# -ne 3 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <vAppTemplateName>"
 	fi
 	
 	local -r orgName="$1"

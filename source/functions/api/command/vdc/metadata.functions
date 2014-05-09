@@ -1,7 +1,7 @@
 function api_command_vdc_metadata()
 {
 	if [ $# -ne 2 ]; then
-		informationMessage FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName>"
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName>"
 	fi
 	
 	local -r orgName="$1"

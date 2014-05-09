@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-function informationMessage()
+function vsh_message()
 {
 	local messageKind="$1"
 	local message="$2"
