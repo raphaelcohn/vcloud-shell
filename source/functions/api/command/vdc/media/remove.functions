@@ -11,11 +11,8 @@ function api_command_vdc_media_remove()
 	
 	local curl_downloadFilePath
 	
-	api_call_get links-resource-entities api_callback_fromNameAndMimeTypeIsMedia api_callback_test_fromNameAndMimeType media "$mediaName" '' \
+	api_call_delete links-resource-entities api_callback_fromNameAndMimeTypeIsMedia api_callback_test_fromNameAndMimeType media "$mediaName" '' \
 		api_command_vdc "$orgName" "$vdcName"
-	
-	cat "$curl_downloadFilePath" 1>&2
-	exit 50
 	
 	# Clear cached metadata
 	local mediaKey="vdc_media_metadata_${orgName}_${vdcName}_${mediaName}"
@@ -24,4 +21,6 @@ function api_command_vdc_media_remove()
 	# Clear media
 	lmediaKey="vdc_media_${orgName}_${vdcName}_${mediaName}"
 	unset api_downloadsCache["${mediaKey}"]
+	
+	api_format_task "${FUNCNAME[0]:12}"
 }
