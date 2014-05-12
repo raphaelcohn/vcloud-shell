@@ -45,7 +45,6 @@ function api_command_vdc_vApp_upload()
 	declare -A vdcNetworkNameToHref
 	declare -A ovfVmIdToComputerName
 	declare -A ovfNetworkToVCloudNetwork
-	declare -A vCloudNetworkToParentNetworkHref
 	declare -A vCloudNetworkToFenceMode
 	api_command_vdc_vApp_upload_parseDataFromOvf
 	
@@ -80,15 +79,20 @@ function api_command_vdc_vApp_upload()
 function api_command_vdc_vApp_upload_parseDataFromOvf()
 {
 	temporaryFiles_newFileToRemoveOnExit
+	local -r temporaryFile="$TMP_FILE"
 	
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' api links-networks vdc "$orgName" "$vdcName" >"$TMP_FILE"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' api links-networks vdc "$orgName" "$vdcName" >"$temporaryFile"
+	
 	local vCloudNetworkName
 	while IFS=$'\x01' read -r href mimeType vCloudNetworkName
 	do
 		vdcNetworkNameToHref["$vCloudNetworkName"]="$href"
-	done <"$TMP_FILE"
+	done <"$temporaryFile"
 	
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem" '@ovf:id' '@ovf:Name' '/vcloud:GuestCustomizationSection/vcloud:ComputerName' >"$TMP_FILE"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem" '@ovf:id' 'ovf:Name' 'vcloud:GuestCustomizationSection/vcloud:ComputerName' >"$temporaryFile"
+	cat "$temporaryFile" 1>&2
+	exit 50
+	set -x
 	local vmId
 	local vmName
 	local vcloudVmName
@@ -99,11 +103,11 @@ function api_command_vdc_vApp_upload_parseDataFromOvf()
 				vsh_message FAIL "Ensure ovf:Name matches vcloud:ComputerName"
 			fi
 		fi
-	
 		ovfVmIdToComputerName["$vmId"]="$vmName"
-	done <"$TMP_FILE"
+	done <"$temporaryFile"
+	exit 50
 	
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:NetworkSection/ovf:Network" '@ovf:name' >"$TMP_FILE"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:NetworkSection/ovf:Network" '@ovf:name' >"$temporaryFile"
 	while IFS=$'\x01' read -r ovfNetworkName
 	do
 		# We currently assume a 1:1 map, and that the ovf:Network sections == vcloud:NetworkConfig exactly
@@ -111,13 +115,13 @@ function api_command_vdc_vApp_upload_parseDataFromOvf()
 		ovfNetworkToVCloudNetwork["$ovfNetworkName"]="$vCloudNetworkName"
 	done <"$TMP_FILE"
 	
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfig/vcloud:Configuration" '../@networkName' 'vcloud:FenceMode' >"$TMP_FILE"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfig/vcloud:Configuration" '../@networkName' 'vcloud:FenceMode' >"$temporaryFile"
 	local fenceMode
 	while IFS=$'\x01' read -r vCloudNetworkName fenceMode
 	do
 		# bridged, isolated are valid fence modes we know of
 		vCloudNetworkToFenceMode["$vCloudNetworkToFenceMode"]="$fenceMode"
-	done <"$TMP_FILE"
+	done <"$temporaryFile"
 }
 
 function api_command_vdc_vApp_upload_createUploadXml()
@@ -135,7 +139,7 @@ function api_command_vdc_vApp_upload_createUploadXml()
 	local targetNetworkName
 	local parentNetworkHref
 	local fenceMode
-	for targetNetworkName in "${!vCloudNetworkToParentNetworkHref[@]}"
+	for targetNetworkName in "${!vCloudNetworkToFenceMode[@]}"
 	do
 		parentNetworkHref="${vdcNetworkNameToHref["$targetNetworkName"]}"
 		if [ -z "$parentNetworkHref" ]; then
