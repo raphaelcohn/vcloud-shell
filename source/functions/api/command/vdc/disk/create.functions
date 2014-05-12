@@ -28,12 +28,18 @@ function api_command_vdc_disk_create()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r xmlFilePath="$TMP_FILE"
 	
+	# 5 = IDE, 6 = SCSI, 20 = SATA
+	local -i busTypeCode=6
+	# look in disk.xsd
+	local busSubType=lsilogicsas
+	# LOCALITY is the VM nearest that should use this disk
 	cat >"$xmlFilePath" <<-EOF
 		<?xml version="1.0" encoding="UTF-8"?>
 		<DiskCreateParams xmlns="http://www.vmware.com/vcloud/v1.5">
-			<Disk name="${diskName}" size="${sizeInMegabytes}">
+			<Disk name="${diskName}" size="${sizeInMegabytes}" busType="${busTypeCode}" busSubType="${busSubType}">
 				<Description>${diskName}</Description>
 			</Disk>
+			<!-- Locality -->
 		</DiskCreateParams>
 	EOF
 	api_upload_createUploadTemplate "$uploadUrl" api_command_vdc_disk_create_uploadTemplateCallback "Disk" "application/vnd.vmware.vcloud.diskCreateParams+xml" "$xmlFilePath"
