@@ -73,7 +73,7 @@ function api_command_vdc_vApp_upload()
 		done
 	
 	popd 1>/dev/null 2>/dev/null
-	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_vApp_upload_get "VApp" "application/vnd.vmware.vcloud.instantiateOvfParams+xml" "$xmlFilePath"
+	api_upload_createTemplateAndUploadFiles "$ovfFolderPath" "$uploadUrl" api_command_vdc_vApp_upload_get "VApp" "application/vnd.vmware.vcloud.instantiateOvfParams+xml" "$xmlFilePath"
 }
 
 function api_command_vdc_vApp_upload_parseDataFromOvf()

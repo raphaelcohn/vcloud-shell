@@ -1,7 +1,7 @@
 # relies on an associative array (api_upload_fileNameMap) having been created to cope with mapping vCloud's busted file names to our file names
 function api_upload_createTemplateAndUploadFiles()
 {
-	local -r parentFolderPath="$1"
+	local -r parentOfFilesFolderPath="$1"
 	local -r uploadUrl="$2"
 	local -r getUploadTemplateCallback="$3"
 	local -r rootXmlElement="$4"
@@ -10,22 +10,39 @@ function api_upload_createTemplateAndUploadFiles()
 	
 	api_upload_createUploadTemplate "$uploadUrl" "$getUploadTemplateCallback" "$rootXmlElement" "$templateMimeType" "$xmlFilePath"
 	
-	pushd "$parentFolderPath" 1>/dev/null 2>/dev/null
+	pushd "$parentOfFilesFolderPath" 1>/dev/null 2>/dev/null
 		
-		local -i filesComplete=0
-		while [ $filesComplete -ne 1 ]
+		while api_upload_checkTaskStatus
 		do
-			api_upload_pollUploadTask "$getUploadTemplateCallback" "$rootXmlElement" 0
+			# done this way to avoid a subshell that hides errors
 			api_upload_uploadFiles "$getUploadTemplateCallback" "$rootXmlElement"
-		done
-		
-		# Final check to make sure we're complete
-		while [ $taskComplete -ne 1 ]
-		do
-			api_upload_pollUploadTask "$getUploadTemplateCallback" "$rootXmlElement" 1
+			api_upload_sleep
+			api_upload_getUploadTemplate
 		done
 		
 	popd 1>/dev/null 2>/dev/null
+}
+
+function api_upload_checkTaskStatus()
+{
+	local taskStatus="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/@status')"
+	
+	if [ -z "$taskStatus" ]; then
+		return 1
+	fi
+	
+	if [ "$taskStatus" = "running" ]; then
+		return 0
+	fi
+	
+	if [ "$taskStatus" = "error" ]; then
+		local -r minorErrorCode="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/_:Error/@minorErrorCode')"
+		local -r details="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/_:Details')"
+		vsh_message FAIL "Upload error ($minorErrorCode:$details)"
+	else
+		cat "$curl_downloadFilePath" 1>&2
+		vsh_message FAIL "Unexpected task status code ($taskStatus) (empty means no task) for upload"
+	fi
 }
 
 function api_upload_sleep()
@@ -74,61 +91,14 @@ function api_upload_getUploadTemplate()
 	curl_downloadFilePath="${downloads[$downloadNumber]}"
 }
 
-function api_upload_pollUploadTask()
-{
-	local -r getUploadTemplateCallback="$1"
-	local -r rootXmlElement="$2"
-	local -ir pauseIfRunning=$3
-	
-	# upload status codes: -1 => 15
-	#  -1  - after an error during upload
-	#  0 - after initial upload
-	# task status codes: running  error
-	# progress codes 1, 100 (failure)
-	local taskStatus
-	while true
-	do
-		taskStatus="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/@status')"
-		if [ -z "$taskStatus" ]; then
-			taskComplete=1
-			break
-		fi
-		case "$taskStatus" in
-			
-			running)
-				if [ $pauseIfRunning -eq 1 ]; then
-					api_upload_sleep
-					api_upload_getUploadTemplate
-				else
-					taskComplete=1
-					break
-				fi
-			;;
-			
-			error)
-				local -r minorErrorCode="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/_:Error/@minorErrorCode')"
-				local -r details="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Tasks/_:Task/_:Details')"
-				vsh_message FAIL "Upload error ($minorErrorCode:$details)"
-			;;
-			
-			*)
-				cat "$curl_downloadFilePath" 1>&2
-				vsh_message FAIL "Unexpected task status code $taskStatus for upload"
-			;;
-			
-		esac
-	done
-}
-
 function api_upload_uploadFiles()
 {
 	local -r getUploadTemplateCallback="$1"
 	local -r rootXmlElement="$2"
-	set -x
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r filesFilePath="$TMP_FILE"
-	cat "$curl_downloadFilePath"
+	
 	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Files/_:File/_:Link/@rel' '_:Files/_:File/_:Link/@href' '_:Files/_:File/_:Link/../@size' '_:Files/_:File/_:Link/../@bytesTransferred' '_:Files/_:File/_:Link/../@name' >"$filesFilePath"
 	
 	local -i filesOutstanding=0
@@ -187,10 +157,4 @@ function api_upload_uploadFiles()
 		# break
 		
 	done <"$filesFilePath"
-	
-	if [ $filesOutstanding -eq 0 ]; then
-		filesComplete=1
-	else
-		filesComplete=0
-	fi
 }

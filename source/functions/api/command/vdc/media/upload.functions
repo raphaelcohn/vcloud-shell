@@ -19,7 +19,7 @@ function api_command_vdc_media_upload()
 		vsh_message FAIL "Media $mediaFilePath does not exist or is empty"
 	fi
 	
-	local -r parentFolderPath="$(vsh_dirname "$mediaFilePath")"
+	local -r parentOfFilesFolderPath="$(vsh_dirname "$mediaFilePath")"
 	local -r fileName="$(vsh_basename "$mediaFilePath")"
 	local -ir ourFileSizeLocally=$(stat --dereference --printf='%s' "$mediaFilePath")
 	local -r imageType="${fileName##*.}"
@@ -54,5 +54,5 @@ function api_command_vdc_media_upload()
 	
 	declare -A api_upload_fileNameMap
 	api_upload_fileNameMap['file']="$fileName"
-	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_media_upload_get "Media" "application/vnd.vmware.vcloud.media+xml" "$xmlFilePath"
+	api_upload_createTemplateAndUploadFiles "$parentOfFilesFolderPath" "$uploadUrl" api_command_vdc_media_upload_get "Media" "application/vnd.vmware.vcloud.media+xml" "$xmlFilePath"
 }
