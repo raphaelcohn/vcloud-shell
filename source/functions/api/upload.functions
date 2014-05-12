@@ -15,7 +15,11 @@ function api_upload_createTemplateAndUploadFiles()
 		while api_upload_checkTaskStatus
 		do
 			# done this way to avoid a subshell that hides errors
+			local -i missingFilesElement=0
 			api_upload_uploadFiles "$getUploadTemplateCallback" "$rootXmlElement"
+			if [ $missingFilesElement -eq 1 ]; then
+				return 0
+			fi
 			api_upload_sleep
 			api_upload_getUploadTemplate
 		done
@@ -99,7 +103,14 @@ function api_upload_uploadFiles()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r filesFilePath="$TMP_FILE"
 	
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" '_:Files/_:File/_:Link/@rel' '_:Files/_:File/_:Link/@href' '_:Files/_:File/_:Link/../@size' '_:Files/_:File/_:Link/../@bytesTransferred' '_:Files/_:File/_:Link/../@name' >"$filesFilePath"
+	# Files element may be missing entirely...
+	local hasFilesElement="$(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}" "_:Files/_:File/_:Link/@rel" | head -n 1)"
+	if [ -z "$hasFilesElement" ]; then
+		missingFilesElement=1
+		return
+	fi
+	
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath "/_:${rootXmlElement}/_:Files/_:File" '_:Link/@rel' '_:Link/@href' '@size' '@bytesTransferred' '@name' >"$filesFilePath"
 	
 	local -i filesOutstanding=0
 	local -i ourFileSizeLocally
