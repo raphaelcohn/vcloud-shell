@@ -104,10 +104,9 @@ function api_session_versions()
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r tsvFilePath="$TMP_FILE"
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv_downloadFilePath '/_:SupportedVersions/_:VersionInfo' '_:Version' '_:LoginUrl' >"$tsvFilePath"
+	api_format=versions defaults_format_headings=no-heading defaults_format_separator=$'\x01' api_format_version >"$tsvFilePath"
 	
 	local -r sessionsUrl="$(awk -F $'\x01' '$1 ~ /'${defaults_api_version}'/ {print $2}' "$tsvFilePath")"
-	
 	if [ -z "$sessionsUrl" ]; then
 		vsh_message FAIL "API version (defaults_api_version) $defaults_api_version is not supported"
 	fi

@@ -6,6 +6,12 @@ echo
 echo
 
 sleep 1
+echo "Versions as TSV"
+defaults_format_separator=$'\t' format settings version "$downloadVersions"
+echo
+echo
+
+sleep 1
 echo "Sessions retrieved at login"
 cat "$downloadSessions"
 echo

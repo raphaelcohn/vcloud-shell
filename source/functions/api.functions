@@ -20,7 +20,7 @@ api_format=xml
 function format()
 {
 	if [ $# -lt 3 ]; then
-		vsh_message FAIL "format must specify <format> <with-header> <action>"
+		vsh_message FAIL "format must specify arguments <format> <formatCommand> files..."
 	fi
 	local api_format="$1"
 	local -r formatCommand="$2"
