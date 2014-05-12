@@ -50,11 +50,9 @@ function api_command_vdc_vApp_upload()
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r xmlFilePath="$TMP_FILE"
-	set -x
 	api_command_vdc_vApp_upload_createUploadXml >"$xmlFilePath"
 	cat "$xmlFilePath"
 	exit 50
-	
 	function api_command_vdc_vApp_upload_get()
 	{
 		api_format=none api_command_vdc_media "$orgName" "$vdcName" "$vAppName"
@@ -140,9 +138,6 @@ function api_command_vdc_vApp_upload_createUploadXml()
 	local fenceMode
 	for targetNetworkName in "${!vCloudNetworkToFenceMode[@]}"
 	do
-		echo $targetNetworkName
-		echo ${!vdcNetworkNameToHref[@]}
-		echo ${vdcNetworkNameToHref[@]}
 		parentNetworkHref="${vdcNetworkNameToHref["$targetNetworkName"]}"
 		if [ -z "$parentNetworkHref" ]; then
 			vsh_message FAIL "Unknown href in VDC networks for network $targetNetworkName"
@@ -191,7 +186,6 @@ function api_command_vdc_vApp_upload_createUploadXml()
 			cat <<-EOF
 								<NetworkConnectionSection>
 									<ovf:Info/>
-									<PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
 			EOF
 			
 			# needs optimising to match attribute values in XPath
