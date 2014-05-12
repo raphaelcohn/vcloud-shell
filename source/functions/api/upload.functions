@@ -82,6 +82,8 @@ function api_upload_createUploadTemplate()
 			api_upload_getUploadTemplate
 		;;
 		
+		# 415 for a DiskCreate...
+		
 		*)
 			curl_validateResponseCode $curl_httpResponseCode "Unexpected HTTP response code $curl_httpResponseCode"
 		;;

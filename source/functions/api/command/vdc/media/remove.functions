@@ -19,7 +19,7 @@ function api_command_vdc_media_remove()
 	unset api_downloadsCache["${mediaKey}"]
 	
 	# Clear media
-	lmediaKey="vdc_media_${orgName}_${vdcName}_${mediaName}"
+	mediaKey="vdc_media_${orgName}_${vdcName}_${mediaName}"
 	unset api_downloadsCache["${mediaKey}"]
 	
 	api_format_task "${FUNCNAME[0]:12}"

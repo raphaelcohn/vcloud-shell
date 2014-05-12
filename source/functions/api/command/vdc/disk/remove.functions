@@ -1,0 +1,24 @@
+# need to check if the disk is attached to a VM first...
+# disk names are NOT UNIQUE, this only removes the first disk found
+function api_command_vdc_disk_remove()
+{
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
+	if [ $# -ne 3 ]; then
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <diskName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r diskName="$3"
+	
+	local curl_downloadFilePath
+	
+	api_call_delete links-resource-entities api_callback_fromNameAndMimeTypeIsDisk api_callback_test_fromNameAndMimeType disk "$diskName" '' \
+		api_command_vdc "$orgName" "$vdcName"
+	
+	api_format_task "${FUNCNAME[0]:12}"
+}
+
+# In the vdc, in the resource entities, find the disk links
+# <ResourceEntity type="application/vnd.vmware.vcloud.disk+xml" name="independent-disk1" href="https://api.vcd.portal.skyscapecloud.com/api/disk/229ce3bd-58c4-4f5c-b4db-36cd8baa7b39"/>
+# <ResourceEntity type="application/vnd.vmware.vcloud.disk+xml" name="independent-disk1" href="https://api.vcd.portal.skyscapecloud.com/api/disk/27767df1-0ccd-4f92-817c-665e009535d0"/>
