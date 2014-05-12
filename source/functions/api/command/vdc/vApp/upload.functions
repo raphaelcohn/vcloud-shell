@@ -79,12 +79,16 @@ function api_command_vdc_vApp_upload()
 
 function api_command_vdc_vApp_upload_parseDataFromOvf()
 {
+	temporaryFiles_newFileToRemoveOnExit
+	
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' api links-networks vdc "$orgName" "$vdcName" >"$TMP_FILE"
 	local vCloudNetworkName
 	while IFS=$'\x01' read -r href mimeType vCloudNetworkName
 	do
 		vdcNetworkNameToHref["$vCloudNetworkName"]="$href"
-	done< <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' api links-networks vdc "$orgName" "$vdcName")
+	done <"$TMP_FILE"
 	
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem" '@ovf:id' '@ovf:Name' '/vcloud:GuestCustomizationSection/vcloud:ComputerName' >"$TMP_FILE"
 	local vmId
 	local vmName
 	local vcloudVmName
@@ -97,25 +101,23 @@ function api_command_vdc_vApp_upload_parseDataFromOvf()
 		fi
 	
 		ovfVmIdToComputerName["$vmId"]="$vmName"
+	done <"$TMP_FILE"
 	
-	done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem" '@ovf:id' '@ovf:Name' '/vcloud:GuestCustomizationSection/vcloud:ComputerName')
-
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:NetworkSection/ovf:Network" '@ovf:name' >"$TMP_FILE"
 	while IFS=$'\x01' read -r ovfNetworkName
 	do
 		# We currently assume a 1:1 map, and that the ovf:Network sections == vcloud:NetworkConfig exactly
 		vCloudNetworkName="$ovfNetworkName"
 		ovfNetworkToVCloudNetwork["$ovfNetworkName"]="$vCloudNetworkName"
-		# Org DMZ network, find these on the vdc object (networks section)
-		vCloudNetworkToParentNetworkHref["$vCloudNetworkName"]="https://api.vcd.portal.skyscapecloud.com/api/network/7dbd25ab-1eaf-4d7f-9aee-06603a7bea81"
+	done <"$TMP_FILE"
 	
-	done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:NetworkSection/ovf:Network" '@ovf:name')
-
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfig/vcloud:Configuration" '../@networkName' 'vcloud:FenceMode' >"$TMP_FILE"
 	local fenceMode
 	while IFS=$'\x01' read -r vCloudNetworkName fenceMode
 	do
 		# bridged, isolated are valid fence modes we know of
 		vCloudNetworkToFenceMode["$vCloudNetworkToFenceMode"]="$fenceMode"
-	done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfig/vcloud:Configuration" '../@networkName' 'vcloud:FenceMode')
+	done <"$TMP_FILE"
 }
 
 function api_command_vdc_vApp_upload_createUploadXml()
@@ -188,7 +190,12 @@ function api_command_vdc_vApp_upload_createUploadXml()
 			
 			# needs optimising to match attribute values in XPath
 			temporaryFiles_newFileToRemoveOnExit
+			local tsvDataFile="$TMP_FILE"
+			defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/ovf:Item" 'rasd:ResourceType' '../../@ovf:id' 'rasd:AddressOnParent' 'rasd:Connection' 'rasd:Connection/@vcloud:primaryNetworkConnection' 'rasd:Connection/@vcloud:ipAddressingMode' >"$tsvDataFile"
+			
+			temporaryFiles_newFileToRemoveOnExit
 			local xmlLayoutWorkAroundFile="$TMP_FILE"
+			
 			local -i resourceType
 			local loopVmId
 			local -i networkConnectionIndex
@@ -218,7 +225,7 @@ function api_command_vdc_vApp_upload_createUploadXml()
 									</NetworkConnection>
 				EOF
 				
-			done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/ovf:Item" 'rasd:ResourceType' '../../@ovf:id' 'rasd:AddressOnParent' 'rasd:Connection' 'rasd:Connection/@vcloud:primaryNetworkConnection' 'rasd:Connection/@vcloud:ipAddressingMode')
+			done <"$tsvDataFile"
 			
 			cat <<-EOF
 									<PrimaryNetworkConnectionIndex>${primaryNetworkConnectionIndex}</PrimaryNetworkConnectionIndex>
