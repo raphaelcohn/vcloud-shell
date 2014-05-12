@@ -26,53 +26,6 @@ function api_command_vdc_vApp_upload()
 		vsh_message FAIL "OVF descriptor $ovfDescriptorFilePath does not exist or is empty"
 	fi
 	
-	local -r networkName="vAppNetwork"
-	local -r parentNetworkHref="https://api.vcd.portal.skyscapecloud.com/api/network/7dbd25ab-1eaf-4d7f-9aee-06603a7bea81" # Org DMZ network, find these on the vdc object (networks section)
-	local -r fenceMode="bridged"
-	
-	# Network presumeably defined in the OVF
-	local -r sourceNetworkName="Network 1"
-	
-	# Needs to match a VM name in the OVF!
-	local -r vmName="VM-1"
-	
-	temporaryFiles_newFileToRemoveOnExit
-	local -r xmlFilePath="$TMP_FILE"
-	cat >"$xmlFilePath" <<-EOF
-		<?xml version='1.0' encoding='UTF-8'?>
-		<InstantiateOvfParams xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns="http://www.vmware.com/vcloud/v1.5" name="${vAppName}">
-			<Description>${vAppName}</Description>
-			<InstantiationParams>
-				<NetworkConfigSection>
-					<ovf:Info>Configuration parameters for logical networks</ovf:Info>
-					<NetworkConfig networkName="${networkName}">
-						<Configuration>
-							<ParentNetwork href="${parentNetworkHref}"/>
-							<FenceMode>${fenceMode}</FenceMode>
-						</Configuration>
-					</NetworkConfig>
-				</NetworkConfigSection>
-			</InstantiationParams>
-			<AllEULAsAccepted>true</AllEULAsAccepted>
-			<NetworkMapping>
-				<Source>${sourceNetworkName}</Source>
-				<Target>${networkName}</Target>
-			</NetworkMapping>
-			<InstantiateVmParams id="${vmName}">
-				<Name>${vmName}</Name>
-				<NetworkConnectionSection>
-					<ovf:Info/>
-					<PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
-					<NetworkConnection network="${sourceNetworkName}">
-						<NetworkConnectionIndex>0</NetworkConnectionIndex>
-						<IsConnected>true</IsConnected>
-						<IpAddressAllocationMode>POOL</IpAddressAllocationMode>
-					</NetworkConnection>
-				</NetworkConnectionSection>
-				<ComputerName>${vAppName}</ComputerName>
-			</InstantiateVmParams>
-		</InstantiateOvfParams>
-	EOF
 	
 	
 	local curl_downloadFilePath
@@ -86,6 +39,19 @@ function api_command_vdc_vApp_upload()
 	
 	api_call_get links-vdcs api_callback_fromName_api_command_vdc_vApp_upload api_callback_test_fromName vdc "$vdcName" '' \
 		api_command_admin "$orgName"
+	
+	
+	
+	declare -A vdcNetworkNameToHref
+	declare -A ovfVmIdToComputerName
+	declare -A ovfNetworkToVCloudNetwork
+	declare -A vCloudNetworkToParentNetworkHref
+	declare -A vCloudNetworkToFenceMode
+	api_command_vdc_vApp_upload_parseDataFromOvf
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r xmlFilePath="$TMP_FILE"
+	api_command_vdc_vApp_upload_createUploadXml >"$xmlFilePath"
 	
 	function api_command_vdc_vApp_upload_get()
 	{
@@ -108,6 +74,168 @@ function api_command_vdc_vApp_upload()
 		done
 	
 	popd 1>/dev/null 2>/dev/null
-	
 	api_upload_createTemplateAndUploadFiles "$parentFolderPath" "$uploadUrl" api_command_vdc_vApp_upload_get "VApp" "application/vnd.vmware.vcloud.instantiateOvfParams+xml" "$xmlFilePath"
+}
+
+function api_command_vdc_vApp_upload_parseDataFromOvf()
+{
+	local vCloudNetworkName
+	while IFS=$'\x01' read -r href mimeType vCloudNetworkName
+	do
+		vdcNetworkNameToHref["$vCloudNetworkName"]="$href"
+	done< <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' api links-networks vdc "$orgName" "$vdcName")
+	
+	local vmId
+	local vmName
+	local vcloudVmName
+	while IFS=$'\x01' read -r vmId vmName vcloudVmName
+	do
+		if [ -n "$vcloudVmName" ]; then
+			if [ "$vmName" != "$vcloudVmName" ]; then
+				vsh_message FAIL "Ensure ovf:Name matches vcloud:ComputerName"
+			fi
+		fi
+	
+		ovfVmIdToComputerName["$vmId"]="$vmName"
+	
+	done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem" '@ovf:id' '@ovf:Name' '/vcloud:GuestCustomizationSection/vcloud:ComputerName')
+
+	while IFS=$'\x01' read -r ovfNetworkName
+	do
+		# We currently assume a 1:1 map, and that the ovf:Network sections == vcloud:NetworkConfig exactly
+		vCloudNetworkName="$ovfNetworkName"
+		ovfNetworkToVCloudNetwork["$ovfNetworkName"]="$vCloudNetworkName"
+		# Org DMZ network, find these on the vdc object (networks section)
+		vCloudNetworkToParentNetworkHref["$vCloudNetworkName"]="https://api.vcd.portal.skyscapecloud.com/api/network/7dbd25ab-1eaf-4d7f-9aee-06603a7bea81"
+	
+	done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:NetworkSection/ovf:Network" '@ovf:name')
+
+	local fenceMode
+	while IFS=$'\x01' read -r vCloudNetworkName fenceMode
+	do
+		# bridged, isolated are valid fence modes we know of
+		vCloudNetworkToFenceMode["$vCloudNetworkToFenceMode"]="$fenceMode"
+	done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfig/vcloud:Configuration" '../@networkName' 'vcloud:FenceMode')
+}
+
+function api_command_vdc_vApp_upload_createUploadXml()
+{
+	# <!-- Can also have an attribute 'transferFormat' on InstantiateOvfParams -->
+	cat <<-EOF
+						<?xml version='1.0' encoding='UTF-8'?>
+						<InstantiateOvfParams xmlns:ovf="http://schemas.dmtf.org/ovf/envelope/1" xmlns="http://www.vmware.com/vcloud/v1.5" name="${vAppName}">
+							<Description>${vAppName}</Description>
+							<InstantiationParams>
+								<NetworkConfigSection>
+									<ovf:Info>Configuration parameters for logical networks</ovf:Info>
+	EOF
+	
+	local targetNetworkName
+	local parentNetworkHref
+	local fenceMode
+	for targetNetworkName in "${!vCloudNetworkToParentNetworkHref[@]}"
+	do
+		parentNetworkHref="${vdcNetworkNameToHref["$targetNetworkName"]}"
+		if [ -z "$parentNetworkHref" ]; then
+			vsh_message FAIL "Unknown href in VDC networks for netowrk $targetNetworkName"
+		fi
+		
+		fenceMode="${vCloudNetworkToFenceMode["$targetNetworkName"]}"
+		cat <<-EOF
+									<NetworkConfig networkName="${targetNetworkName}">
+										<Configuration>
+											<ParentNetwork href="${parentNetworkHref}"/>
+											<FenceMode>${fenceMode}</FenceMode>
+										</Configuration>
+									</NetworkConfig>
+		EOF
+	done
+	
+	cat <<-EOF
+								</NetworkConfigSection>
+							</InstantiationParams>
+							<AllEULAsAccepted>true</AllEULAsAccepted>
+	EOF
+	
+	for ovfNetworkName in "${!ovfNetworkToVCloudNetwork[@]}"
+	do
+		targetNetworkName="${ovfNetworkToVCloudNetwork["$ovfNetworkName"]}"
+		cat <<-EOF
+							<NetworkMapping>
+								<Source>${ovfNetworkName}</Source>
+								<Target>${targetNetworkName}</Target>
+							</NetworkMapping>
+		EOF
+	done
+	
+	# <!-- 0 to inf -->
+	# <!-- InstantiateOvfProperty : maps ovf properties to instantiation values -->
+	
+	local vmId
+	local vmName
+	for vmId in "${!ovfVmIdToComputerName[@]}"
+	do
+		vmName="${ovfVmIdToComputerName["$vmId"]}"
+		cat <<-EOF
+							<InstantiateVmParams id='${vmName}'>
+		EOF
+		
+			cat <<-EOF
+								<NetworkConnectionSection>
+									<ovf:Info/>
+									<PrimaryNetworkConnectionIndex>0</PrimaryNetworkConnectionIndex>
+			EOF
+			
+			# needs optimising to match attribute values in XPath
+			temporaryFiles_newFileToRemoveOnExit
+			local xmlLayoutWorkAroundFile="$TMP_FILE"
+			local -i resourceType
+			local loopVmId
+			local -i networkConnectionIndex
+			local ovfNetworkName
+			local primaryNetworkConnectionBoolean
+			local -i primaryNetworkConnectionIndex
+			local ipAddressAllocationMode
+			while IFS=$'\x01' read -r resourceType loopVmId networkConnectionIndex ovfNetworkName primaryNetworkConnectionBoolean ipAddressAllocationMode
+			do
+				# ie a NIC
+				if [ $resourceType -ne 10 ]; then
+					continue
+				fi
+				if [ "$loopVmId" != "$vmId" ]; then
+					continue
+				fi
+				
+				if [ "$primaryNetworkConnectionBoolean" = "true" ]; then
+					primaryNetworkConnectionIndex=$networkConnectionIndex
+				fi
+				
+				cat >>"$xmlLayoutWorkAroundFile" <<-EOF
+									<NetworkConnection network="${ovfNetworkName}">
+										<NetworkConnectionIndex>${networkConnectionIndex}</NetworkConnectionIndex>
+										<IsConnected>true</IsConnected>
+										<IpAddressAllocationMode>${ipAddressAllocationMode}</IpAddressAllocationMode>
+									</NetworkConnection>
+				EOF
+				
+			done < <(defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem/ovf:VirtualHardwareSection/ovf:Item" 'rasd:ResourceType' '../../@ovf:id' 'rasd:AddressOnParent' 'rasd:Connection' 'rasd:Connection/@vcloud:primaryNetworkConnection' 'rasd:Connection/@vcloud:ipAddressingMode')
+			
+			cat <<-EOF
+									<PrimaryNetworkConnectionIndex>${primaryNetworkConnectionIndex}</PrimaryNetworkConnectionIndex>
+			EOF
+			
+			cat "$xmlLayoutWorkAroundFile"
+			
+			cat <<-EOF
+								</NetworkConnectionSection>
+								<ComputerName>${vmName}</ComputerName>
+							</InstantiateVmParams>
+			EOF
+								#<!-- VdcStorageProfile -->
+								#<!-- HardwareCustomization -->
+	done
+	
+	cat <<-EOF
+						</InstantiateOvfParams>
+	EOF
 }

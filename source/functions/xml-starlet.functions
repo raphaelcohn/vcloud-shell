@@ -50,8 +50,6 @@ function xml_starlet_tsv()
 		
 		# This design handles missing values
 		outputArguments+=('--value-of' "$attributeOrElement")
-		
-		# concat(/Foo/Baz, substring('not-found', 1 div not(/Foo/Baz)))
 	done
 	
 	if [ "$defaults_format_headings" = "with-heading" ]; then
