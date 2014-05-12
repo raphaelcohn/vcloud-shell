@@ -51,8 +51,7 @@ function api_command_vdc_vApp_upload()
 	temporaryFiles_newFileToRemoveOnExit
 	local -r xmlFilePath="$TMP_FILE"
 	api_command_vdc_vApp_upload_createUploadXml >"$xmlFilePath"
-	cat "$xmlFilePath"
-	exit 50
+	
 	function api_command_vdc_vApp_upload_get()
 	{
 		api_format=none api_command_vdc_media "$orgName" "$vdcName" "$vAppName"
