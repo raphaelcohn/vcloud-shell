@@ -137,20 +137,30 @@ function api_command_vdc_vApp_upload_createUploadXml()
 	local fenceMode
 	for targetNetworkName in "${!vCloudNetworkToFenceMode[@]}"
 	do
-		parentNetworkHref="${vdcNetworkNameToHref["$targetNetworkName"]}"
-		if [ -z "$parentNetworkHref" ]; then
-			vsh_message FAIL "Unknown href in VDC networks for network $targetNetworkName"
-		fi
-		
 		fenceMode="${vCloudNetworkToFenceMode["$targetNetworkName"]}"
-		cat <<-EOF
+		if [ "$fenceMode" = "isolated" ]; then
+			
+			cat <<-EOF
+									<NetworkConfig networkName="${targetNetworkName}">
+										<Configuration>
+											<FenceMode>${fenceMode}</FenceMode>
+										</Configuration>
+									</NetworkConfig>
+			EOF
+		else
+			parentNetworkHref="${vdcNetworkNameToHref["$targetNetworkName"]}"
+			if [ -z "$parentNetworkHref" ]; then
+				vsh_message FAIL "Unknown href in VDC networks for network $targetNetworkName"
+			fi
+			cat <<-EOF
 									<NetworkConfig networkName="${targetNetworkName}">
 										<Configuration>
 											<ParentNetwork href="${parentNetworkHref}"/>
 											<FenceMode>${fenceMode}</FenceMode>
 										</Configuration>
 									</NetworkConfig>
-		EOF
+			EOF
+		fi
 	done
 	
 	cat <<-EOF
