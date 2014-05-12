@@ -18,31 +18,3 @@ function api_command_session()
 	api_call_recordDownload
 	api_format_${FUNCNAME[0]:12}
 }
-
-function api_format_session()
-{
-	local -r prefix="${FUNCNAME[0]:11}"
-	case "$api_format" in
-		
-		none)
-			:
-		;;
-		
-		xml)
-			cat "$curl_downloadFilePath"
-		;;
-		
-		links)
-			xml_starlet_tsv_links_name '/_:Session/_:Link'
-		;;
-		
-		id-*)
-			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:Session' '@href' '@type' '@userId' '@user' '@org'
-		;;
-		
-		*)
-			vsh_message FAIL "Please specify api_format as either xml, links or id, not $api_format"
-		;;
-		
-	esac
-}

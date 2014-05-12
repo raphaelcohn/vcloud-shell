@@ -13,7 +13,8 @@ echo
 
 sleep 1
 echo "Sessions retrieved at login"
-cat "$downloadSessions"
+defaults_format_separator=$'\t' format id-bash session "$downloadSessions"
+defaults_format_separator=$'\t' format links session "$downloadSessions"
 echo
 echo
 
