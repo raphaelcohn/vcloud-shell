@@ -50,7 +50,10 @@ function api_command_vdc_vApp_upload()
 	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r xmlFilePath="$TMP_FILE"
+	set -x
 	api_command_vdc_vApp_upload_createUploadXml >"$xmlFilePath"
+	cat "$xmlFilePath"
+	exit 50
 	
 	function api_command_vdc_vApp_upload_get()
 	{
@@ -90,9 +93,6 @@ function api_command_vdc_vApp_upload_parseDataFromOvf()
 	done <"$temporaryFile"
 	
 	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:VirtualSystem" '@ovf:id' 'ovf:Name' 'vcloud:GuestCustomizationSection/vcloud:ComputerName' >"$temporaryFile"
-	cat "$temporaryFile" 1>&2
-	exit 50
-	set -x
 	local vmId
 	local vmName
 	local vcloudVmName
@@ -105,7 +105,6 @@ function api_command_vdc_vApp_upload_parseDataFromOvf()
 		fi
 		ovfVmIdToComputerName["$vmId"]="$vmName"
 	done <"$temporaryFile"
-	exit 50
 	
 	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/ovf:NetworkSection/ovf:Network" '@ovf:name' >"$temporaryFile"
 	while IFS=$'\x01' read -r ovfNetworkName
@@ -113,14 +112,14 @@ function api_command_vdc_vApp_upload_parseDataFromOvf()
 		# We currently assume a 1:1 map, and that the ovf:Network sections == vcloud:NetworkConfig exactly
 		vCloudNetworkName="$ovfNetworkName"
 		ovfNetworkToVCloudNetwork["$ovfNetworkName"]="$vCloudNetworkName"
-	done <"$TMP_FILE"
+	done <"$temporaryFile"
 	
-	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfig/vcloud:Configuration" '../@networkName' 'vcloud:FenceMode' >"$temporaryFile"
+	defaults_format_headings=no-heading defaults_format_separator=$'\x01' xml_starlet_tsv "$ovfDescriptorFilePath" "/ovf:Envelope/vcloud:NetworkConfigSection/vcloud:NetworkConfig" '@networkName' 'vcloud:Configuration/vcloud:FenceMode' >"$temporaryFile"
 	local fenceMode
 	while IFS=$'\x01' read -r vCloudNetworkName fenceMode
 	do
 		# bridged, isolated are valid fence modes we know of
-		vCloudNetworkToFenceMode["$vCloudNetworkToFenceMode"]="$fenceMode"
+		vCloudNetworkToFenceMode["$vCloudNetworkName"]="$fenceMode"
 	done <"$temporaryFile"
 }
 
@@ -141,9 +140,12 @@ function api_command_vdc_vApp_upload_createUploadXml()
 	local fenceMode
 	for targetNetworkName in "${!vCloudNetworkToFenceMode[@]}"
 	do
+		echo $targetNetworkName
+		echo ${!vdcNetworkNameToHref[@]}
+		echo ${vdcNetworkNameToHref[@]}
 		parentNetworkHref="${vdcNetworkNameToHref["$targetNetworkName"]}"
 		if [ -z "$parentNetworkHref" ]; then
-			vsh_message FAIL "Unknown href in VDC networks for netowrk $targetNetworkName"
+			vsh_message FAIL "Unknown href in VDC networks for network $targetNetworkName"
 		fi
 		
 		fenceMode="${vCloudNetworkToFenceMode["$targetNetworkName"]}"
