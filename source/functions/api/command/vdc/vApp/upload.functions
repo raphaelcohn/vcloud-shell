@@ -54,9 +54,9 @@ function api_command_vdc_vApp_upload()
 	
 	function api_command_vdc_vApp_upload_get()
 	{
-		api_format=none api_command_vdc_media "$orgName" "$vdcName" "$vAppName"
+		api_format=none api_command_vdc_vApp "$orgName" "$vdcName" "$vAppName"
 	}
-	
+	set -x
 	declare -A api_upload_fileNameMap
 	pushd "$ovfFolderPath" 1>/dev/null 2>/dev/null
 	
