@@ -1,0 +1,4 @@
+function dependency_Debian_packageManager()
+{
+	dependency_Ubuntu_packageManager
+}

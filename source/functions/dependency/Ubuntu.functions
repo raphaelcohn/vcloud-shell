@@ -1,0 +1,11 @@
+function dependency_Ubuntu_packageManager()
+{
+	if [ "$vsh_beVerbose" = no ]; then
+		local -r aptVerbosity=" --quiet"
+	else
+		local -r aptVerbosity=""
+	fi
+	
+	sudo -p "Please enter your password for sudo to update apt: " apt-get${aptVerbosity} --yes update
+	sudo -p "Please enter your password for sudo to run apt-get install: " apt-get${aptVerbosity} --yes install "$@"
+}
