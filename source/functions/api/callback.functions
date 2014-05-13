@@ -49,6 +49,11 @@ function api_callback_fromNameAndMimeTypeIsDisk()
 	api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.disk+xml"
 }
 
+function api_callback_fromNameAndMimeTypeIsStorageProfile()
+{
+	api_callback_fromNameAndMimeType "$@" "application/vnd.vmware.vcloud.vdcStorageProfile+xml"
+}
+
 # the Link rel=remove is an earlier sibling to the Key value and has a non-unique mime-type and no name, so we can't just find it by simple query
 # This technique constructs the URL in violation of the API design
 function api_callback_fromMimeTypeAndModifyWithKeyName()
@@ -135,7 +140,6 @@ function api_callback_fromNameAndMimeType
 			return 0
 		fi
 	done <"$linksTsvFile"
-	
 	api_callback_failed
 }
 

@@ -1,0 +1,50 @@
+function api_command_vdc_storageProfile()
+{
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
+	if [ $# -ne 3 ]; then
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <storageProfileName>"
+	fi
+	
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r storageProfileName="$3"
+	
+	local -r key="${FUNCNAME[0]:12}_${orgName}_${vdcName}_${storageProfileName}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		api_call_get links-storage-profiles api_callback_fromNameAndMimeTypeIsStorageProfile api_callback_test_fromNameAndMimeType storageProfile "$storageProfileName" '' \
+			api_command_vdc "$orgName" "$vdcName"
+		api_call_cacheDownload
+	fi
+	
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
+}
+
+function api_format_vdc_storageProfile()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
+	case "$api_format" in
+		
+		none)
+			:
+		;;
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+		id-*)
+			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:VdcStorageProfile' '@name' '@id' '@type' '@href' \
+				'_:Enabled' '_:Units' '_:Limit' '_:Default'
+		;;
+		
+		links)
+			xml_starlet_tsv_links_rel '/_:VdcStorageProfile/_:Link'
+		;;
+		
+	esac
+}
