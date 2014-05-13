@@ -58,6 +58,7 @@ function main_validateDefault()
 function main_validateDefaults()
 {
 	main_validateDefault defaults_api_version
+	main_validateDefault defaults_curl_supportsNetrcFileOption
 	main_validateDefault defaults_curl_userAgent
 	main_validateDefault defaults_curl_maxRedirs
 	main_validateDefault defaults_curl_retries
@@ -70,7 +71,7 @@ main_functions+=(main_validateDefaults)
 function main_makeDefaultsReadonly()
 {
 	# defaults_format_headings, defaults_format_separator can not be readonly
-	readonly defaults_api_version defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption
+	readonly defaults_api_version defaults_curl_supportsNetrcFileOption defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption
 }
 main_functions+=(main_makeDefaultsReadonly)
 

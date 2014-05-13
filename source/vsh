@@ -213,13 +213,14 @@ Defaults are used to control common use cases. Defaults for values are sourced a
 
 The values that can be configured are:-
     
-    Value                      Built-in Value
-    defaults_api_version       ${defaults_api_version}
-    defaults_curl_userAgent    ${defaults_curl_userAgent}
-    defaults_curl_maxRedirs    ${defaults_curl_maxRedirs}
-    defaults_curl_retries      ${defaults_curl_retries}
-    defaults_format_headings   ${defaults_format_headings} (no-heading or with-heading)
-    defaults_format_separator  ${defaults_format_separator} (tab)
+    Value                                  Built-in Value
+    defaults_api_version                   ${defaults_api_version}
+    defaults_curl_supportsNetrcFileOption  ${defaults_curl_supportsNetrcFileOption}
+    defaults_curl_userAgent                ${defaults_curl_userAgent}
+    defaults_curl_maxRedirs                ${defaults_curl_maxRedirs}
+    defaults_curl_retries                  ${defaults_curl_retries}
+    defaults_format_headings               ${defaults_format_headings} (no-heading or with-heading)
+    defaults_format_separator              ${defaults_format_separator} (tab)
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager
