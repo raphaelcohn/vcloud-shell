@@ -1,3 +1,0 @@
-defaults_prompt_colourise=yes
-defaults_prompt_value="$ourName >"
-defaults_prompt_colour="yellow black bold underline"

@@ -1,28 +1,30 @@
 # Inspired by https://code.google.com/p/ansi-color/
 
-function colour_colorise()
+readonly colour_begin='\033['
+readonly colour_begin_end='m'
+readonly colour_end='\033[0m'
+
+function colour_colourise_begin()
 {
-	local -r message="$1"
-	shift 1
 	local -i afterFirst=0
 	local -i code
 	case $# in
-		
+	
 		0)
 			printf '%s' "$message"
 			return 0
 		;;
-		
+	
 		1)
-			echo -en '\033['
-			
+			echo -en "$colour_begin"
+		
 			foreground="$1"
 			colour_foreground
 		;;
-		
+	
 		*)
-			echo -en '\033['
-			
+			echo -en "$colour_begin"
+		
 			foreground="$1"
 			background="$2"
 			shift 2
@@ -31,23 +33,28 @@ function colour_colorise()
 			do
 				colour_textEffect
 			done
-			
+		
 			colour_foreground
 			colour_background
-			
-		;;
 		
-	esac
+		;;
 	
-	echo -en m;
-	printf '%s' "$message"
-	echo -en '\033[0m'
+	esac
+
+	echo -en "$colour_begin_end"
 }
 
-function colour_effect()
+function colour_colourise()
 {
 	local -r message="$1"
 	shift 1
+	colour_colourise_begin "$@"
+	printf '%s' "$message"
+	echo -en "$colour_end"
+}
+
+function colour_effect_begin()
+{
 	local -i afterFirst=0
 	local -i code
 	
@@ -57,11 +64,19 @@ function colour_effect()
 	do
 		colour_textEffect
 	done
-	echo -en m;
+	echo -en "$colour_begin_end"
+}
+
+function colour_effect()
+{
+	local -r message="$1"
+	shift 1
+	
+	colour_effect_begin "$@"
 	
 	printf '%s' "$message"
 	
-	echo -en '\033[0m'
+	echo -en "$colour_end"
 }
 
 function colour_foreground()

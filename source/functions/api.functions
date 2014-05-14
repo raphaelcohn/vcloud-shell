@@ -1,6 +1,6 @@
 function api_help_colorise()
 {
-	if [ "$defaults_prompt_colourise" = 'yes' ]; then
+	if [ "$defaults_colour_on" = 'yes' ]; then
 		colour_effect "$1" bold
 	else
 		echo -n "$1"

@@ -218,15 +218,16 @@ The values that can be configured are:-
     
     Value                                  Built-in Value
     defaults_api_version                   ${defaults_api_version}
+    defaults_colour_on                     ${defaults_colour_on}
+    defaults_colour_value                  ${defaults_colour_value}
+    defaults_colour_prompt                 ${defaults_colour_prompt}
+    defaults_colour_line                   ${defaults_colour_line}
     defaults_curl_supportsNetrcFileOption  ${defaults_curl_supportsNetrcFileOption}
     defaults_curl_userAgent                ${defaults_curl_userAgent}
     defaults_curl_maxRedirs                ${defaults_curl_maxRedirs}
     defaults_curl_retries                  ${defaults_curl_retries}
     defaults_format_headings               ${defaults_format_headings} (no-heading or with-heading)
     defaults_format_separator              ${defaults_format_separator} (tab)
-    defaults_prompt_colourise              ${defaults_prompt_colourise}
-    defaults_prompt_value                  ${defaults_prompt_value}
-    defaults_prompt_colour                 ${defaults_prompt_colour}
 
 Paths
 A path is used to define the location of essential programs used during initial bootstrapping. It also defines a packageManager

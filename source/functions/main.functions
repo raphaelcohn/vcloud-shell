@@ -58,6 +58,10 @@ function main_validateDefault()
 function main_validateDefaults()
 {
 	main_validateDefault defaults_api_version
+	main_validateDefault defaults_colour_on
+	main_validateDefault defaults_colour_value
+	main_validateDefault defaults_colour_prompt
+	main_validateDefault defaults_colour_line
 	main_validateDefault defaults_curl_supportsNetrcFileOption
 	main_validateDefault defaults_curl_userAgent
 	main_validateDefault defaults_curl_maxRedirs
@@ -65,16 +69,13 @@ function main_validateDefaults()
 	main_validateDefault defaults_curl_supportsNetrcFileOption
 	main_validateDefault defaults_format_headings
 	main_validateDefault defaults_format_separator
-	main_validateDefault defaults_prompt_colourise
-	main_validateDefault defaults_prompt_value
-	main_validateDefault defaults_prompt_colour
 }
 main_functions+=(main_validateDefaults)
 
 function main_makeDefaultsReadonly()
 {
 	# defaults_format_headings, defaults_format_separator can not be readonly
-	readonly defaults_api_version defaults_curl_supportsNetrcFileOption defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption defaults_prompt_colourise defaults_prompt_value defaults_prompt_colour
+	readonly defaults_api_version defaults_colour_on defaults_colour_value defaults_colour_prompt defaults_colour_line defaults_curl_supportsNetrcFileOption defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption
 }
 main_functions+=(main_makeDefaultsReadonly)
 
@@ -83,18 +84,21 @@ main_functions+=(dependency_installDependencies)
 function main_welcome()
 {
 	if [ "${vsh_bePrompt}" = "yes" ]; then
-		if [ "$defaults_prompt_colourise" = 'yes' ]; then
-			local -r vshMessage="$(colour_effect "$ourName" bold)"
+		if [ "$defaults_colour_on" = 'yes' ]; then
+			local headingLine="$(colour_colourise "                                " magenta black bold underline)"
+			headingLine="${headingLine}"$'\n'
+			local -r vshMessage="${headingLine}$(colour_colourise "Welcome to $ourName, the vCloud Shell" yellow black bold)"
 		else
-			local -r vshMessage="$ourName"
+			local -r vshMessage="Welcome to $ourName, the vCloud Shell"
 		fi
-		echo "Welcome to $vshMessage, the vCloud Shell"
+		echo "$vshMessage"
 		echo -n "Logging in, please wait..."
 	fi
 }
 main_functions+=(main_welcome)
 
 main_prompt="$ourName >"
+main_line_end=""
 main_commands=""
 function main_login()
 {
@@ -104,15 +108,17 @@ function main_login()
 	
 	trapHandlers_addNext api_session_logout
 	
-	if [ "$defaults_prompt_colourise" = 'yes' ]; then
-		main_prompt="$(colour_colorise "$defaults_prompt_value" $defaults_prompt_colour)"
+	if [ "$defaults_colour_on" = 'yes' ]; then
+		main_prompt="$(colour_colourise "$defaults_colour_value" $defaults_colour_prompt)"
+		main_line_end="$colour_end"
 		local -r message="${api_commands[@]}"
 		main_commands="$(colour_effect "$message" bold)"
 		local -r helpMessage="$(colour_effect "help <command>" bold)"
 		local -r exitMessage="$(colour_effect "exit" bold)"
 		local -r ctrlC="$(colour_effect "Ctrl-C" bold)"
 	else
-		main_prompt="${defaults_prompt_value} "
+		main_prompt="${defaults_colour_value} "
+		main_line_end=""
 		main_commands="${api_commands[@]}"
 		local -r helpMessage="help <command>"
 		local -r exitMessage="exit"
@@ -137,6 +143,7 @@ function main_executeCommands()
 {
 	if [ "${vsh_bePrompt}" = "yes" ]; then
 		(
+			local -r prompt="${main_prompt} $(colour_colourise_begin $defaults_colour_line)"
 			vsh_message_failExits="no"
 			declare -a downloads=()
 			declare -A api_downloadsCache
@@ -146,7 +153,9 @@ function main_executeCommands()
 			
 			while true
 			do
-				read -e -p "${main_prompt} " -r line
+				read -e -p "$prompt" -r line
+				
+				echo -en "$main_line_end"
 				
 				set +e
 				eval "${line}"

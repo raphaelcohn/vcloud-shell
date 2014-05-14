@@ -1,0 +1,4 @@
+defaults_colour_on=yes
+defaults_colour_value="$ourName >"
+defaults_colour_prompt="green black faint"
+defaults_colour_line="green black bold"
