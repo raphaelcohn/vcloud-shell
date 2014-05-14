@@ -36,7 +36,6 @@ function colour_colourise_begin()
 		
 			colour_foreground
 			colour_background
-		
 		;;
 	
 	esac
