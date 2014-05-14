@@ -1,9 +1,54 @@
+function api_help_colorise()
+{
+	if [ "$defaults_prompt_colourise" = 'yes' ]; then
+		colour_effect "$1" bold
+	else
+		echo -n "$1"
+	fi
+}
+
 api_commands=()
+
+function help()
+{
+	if [ $# -eq 0 ]; then
+		echo "Built-in commands are ${main_commands}" 1>&2
+		return 0
+	fi
+	
+	local apiCommand apiCommandKnown
+	local -i found
+	while [ $# -gt 0 ]
+	do
+		apiCommand="$1"
+		found=0
+		for apiCommandKnown in "${api_commands[@]}"
+		do
+			if [ "$apiCommand" = "$apiCommandKnown" ]; then
+				api_help_${apiCommand} 1>&2
+				echo 1>&2
+				found=1
+			fi
+		done
+		if [ $found -eq 0 ]; then
+			echo "$apiCommand is not known" 1>&2
+		fi
+		shift 1
+	done
+}
+api_commands+=(help)
+
+function api_help_help()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} [<command>]")  Displays list of commands or help for <command>"
+}
+
+api_commands+=(exit)
 
 function api()
 {
 	if [ $# -lt 2 ]; then
-		vsh_message FAIL "api $api_format must specify <format> <action>"
+		vsh_message FAIL "api must specify <format> <action>, eg api $api_format admins"
 	fi
 	local api_format="$1"
 	local -r apiCommand="$2"
@@ -15,6 +60,12 @@ function api()
 	downloadNumber=$((downloadNumber+1))
 }
 api_commands+=(api)
+
+function api_help_api()
+{
+	echo "$(api_help_colorise "[api_format=none|xml|FORMAT] [defaults_format_headings=OPTION] [defaults_format_separator=SEPARATOR] ${FUNCNAME:9} <format> <action> [<arguments>...]")  Call an API and return XML"
+	printf '%s\n' 'Specify api_format, defaults_format_headings or defaults_format_separator to override the defaults for the output'
+}
 
 api_format=xml
 function format()
@@ -37,6 +88,15 @@ function format()
 }
 api_commands+=(format)
 
+function api_help_format()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} <format> <formatCommand> [<files>...]")  Format XML"
+	printf '%s\n' 'Where files is a path to a file (or files) or:-'
+	printf '\t%s\n' '"${downloads[N]}"    to use a previous download, where N is a zero-based index'
+	printf '\t%s\n' '"$downloadVersions"  to use the versions XML downloaded during login'
+	printf '\t%s\n' '"$downloadSessions"  to use the session XML downloaded during login'
+}
+
 function reset()
 {
 	local key
@@ -47,9 +107,20 @@ function reset()
 }
 api_commands+=(reset)
 
+function api_help_reset()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9}")   Resets all caches"
+}
+
 function cached()
 {
 	# pass function name, arguments
 	echo -n "${api_downloadsCache["$(api_call_cache_key "$@")"]}"
 }
 api_commands+=(cached)
+
+function api_help_cached()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9}")  Returns a path to a file of cached content based on a key"
+	printf '%s\n' 'Use as  "$(cached <api-command> <argument> <argument> ... )"  whereargument is one of the arguments used to the original <api-command>'
+}

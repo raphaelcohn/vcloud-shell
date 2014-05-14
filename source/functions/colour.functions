@@ -1,0 +1,209 @@
+# Inspired by https://code.google.com/p/ansi-color/
+
+function colour_colorise()
+{
+	local -r message="$1"
+	shift 1
+	local -i afterFirst=0
+	local -i code
+	case $# in
+		
+		0)
+			printf '%s' "$message"
+			return 0
+		;;
+		
+		1)
+			echo -en '\033['
+			
+			foreground="$1"
+			colour_foreground
+		;;
+		
+		*)
+			echo -en '\033['
+			
+			foreground="$1"
+			background="$2"
+			shift 2
+			local textEffect
+			for textEffect in "$@"
+			do
+				colour_textEffect
+			done
+			
+			colour_foreground
+			colour_background
+			
+		;;
+		
+	esac
+	
+	echo -en m;
+	printf '%s' "$message"
+	echo -en '\033[0m'
+}
+
+function colour_effect()
+{
+	local -r message="$1"
+	shift 1
+	local -i afterFirst=0
+	local -i code
+	
+	echo -en '\033['
+	local textEffect
+	for textEffect in "$@"
+	do
+		colour_textEffect
+	done
+	echo -en m;
+	
+	printf '%s' "$message"
+	
+	echo -en '\033[0m'
+}
+
+function colour_foreground()
+{
+	case "$foreground" in
+		
+		black)
+			code=30
+		;;
+		
+		red)
+			code=31
+		;;
+		
+		green)
+			code=32
+		;;
+		
+		yellow)
+			code=33
+		;;
+		
+		blue)
+		 	code=34
+		;;
+		
+		magenta)
+			code=35
+		;;
+		
+		cyan)
+			code=36
+		;;
+		
+		white)
+			code=37
+		;;
+		
+		*)
+			vsh_message FAIL "Unrecognised foreground colour $foreground"
+		;;
+	esac
+	
+	colour_write
+}
+
+function colour_write()
+{
+	if [ $afterFirst -eq 1 ]; then
+		echo -en ';'
+	else
+		afterFirst=1
+	fi
+	echo -en "$code"
+}
+
+function colour_background()
+{
+	case "$background" in
+		
+		black)
+			code=40
+		;;
+		
+		red)
+			code=41
+		;;
+		
+		green)
+			code=42
+		;;
+		
+		yellow)
+			code=44
+		;;
+		
+		blue)
+		 	code=44
+		;;
+		
+		magenta)
+			code=45
+		;;
+		
+		cyan)
+			code=46
+		;;
+		
+		white)
+			code=47
+		;;
+		
+		*)
+			vsh_message FAIL "Unrecognised background colour $foreground"
+		;;
+	esac
+	
+	colour_write
+}
+
+function colour_textEffect()
+{
+	case "$textEffect" in
+		normal)
+			code=0
+		;;
+		
+		bold)
+			code=1
+		;;
+		
+		faint)
+			code=2
+		;;
+		
+		italic)
+			code=3
+		;;
+		
+		underline)
+			code=4
+		;;
+		
+		blink)
+			code=5
+		;;
+		
+		fastblink)
+			code=6
+		;;
+		
+		reversevideo)
+			code=7
+		;;
+		
+		invisible) code=8
+		;;
+		
+		*)
+			vsh_message FAIL "Unrecognised background colour $foreground"
+		;;
+	esac
+	
+	colour_write
+}

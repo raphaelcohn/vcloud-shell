@@ -65,13 +65,16 @@ function main_validateDefaults()
 	main_validateDefault defaults_curl_supportsNetrcFileOption
 	main_validateDefault defaults_format_headings
 	main_validateDefault defaults_format_separator
+	main_validateDefault defaults_prompt_colourise
+	main_validateDefault defaults_prompt_value
+	main_validateDefault defaults_prompt_colour
 }
 main_functions+=(main_validateDefaults)
 
 function main_makeDefaultsReadonly()
 {
 	# defaults_format_headings, defaults_format_separator can not be readonly
-	readonly defaults_api_version defaults_curl_supportsNetrcFileOption defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption
+	readonly defaults_api_version defaults_curl_supportsNetrcFileOption defaults_curl_userAgent defaults_curl_maxRedirs defaults_curl_retries defaults_curl_supportsNetrcFileOption defaults_prompt_colourise defaults_prompt_value defaults_prompt_colour
 }
 main_functions+=(main_makeDefaultsReadonly)
 
@@ -80,15 +83,19 @@ main_functions+=(dependency_installDependencies)
 function main_welcome()
 {
 	if [ "${vsh_bePrompt}" = "yes" ]; then
-		cat 1>&2 <<-EOF
-			
-			Welcome to vsh, the vCloud Shell
-			Logging in, please wait...
-		EOF
+		if [ "$defaults_prompt_colourise" = 'yes' ]; then
+			local -r vshMessage="$(colour_effect "$ourName" bold)"
+		else
+			local -r vshMessage="$ourName"
+		fi
+		echo "Welcome to $vshMessage, the vCloud Shell"
+		echo -n "Logging in, please wait..."
 	fi
 }
 main_functions+=(main_welcome)
 
+main_prompt="$ourName >"
+main_commands=""
 function main_login()
 {
 	api_session_versions
@@ -97,12 +104,30 @@ function main_login()
 	
 	trapHandlers_addNext api_session_logout
 	
+	if [ "$defaults_prompt_colourise" = 'yes' ]; then
+		main_prompt="$(colour_colorise "$defaults_prompt_value" $defaults_prompt_colour)"
+		local -r message="${api_commands[@]}"
+		main_commands="$(colour_effect "$message" bold)"
+		local -r helpMessage="$(colour_effect "help <command>" bold)"
+		local -r exitMessage="$(colour_effect "exit" bold)"
+		local -r ctrlC="$(colour_effect "Ctrl-C" bold)"
+	else
+		main_prompt="${defaults_prompt_value} "
+		main_commands="${api_commands[@]}"
+		local -r helpMessage="help <command>"
+		local -r exitMessage="exit"
+		local -r ctrlC="Ctrl-C"
+	fi
+	
 	if [ "${vsh_bePrompt}" = "yes" ]; then
 		cat 1>&2 <<-EOF
-			Logged in.
-			Please type commands at the 'vsh >' prompt
-			Commands known are  ${api_commands[@]}
-			You can also type any valid bash syntax
+			 done
+			
+			Please type commands at the ${main_prompt} prompt
+			Use bash syntax or built-in commands
+			Built-in commands are  ${main_commands}
+			For help type ${helpMessage}
+			To exit type ${exitMessage} or press ${ctrlC}
 		EOF
 	fi
 }
@@ -112,16 +137,20 @@ function main_executeCommands()
 {
 	if [ "${vsh_bePrompt}" = "yes" ]; then
 		(
+			vsh_message_failExits="no"
 			declare -a downloads=()
 			declare -A api_downloadsCache
 			local line
 			local -i downloadNumber=0
 			
+			
 			while true
 			do
-				read -e -p "${ourName}> " -r line
+				read -e -p "${main_prompt} " -r line
 				
+				set +e
 				eval "${line}"
+				set -e
 			done
 		)
 		return 0
