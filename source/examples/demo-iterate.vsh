@@ -8,6 +8,15 @@ api links orgs | while IFS=$'\x01' read -r href mimeType name
 do
 	ORGANISATION="$name"
 	echo " |- ${ORGANISATION}"
+	
+	echo "     |   |- Metadata"
+	api settings org_metadata "$ORGANISATION" | while IFS=$'\x01' read -r key value xsiType
+	do
+		echo "     |   |   |   |   |   |- $key"
+		echo "     |   |   |   |   |   |   |- Value $value"
+		echo "     |   |   |   |   |   |   |- XSI Type $xsiType"
+	done
+	
 	echo "     |- VDCs"
 	api links-vdcs admin "$ORGANISATION" | while IFS=$'\x01' read -r href mimeType name
 	do
@@ -159,6 +168,5 @@ do
 				done
 			fi
 		done
-		
 	done
 done
