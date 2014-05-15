@@ -46,7 +46,46 @@ do
 		echo "     |   |   |- Networks"
 		format links-networks vdc "$download" | while IFS=$'\x01' read -r href mimeType name
 		do
-			echo "     |   |   |   |- $name"
+			NETWORK="$name"
+			echo "     |   |   |   |- $NETWORK"
+			api none vdc_network "$ORGANISATION" "$VDC" "$NETWORK"
+			
+			source <(format id-bash vdc_network "$download")
+			echo "     |   |   |   |   |- id  ${vdc_network_id}"
+			echo "     |   |   |   |   |- Description  ${vdc_network_Description}"
+			echo "     |   |   |   |   |- Status  ${vdc_network_status}"
+			echo "     |   |   |   |   |- Is Shared  ${vdc_network_IsShared}"
+			echo "     |   |   |   |   |- Fencing  ${vdc_network_Configuration_FenceMode}"
+			echo "     |   |   |   |   |- Retain Net Info Across Deployments  ${vdc_network_Configuration_RetainNetInfoAcrossDeployments}"
+			
+			format settings vdc_network "$download" | while IFS=$'\x01' read -r IsInherited Gateway Netmask Dns1 IsEnabled StartAddress EndAddress
+			do
+				echo "     |   |   |   |   |- Settings"
+				echo "     |   |   |   |   |   |- Is Inherited ${IsInherited}"
+				echo "     |   |   |   |   |   |- Gateway ${Gateway}"
+				echo "     |   |   |   |   |   |- Netmask ${Netmask}"
+				echo "     |   |   |   |   |   |- Dns1 ${Dns1}"
+				echo "     |   |   |   |   |   |- Is Enabled ${IsEnabled}"
+				echo "     |   |   |   |   |   |- Start Address ${StartAddress}"
+				echo "     |   |   |   |   |   |- End Address ${EndAddress}"
+			done
+			
+			echo "     |   |   |   |   |- Allocated IP Addresses"
+			api settings vdc_network_allocatedAddresses "$ORGANISATION" "$VDC" "$NETWORK" | while IFS=$'\x01' read -r href mimeType rel name ipAddress isDeployed allocationType
+			do
+				echo "     |   |   |   |   |   |- IP Address ${ipAddress}"
+				echo "     |   |   |   |   |   |   |- Is Deployed ${isDeployed}"
+				echo "     |   |   |   |   |   |   |- Allocation Type ${allocationType}"
+			done
+			
+			
+			echo "     |   |   |   |   |- Metadata"
+			api settings vdc_network_metadata "$ORGANISATION" "$VDC" "$NETWORK" | while IFS=$'\x01' read -r key value xsiType
+			do
+				echo "     |   |   |   |   |   |- $key"
+				echo "     |   |   |   |   |   |   |- Value $value"
+				echo "     |   |   |   |   |   |   |- XSI Type $xsiType"
+			done
 		done
 		
 		echo "     |   |   |- Storage Profiles"
@@ -55,18 +94,13 @@ do
 			echo "     |   |   |   |- $name"
 		done
 		
-		echo "     |   |   |- vAppTemplates"
+		echo "     |   |   |- Disks"
 		format links-resource-entities vdc "$download" | while IFS=$'\x01' read -r href mimeType name
 		do
-			if [ "$mimeType" = "application/vnd.vmware.vcloud.vAppTemplate+xml" ]; then
-				VAPP_TEMPLATE="$name"
-				echo "     |   |   |   |- ${VAPP_TEMPLATE}"
-				api none vdc_vAppTemplate "$ORGANISATION" "$VDC" "$VAPP_TEMPLATE"
-				
-				format links vdc_vAppTemplate "$download" | while IFS=$'\x01' read -r href mimeType name
-				do
-					echo "     |   |   |   |   |- ${href}"
-				done
+			if [ "$mimeType" = "application/vnd.vmware.vcloud.disk+xml" ]; then
+				DISK="$name"
+				echo "     |   |   |   |- ${DISK}"
+				#TODO: api none vdc_disk "$ORGANISATION" "$VDC" "$DISK"
 			fi
 		done
 		
@@ -96,6 +130,21 @@ do
 			fi
 		done
 		
+		echo "     |   |   |- vAppTemplates"
+		format links-resource-entities vdc "$download" | while IFS=$'\x01' read -r href mimeType name
+		do
+			if [ "$mimeType" = "application/vnd.vmware.vcloud.vAppTemplate+xml" ]; then
+				VAPP_TEMPLATE="$name"
+				echo "     |   |   |   |- ${VAPP_TEMPLATE}"
+				api none vdc_vAppTemplate "$ORGANISATION" "$VDC" "$VAPP_TEMPLATE"
+				
+				format links vdc_vAppTemplate "$download" | while IFS=$'\x01' read -r href mimeType name
+				do
+					echo "     |   |   |   |   |- ${href}"
+				done
+			fi
+		done
+		
 		echo "     |   |   |- vApps"
 		format links-resource-entities vdc "$download" | while IFS=$'\x01' read -r href mimeType name
 		do
@@ -108,16 +157,6 @@ do
 				do
 					echo "     |   |   |   |   |- $xmlLine"
 				done
-			fi
-		done
-		
-		echo "     |   |   |- Disks"
-		format links-resource-entities vdc "$download" | while IFS=$'\x01' read -r href mimeType name
-		do
-			if [ "$mimeType" = "application/vnd.vmware.vcloud.disk+xml" ]; then
-				DISK="$name"
-				echo "     |   |   |   |- ${DISK}"
-				#TODO: api none vdc_disk "$ORGANISATION" "$VDC" "$DISK"
 			fi
 		done
 		
