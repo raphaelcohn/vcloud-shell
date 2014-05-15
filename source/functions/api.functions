@@ -99,6 +99,7 @@ function api_help_format()
 {
 	echo "$(api_help_colorise "${FUNCNAME:9} <format> <formatCommand> [<files>...]")  Format XML"
 	printf '%s\n' 'Where files is a path to a file (or files) or:-'
+	printf '\t%s\n' '"$download"          to use the last download'
 	printf '\t%s\n' '"${downloads[N]}"    to use a previous download, where N is a zero-based index'
 	printf '\t%s\n' '"$downloadVersions"  to use the versions XML downloaded during login'
 	printf '\t%s\n' '"$downloadSessions"  to use the session XML downloaded during login'

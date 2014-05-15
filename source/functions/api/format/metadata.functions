@@ -20,7 +20,8 @@ function api_format_metadata()
 		;;
 		
 		settings)
-			xml_starlet_tsv_downloadFilePath '/_:Metadata' '_:MetadataEntry/_:Key' '_:MetadataEntry/_:TypedValue/_:Value' '_:MetadataEntry/_:TypedValue/@xsi:type'
+			# Problem is not matching because there are no values
+			xml_starlet_tsv_downloadFilePath '/_:Metadata/_:MetadataEntry/_:TypedValue' '../_:Key' '_:Value' '@xsi:type' 2>/dev/null || true
 		;;
 		
 		*)
