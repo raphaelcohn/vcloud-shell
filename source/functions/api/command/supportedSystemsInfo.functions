@@ -3,6 +3,7 @@ function api_command_supportedSystemsInfo()
 	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 0 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} takes no <args>"
+		return 1
 	fi
 	
 	local -r key="${FUNCNAME[0]:12}"
@@ -44,6 +45,7 @@ function api_format_supportedSystemsInfo()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv or links, not $api_format"
+			return 1
 		;;
 		
 	esac

@@ -26,6 +26,7 @@ function api_format_task()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv or links, not $api_format"
+			return 1
 		;;
 		
 	esac

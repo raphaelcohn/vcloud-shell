@@ -1,7 +1,14 @@
 main_functions=()
 
+function main_trapHandler_resetColor()
+{
+	echo -en "$main_line_end"
+	echo ""
+}
+
 function main_registerTrapHandlers()
 {
+	trapHandlers_addNext main_trapHandler_resetColor
 	trapHandlers_addNext temporaryFiles_removeAll
 }
 main_functions+=(main_registerTrapHandlers)
@@ -158,7 +165,9 @@ function main_executeCommands()
 				echo -en "$main_line_end"
 				
 				set +e
-				eval "${line}"
+				(
+					eval "${line}"
+				) || true
 				set -e
 			done
 		)

@@ -42,6 +42,7 @@ function api_format_orgs()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml or links, not $api_format"
+			return 1
 		;;
 		
 	esac

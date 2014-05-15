@@ -25,6 +25,7 @@ function api_format_metadata()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv, or settings, not $api_format"
+			return 1
 		;;
 		
 	esac
@@ -58,6 +59,7 @@ function api_format_metadataValue()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv, or settings, not $api_format"
+			return 1
 		;;
 		
 	esac

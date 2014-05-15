@@ -45,10 +45,16 @@ function api_help_help()
 
 api_commands+=(exit)
 
+function api_help_exit()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} [<code>]")  Exit the shell, optionally specifying a return code"
+}
+
 function api()
 {
 	if [ $# -lt 2 ]; then
 		vsh_message FAIL "api must specify <format> <action>, eg api $api_format admins"
+		return 1
 	fi
 	local api_format="$1"
 	local -r apiCommand="$2"
@@ -72,6 +78,7 @@ function format()
 {
 	if [ $# -lt 3 ]; then
 		vsh_message FAIL "format must specify arguments <format> <formatCommand> files..."
+		return 1
 	fi
 	local api_format="$1"
 	local -r formatCommand="$2"
