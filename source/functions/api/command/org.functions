@@ -3,6 +3,7 @@ function api_command_org()
 	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 1 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName>"
+		return 1
 	fi
 	
 	local -r orgName="$1"
@@ -45,6 +46,7 @@ function api_format_org()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, links, or id, not $api_format"
+			return 1
 		;;
 		
 	esac

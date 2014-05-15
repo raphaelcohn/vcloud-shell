@@ -145,5 +145,6 @@ function api_callback_fromNameAndMimeType
 
 function api_callback_failed()
 {
-	vsh_message FAIL "Could not find $resourceKind name $resourceName in ${FUNCNAME[*]}"
+	vsh_message FAIL "Could not find $resourceKind name $resourceName"
+	return 1
 }

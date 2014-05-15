@@ -21,6 +21,7 @@ function api_format_session()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, links or id, not $api_format"
+			return 1
 		;;
 		
 	esac

@@ -3,6 +3,7 @@ function api_command_vdc_media()
 	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 3 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <mediaName>"
+		return 1
 	fi
 	
 	local -r orgName="$1"
@@ -46,6 +47,11 @@ function api_format_vdc_media()
 		
 		links)
 			xml_starlet_tsv_links_relName '/_:Media/_:Link'
+		;;
+		
+		*)
+			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv, links or settings, not $api_format"
+			return 1
 		;;
 		
 	esac

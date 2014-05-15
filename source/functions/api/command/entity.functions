@@ -3,6 +3,7 @@ function api_command_entity()
 	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 1 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <urnId>"
+		return 1
 	fi
 	
 	local -r urnId="$1"
@@ -47,6 +48,7 @@ function api_format_entity()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, links, id-bash or id-tsv, not $api_format"
+			return 1
 		;;
 		
 	esac

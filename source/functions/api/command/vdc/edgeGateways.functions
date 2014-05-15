@@ -5,6 +5,7 @@ function api_command_vdc_edgeGateways()
 	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
 	if [ $# -ne 2 ]; then
 		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName>"
+		return 1
 	fi
 	
 	local -r orgName="$1"
@@ -55,6 +56,7 @@ function api_format_vdc_edgeGateways()
 		
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv, or links, not $api_format"
+			return 1
 		;;
 		
 	esac

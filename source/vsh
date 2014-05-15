@@ -13,6 +13,8 @@ function vsh_message()
 			if [ "$messageKind" = "FAIL" ]; then
 				if [ "$vsh_message_failExits" = "yes" ]; then
 					exit 1
+				else
+					return 1
 				fi
 			fi
 		;;
