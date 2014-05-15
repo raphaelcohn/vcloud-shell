@@ -1,5 +1,5 @@
 #!/usr/bin/env vsh
-ORGANISATION=98-180-1-151d73
+ORGANISATION=98-184-1-151d73
 VDC='Student Loans Company - Platform Engineering (IL0-TRIAL-BASIC)'
 NETWORK='Management'
 api xml vdc_network "$ORGANISATION" "$VDC" "$NETWORK"

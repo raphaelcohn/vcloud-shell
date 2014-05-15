@@ -1,0 +1,49 @@
+function api_command_vdc_network_create()
+{
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
+	if [ $# -ne 9 ]; then
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} requires <orgName> <vdcName> <networkName> <gateway> <netmask> <dns1> <startAddress> <endAddress> <fenceMode> "
+	fi
+
+	local -r orgName="$1"
+	local -r vdcName="$2"
+	local -r networkName="$3"
+	local -r gateway="$4"
+	local -r netmask="$5"
+	local -r dns1="$6"
+	local -r startAddress="$7"
+	local -r endAddress="$8"
+	local -r fenceMode="$9"
+	
+	temporaryFiles_newFileToRemoveOnExit
+	local -r xmlFilePath="$TMP_FILE"
+	cat >"$xmlFilePath" <<-EOF
+		<?xml version="1.0" encoding="UTF-8"?>
+		<OrgVdcNetwork name="${networkName}" xmlns="http://www.vmware.com/vcloud/v1.5">
+			<Description>${networkName}</Description>
+			<Configuration>
+				<IpScopes>
+					<IpScope>
+						<IsInherited>false</IsInherited>
+						<Gateway>${gateway}</Gateway>
+						<Netmask>${netmask}</Netmask>
+						<Dns1>${dns1}</Dns1>
+						<IpRanges>
+							<IpRange>
+								<StartAddress>${startAddress}</StartAddress>
+								<EndAddress>${endAddress}</EndAddress>
+							</IpRange>
+						</IpRanges>
+					</IpScope>
+				</IpScopes>
+				<FenceMode>${fenceMode}</FenceMode>
+			</Configuration>
+		</OrgVdcNetwork>
+	EOF
+	
+	local curl_downloadFilePath
+	api_call_post_expectedResponseCode=201 api_call_post links api_callback_fromMimeType api_callback_test_fromMimeType mime "application/vnd.vmware.vcloud.orgVdcNetwork+xml" '' "application/vnd.vmware.vcloud.orgVdcNetwork+xml" "$xmlFilePath" \
+		api_command_vdc "$orgName" "$vdcName"
+	
+	api_format_vdc_network
+}
