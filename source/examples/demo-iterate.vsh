@@ -100,8 +100,8 @@ do
 		format links-resource-entities vdc "$download" | while IFS=$'\x01' read -r href mimeType name
 		do
 			if [ "$mimeType" = "application/vnd.vmware.vcloud.vApp+xml" ]; then
-				echo "     |   |   |   |- ${VAPP}"
 				VAPP="$name"
+					echo "     |   |   |   |- ${VAPP}"
 				api none vdc_vApp "$ORGANISATION" "$VDC" "$VAPP"
 				
 				cat "$download" | while IFS= read -r xmlLine
