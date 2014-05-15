@@ -52,6 +52,13 @@ function api_call_post()
 	local -r postFile="$8"
 	shift 8
 	
+	local -i expectedResponseCode
+	if [ -n "$api_call_post_expectedResponseCode" ]; then
+		expectedResponseCode=$api_call_post_expectedResponseCode
+	else
+		expectedResponseCode=202
+	fi
+	
 	temporaryFiles_newFileToRemoveOnExit
 	local -r linksTsvFile="$TMP_FILE"
 	
@@ -59,7 +66,7 @@ function api_call_post()
 	
 	local foundHref=""
 	${callbackToParseOutObjectUrl} "$testCallback" "$linksTsvFile" "$resourceKind" "$resourceNameOrMimeType"
-	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall 202 POST "${foundHref}${queryString}" "Content-Type" "${contentType}"
+	curl_post="@${postFile}" curl_wrapperLoggedInAbsoluteApiCall $expectedResponseCode POST "${foundHref}${queryString}" "Content-Type" "${contentType}"
 }
 
 function api_call_delete()

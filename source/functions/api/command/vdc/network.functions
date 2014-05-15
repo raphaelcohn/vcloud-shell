@@ -25,7 +25,7 @@ function api_command_vdc_network()
 	api_format_${FUNCNAME[0]:12}
 }
 
-function api_format_network()
+function api_format_vdc_network()
 {
 	local -r prefix="${FUNCNAME[0]:11}"
 	case "$api_format" in
