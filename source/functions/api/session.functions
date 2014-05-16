@@ -115,6 +115,7 @@ function api_session_versions()
 	api_map['/api/versions']="$absoluteUrl"
 	# found from /api/admin/<uuid>, not in the map from /api/sessions
 	api_map['/api/supportedSystemsInfo/']="${vsh_baseUrl}/api/supportedSystemsInfo/"
+	api_map['/api/admin/extension']="${vsh_baseUrl}/api/admin/extension"
 	
 	downloadVersions="$curl_downloadFilePath"
 }
