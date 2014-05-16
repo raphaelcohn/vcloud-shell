@@ -34,7 +34,6 @@ function curl_wrapperLoggedInRelativeApiCall()
 	local -r verb="$2"
 	local -r relativePath="$3"
 	shift 3
-	
 	curl_wrapperLoggedInAbsoluteApiCall $curl_expectedHttpResponseCode "$verb" "${api_map["${relativePath}"]}" "$@"
 }
 

@@ -1,0 +1,48 @@
+function api_command_extension()
+{
+	vsh_message INFO "api $api_format ${FUNCNAME[0]:12} $@"
+	if [ $# -ne 0 ]; then
+		vsh_message FAIL "api $api_format ${FUNCNAME[0]:12} takes no <args>"
+	fi
+	
+	local -r key="${FUNCNAME[0]:12}"
+	local -r value="${api_downloadsCache["${key}"]}"
+	if [ -n "$value" ]; then
+		local curl_downloadFilePath="$value"
+	else
+		local curl_downloadFilePath
+		curl_wrapperLoggedInRelativeApiCall 200 GET /api/admin/extension
+		api_call_cacheDownload
+	fi
+	
+	api_call_recordDownload
+	api_format_${FUNCNAME[0]:12}
+}
+
+function api_format_extension()
+{
+	local -r prefix="${FUNCNAME[0]:11}"
+	case "$api_format" in
+		
+		none)
+			:
+		;;
+		
+		xml)
+			cat "$curl_downloadFilePath"
+		;;
+		
+#		id-*)
+#			xml_starlet_keyValue ${api_format:3} "$prefix" "$curl_downloadFilePath" '/_:VCloud' '@href' '@type' '@name' '_:Description'
+#		;;
+#		
+#		links)
+#			xml_starlet_tsv_links_name '/_:VCloud/_:OrganizationReferences/_:OrganizationReference'
+#		;;
+		
+		*)
+			vsh_message FAIL "Please specify api_format as either xml, links, id-bash or id-tsv, not $api_format"
+		;;
+		
+	esac
+}
