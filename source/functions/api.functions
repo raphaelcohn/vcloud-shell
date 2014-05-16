@@ -43,13 +43,6 @@ function api_help_help()
 	echo "$(api_help_colorise "${FUNCNAME:9} [<command>]")  Displays list of commands or help for <command>"
 }
 
-api_commands+=(exit)
-
-function api_help_exit()
-{
-	echo "$(api_help_colorise "${FUNCNAME:9} [<code>]")  Exit the shell, optionally specifying a return code"
-}
-
 function api()
 {
 	if [ $# -lt 2 ]; then
@@ -131,4 +124,98 @@ function api_help_cached()
 {
 	echo "$(api_help_colorise "${FUNCNAME:9}")  Returns a path to a file of cached content based on a key"
 	printf '%s\n' 'Use as  "$(cached <api-command> <argument> <argument> ... )"  whereargument is one of the arguments used to the original <api-command>'
+}
+
+function GET()
+{
+	if [ $# -ne 1 ]; then
+		vsh_message FAIL "${FUNCNAME} must specify <url>"
+		return 1
+	fi
+    local -r url="$1"
+    
+    local curl_downloadFilePath
+    
+    curl_wrapperLoggedInAbsoluteApiCall 200 GET "$url"
+    
+    cat "$curl_downloadFilePath"
+}
+api_commands+=(GET)
+
+function api_help_GET()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} <url>")  Returns the contents of URL to standard out"
+}
+
+function DELETE()
+{
+	if [ $# -ne 1 ]; then
+		vsh_message FAIL "${FUNCNAME} must specify <url>"
+		return 1
+	fi
+    local -r url="$1"
+    
+    local curl_downloadFilePath
+    
+    curl_wrapperLoggedInAbsoluteApiCall 202 DELETE "$url"
+    
+    cat "$curl_downloadFilePath"
+}
+
+api_commands+=(DELETE)
+
+function api_help_DELETE()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} <url>")  Deletes the URL"
+}
+
+function PUT()
+{
+	if [ $# -ne 2 ]; then
+		vsh_message FAIL "${FUNCNAME} must specify <url> <filePath>"
+		return 1
+	fi
+    local -r url="$1"
+    local -r filePath="$2"
+    
+    local curl_downloadFilePath
+    
+    curl_put="${putFile}" curl_wrapperLoggedInAbsoluteApiCall 202 PUT "$url"
+    
+    cat "$curl_downloadFilePath"
+}
+
+api_commands+=(PUT)
+
+function api_help_PUT()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} <url> <filePath>")  PUTs <filePath> to the URL"
+}
+
+function POST()
+{
+	if [ $# -lt 2 ]; then
+		vsh_message FAIL "${FUNCNAME} must specify <url> <filePath> [<expectedResponseCode>]"
+		return 1
+	fi
+    local -r url="$1"
+    local -r filePath="$2"
+    if [ $# -eq 3 ]; then
+        local -ir expectedResponseCode=$3
+    else
+        local -ir expectedResponseCode=202
+    fi
+    
+    local curl_downloadFilePath
+    
+    curl_post="@${filePath}" curl_wrapperLoggedInAbsoluteApiCall $expectedResponseCode POST "$url"
+    
+    cat "$curl_downloadFilePath"
+}
+
+api_commands+=(POST)
+
+function api_help_POST()
+{
+	echo "$(api_help_colorise "${FUNCNAME:9} <url> <filePath> [<expectedResponseCode>]")  POSTs <filePath> to the URL; <expectedResponseCode> defaults to 202, but some calls use 201!"
 }

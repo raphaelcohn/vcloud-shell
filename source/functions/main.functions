@@ -140,7 +140,7 @@ function main_login()
 			Use bash syntax or built-in commands
 			Built-in commands are  ${main_commands}
 			For help type ${helpMessage}
-			To exit type ${exitMessage} or press ${ctrlC}
+			To exit press ${ctrlC}
 		EOF
 	fi
 }
