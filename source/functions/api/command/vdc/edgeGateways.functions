@@ -54,6 +54,10 @@ function api_format_vdc_edgeGateways()
 			xml_starlet_tsv_links_rel '/_:QueryResultRecords/_:Link'
 		;;
 		
+		links-edgegateways)
+				xml_starlet_tsv_links_name "/_:QueryResultRecords/_:EdgeGatewayRecord"
+		;;
+		
 		settings)
 				xml_starlet_tsv_downloadFilePath "/_:QueryResultRecords/_:EdgeGatewayRecord" "@vdc" "@numberOfOrgNetworks" "@numberOfExtNetworks" "@name" \
 				"@isBusy" "@haStatus" "@gatewayStatus" "@href" "@isSyslogServerSettingInSync" "@taskStatus" "@taskOperation" "@task" "@taskDetails"

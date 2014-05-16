@@ -6,6 +6,6 @@ api xml vdc_edgeGateways "$ORGANISATION" "$VDC"
 #defaults_format_headings=with-heading format id-tsv vdc_edgeGateways "${downloads[0]}"
 format id-tsv vdc_edgeGateways "${downloads[0]}"
 format id-bash vdc_edgeGateways "${downloads[0]}"
-
+format links-edgegateways vdc_edgeGateways "${downloads[0]}"
 format settings vdc_edgeGateways "${downloads[0]}"
 format links vdc_edgeGateways "${downloads[0]}"
