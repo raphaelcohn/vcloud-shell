@@ -63,10 +63,32 @@ function api_format_vdc_edgeGateway()
 			xml_starlet_tsv_links_name '/_:EdgeGateway/_:Configuration/_:EdgeGatewayServiceConfiguration/_:NatService/_:NatRule/_:GatewayNatRule/_:Interface' \
 		;;
         
+        settings-pools)
+			xml_starlet_tsv_downloadFilePath '/_:EdgeGateway/_:Configuration/_:EdgeGatewayServiceConfiguration/_:GatewayDhcpService/_:Pool' '_:IsEnabled' \
+            '_:Network/@type' '_:Network/@name' '_:Network/@href' '_:DefaultLeaseTime' '_:MaxLeaseTime' '_:LowIpAddress' '_:HighIpAddress'
+        ;;
+        settings-firewallrules)
+            xml_starlet_tsv_downloadFilePath '/_:EdgeGateway/_:Configuration/_:EdgeGatewayServiceConfiguration/_:FirewallService/_:FirewallRule' \
+            '_:Id' '_:IsEnabled' '_:MatchOnTranslate' '_:Description' '_:Policy' "$(xml_starlet_default _:Protocols/_:Tcp 'false')" \
+            "$(xml_starlet_default _:Protocols/_:Udp 'false')" "$(xml_starlet_default _:Protocols/_:Any 'false')" \
+            '_:Port' '_:DestinationPortRange' '_:DestinationIp' '_:SourcePort' '_:SourcePortRange' '_:SourceIp' '_:EnableLogging' 
+        ;;
+        settings-gateways)
+            xml_starlet_tsv_downloadFilePath '/_:EdgeGateway/_:Configuration/_:GatewayInterfaces/_:GatewayInterface' '_:Name' '_:DisplayName' '_:Network/@type' \
+            '_:Network/@name' '_:Network/@href' '_:InterfaceType' '_:ApplyRateLimit' '_:InRateLimit' '_:OutRateLimit' '_:UseForDefaultRoute'
+        ;;
 		*)
 			vsh_message FAIL "Please specify api_format as either xml, id-bash, id-tsv or links, not $api_format"
 			return 1
 		;;
 		
 	esac
+}
+
+function xml_starlet_default()
+{
+    local -r xPath="$1"
+    local -r defaultValue="$2"
+    
+    echo -ne "concat(${xPath},substring(\"${defaultValue}\", 1 div not(${xPath})))"
 }

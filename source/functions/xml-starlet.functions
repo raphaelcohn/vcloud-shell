@@ -1,3 +1,11 @@
+function xml_starlet_default()
+{
+    local -r xPath="$1"
+    local -r defaultValue="$2"
+    
+    echo -ne "concat(${xPath},substring(\"${defaultValue}\", 1 div not(${xPath})))"
+}
+
 function xml_starlet_tsv_links_relName()
 {
 	xml_starlet_tsv_downloadFilePath "$1" '@href' '@type' '@rel' '@name' "${@:2}"
